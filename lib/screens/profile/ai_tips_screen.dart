@@ -25,69 +25,92 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Resume Tips'),
+        title: const Text('AI Resume Analysis'),
         centerTitle: true,
       ),
-      body: aiProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryBlue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.auto_awesome_rounded, color: AppTheme.primaryBlue, size: 32),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('AI Analysis',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.primaryBlue)),
-                              const SizedBox(height: 4),
-                              const Text('Personalized tips to make your resume stand out.'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context, aiProvider),
+            const SizedBox(height: 32),
+            if (aiProvider.isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else ...[
+              if (aiProvider.analysisResult != null) ...[
+                Text('Analysis Results', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.1)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
                   ),
-                  const SizedBox(height: 32),
-                  Text('Top Tips for You', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 16),
-                  ...aiProvider.currentTips.map((tip) => _buildTipCard(tip)),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      aiProvider.analyzeResume("I am a Senior Product Designer expert in Figma and UX Research.");
-                    },
-                    child: const Text('Re-Analyze My Resume'),
+                  child: Text(
+                    aiProvider.analysisResult!,
+                    style: const TextStyle(height: 1.6, fontSize: 15),
                   ),
-                  if (aiProvider.analysisResult != null) ...[
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.lightGray,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.1)),
-                      ),
-                      child: Text(
-                        aiProvider.analysisResult!,
-                        style: const TextStyle(fontWeight: FontWeight.w500, fontStyle: FontStyle.italic),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                ),
+                const SizedBox(height: 32),
+              ],
+              Text('Smart Tips for You', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              ...aiProvider.currentTips.map((tip) => _buildTipCard(tip)),
+            ],
+          ],
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(24),
+        child: ElevatedButton.icon(
+          onPressed: aiProvider.isLoading 
+              ? null 
+              : () => aiProvider.analyzeResume("I am a Senior Product Designer expert in Figma and UX Research."),
+          icon: const Icon(Icons.psychology_rounded),
+          label: const Text('Analyze My Resume Now'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, AIProvider aiProvider) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.secondaryBlue,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome_rounded, color: AppTheme.primaryBlue, size: 32),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Elite Resume Optimizer',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('Get AI-powered feedback to land your dream job.'),
+              ],
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -105,7 +128,7 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
         children: [
           const Icon(Icons.lightbulb_outline_rounded, color: Colors.amber, size: 24),
           const SizedBox(width: 12),
-          Expanded(child: Text(tip, style: const TextStyle(fontSize: 15, height: 1.4))),
+          Expanded(child: Text(tip, style: const TextStyle(fontSize: 14, height: 1.4))),
         ],
       ),
     );
