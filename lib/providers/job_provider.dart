@@ -10,31 +10,38 @@ class JobProvider with ChangeNotifier {
   final List<Job> _savedJobs = [];
   bool _isLoading = false;
   String? _error;
+  String? _currentQuery;
+  String? _currentCategory = 'All';
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
   List<Job> get savedJobs => _savedJobs;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get currentQuery => _currentQuery;
+  String? get currentCategory => _currentCategory;
 
   Future<void> loadJobs({
     String? query,
-    String? jobType,
+    String? category,
     String? location,
   }) async {
+    _currentQuery = query ?? _currentQuery;
+    _currentCategory = category ?? _currentCategory;
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       _jobs = await _jobService.fetchJobs(
-        query: query,
-        jobType: jobType,
+        query: _currentQuery,
+        jobType: _currentCategory,
         location: location,
       );
       
       // Auto-seed if database is empty and no query/filter is applied
-      if (_jobs.isEmpty && (query == null || query.isEmpty) && (jobType == null || jobType == 'All')) {
+      if (_jobs.isEmpty && (_currentQuery == null || _currentQuery!.isEmpty) && (_currentCategory == null || _currentCategory == 'All')) {
         await _jobService.seedJobs();
         _jobs = await _jobService.fetchJobs();
       }
@@ -51,6 +58,12 @@ class JobProvider with ChangeNotifier {
     }
   }
 
+
+  Future<void> clearFilters() async {
+    _currentQuery = null;
+    _currentCategory = 'All';
+    await loadJobs();
+  }
 
   Future<void> loadFeaturedJobs() async {
     try {
