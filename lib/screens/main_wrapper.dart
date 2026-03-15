@@ -44,7 +44,7 @@ class _MainWrapperState extends State<MainWrapper> {
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             decoration: BoxDecoration(
-              color: AppTheme.darkBlue.withOpacity(0.95),
+              color: AppTheme.primaryBlue.withOpacity(0.95),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: Colors.white.withOpacity(0.12),
