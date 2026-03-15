@@ -5,6 +5,7 @@ import 'package:elitehire/models/job.dart';
 import 'package:elitehire/providers/job_provider.dart';
 import 'package:elitehire/providers/auth_provider.dart';
 import 'package:elitehire/core/theme.dart';
+import 'ai_cover_letter_screen.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Job job;
@@ -67,6 +68,52 @@ class JobDetailsScreen extends StatelessWidget {
             Text('Requirements', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             ...job.requirements.map((req) => _buildListItem(req)),
+            const SizedBox(height: 32),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.primaryBlue, AppTheme.primaryBlue.withOpacity(0.8)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 28),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Need a Cover Letter?',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('Let Elite AI write a custom letter for this job.',
+                            style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AICoverLetterScreen(
+                            jobTitle: job.title,
+                            jobDescription: job.description,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppTheme.primaryBlue,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
+                    child: const Text('Generate'),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 100), // Space for fixed button
           ],
         ),
