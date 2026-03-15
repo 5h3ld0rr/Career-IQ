@@ -16,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
-  String _selectedCategory = 'All';
   final List<String> _categories = ['All', 'Design', 'Tech', 'Marketing', 'Sales', 'Finance'];
 
   @override
@@ -77,17 +76,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: TextField(
                     controller: _searchController,
                     onSubmitted: (val) => jobProvider.loadJobs(query: val),
+                    onChanged: (val) {
+                      if (val.isEmpty) {
+                        jobProvider.loadJobs(query: '');
+                      }
+                    },
                     decoration: InputDecoration(
                       hintText: 'Search for jobs, companies...',
                       prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryBlue,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.tune_rounded, color: Colors.white, size: 20),
-                      ),
+                      suffixIcon: _searchController.text.isNotEmpty 
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, size: 20),
+                            onPressed: () {
+                              _searchController.clear();
+                              jobProvider.loadJobs(query: '');
+                            },
+                          )
+                        : Container(
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryBlue,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.tune_rounded, color: Colors.white, size: 20),
+                          ),
                     ),
                   ),
                 ),
@@ -101,14 +113,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: const EdgeInsets.only(right: 12),
                               child: ChoiceChip(
                                 label: Text(cat),
-                                selected: _selectedCategory == cat,
+                                selected: jobProvider.currentCategory == cat,
                                 onSelected: (selected) {
-                                  setState(() => _selectedCategory = cat);
-                                  // In a real app, filtering logic would go here
+                                  if (selected) {
+                                    jobProvider.loadJobs(category: cat);
+                                  }
                                 },
                                 selectedColor: AppTheme.primaryBlue,
                                 labelStyle: TextStyle(
-                                  color: _selectedCategory == cat ? Colors.white : AppTheme.darkGray,
+                                  color: jobProvider.currentCategory == cat ? Colors.white : AppTheme.darkGray,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 backgroundColor: AppTheme.lightGray,
