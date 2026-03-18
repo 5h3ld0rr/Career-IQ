@@ -160,4 +160,36 @@ class JobService {
       'status': 'pending',
     });
   }
+
+  Future<List<Map<String, dynamic>>> fetchUserApplications(String userId) async {
+    final snapshot = await _firestore
+        .collection('applications')
+        .where('userId', isEqualTo: userId)
+        .orderBy('appliedAt', descending: true)
+        .get();
+
+    List<Map<String, dynamic>> applications = [];
+    
+    for (var doc in snapshot.docs) {
+      final appData = doc.data();
+      final jobId = appData['jobId'];
+      
+      // Fetch job details for each application
+      final jobDoc = await _firestore.collection('jobs').doc(jobId).get();
+      if (jobDoc.exists) {
+        final jobData = jobDoc.data()!;
+        applications.add({
+          'id': doc.id,
+          'status': appData['status'],
+          'appliedAt': appData['appliedAt'],
+          'job': {
+            'id': jobDoc.id,
+            ...jobData,
+          },
+        });
+      }
+    }
+    
+    return applications;
+  }
 }

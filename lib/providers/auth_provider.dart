@@ -15,6 +15,7 @@ class AuthProvider with ChangeNotifier {
   String? _resumeUrl;
   DateTime? _resumeUploadedAt;
 
+  String? get userId => _authService.currentUser?.uid;
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
   String? get error => _error;

@@ -349,30 +349,74 @@ class JobDetailsScreen extends StatelessWidget {
   }
 
   bool _isApplied(BuildContext context, AuthProvider auth) {
-    // Simply check if job is in tracker or similar logic if available
-    return false; // Mock logic
+    if (auth.userId == null) return false;
+    final jobProvider = Provider.of<JobProvider>(context, listen: false);
+    return jobProvider.userApplications.any((app) => app['job']['id'] == job.id);
   }
 
   Widget _buildApplyButton(BuildContext context, AuthProvider auth) {
-    return ElevatedButton(
-      onPressed: () {}, // Handled by standard flow
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: const Text(
-        'APPLY NOW',
-        style: TextStyle(fontWeight: FontWeight.w900),
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: () async {
+          if (auth.userId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please login to apply')),
+            );
+            return;
+          }
+
+          try {
+            final jobProvider = Provider.of<JobProvider>(context, listen: false);
+            await jobProvider.applyForJob(auth.userId!, job.id);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Application submitted successfully!')),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to apply: $e')),
+            );
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        child: const Text(
+          'APPLY NOW',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+        ),
       ),
     );
   }
 
   Widget _buildAppliedState() {
-    return const Center(
-      child: Text(
-        'ALREADY APPLIED',
-        style: TextStyle(fontWeight: FontWeight.w900, color: Colors.green),
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.green.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.green),
+            SizedBox(width: 8),
+            Text(
+              'ALREADY APPLIED',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: Colors.green,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

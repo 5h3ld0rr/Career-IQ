@@ -15,9 +15,12 @@ class JobProvider with ChangeNotifier {
   String _selectedJobType = 'All';
   String _selectedWorkMode = 'All';
 
+  List<Map<String, dynamic>> _userApplications = [];
+
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
   List<Job> get savedJobs => _savedJobs;
+  List<Map<String, dynamic>> get userApplications => _userApplications;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get currentQuery => _currentQuery;
@@ -88,9 +91,25 @@ class JobProvider with ChangeNotifier {
     }
   }
 
+  Future<void> loadUserApplications(String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _userApplications = await _jobService.fetchUserApplications(userId);
+    } catch (e) {
+      _error = 'Failed to load applications: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> applyForJob(String userId, String jobId) async {
     try {
       await _jobService.applyForJob(userId, jobId);
+      await loadUserApplications(userId); // Reload after application
     } catch (e) {
       debugPrint('Error applying for job: $e');
       rethrow;
