@@ -2,7 +2,7 @@
 // ignore_for_file: type=lint
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -16,11 +16,32 @@ import 'package:flutter/foundation.dart'
 /// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
+    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
         return ios;
+      case TargetPlatform.macOS:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.windows:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
+      case TargetPlatform.linux:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for linux - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -29,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBQwTxtiAXOIDLbEVFJElr8PJXawmNzmL0',
-    appId: '1:937854044114:android:5d8d2b8a28d6751f8d2a0b',
-    messagingSenderId: '937854044114',
-    projectId: 'job-sync-5b0ad',
-    storageBucket: 'job-sync-5b0ad.firebasestorage.app',
+    apiKey: 'AIzaSyCliV2ZY81_0m9vZ_gBrIDuZ25a0eULUNI',
+    appId: '1:197211019146:android:cbc86fc0996770b58a9a73',
+    messagingSenderId: '197211019146',
+    projectId: 'carreriq-50093',
+    storageBucket: 'carreriq-50093.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAXSmmSOzBHEmfLDVbVPDFJrqkw80Z4Ijc',
-    appId: '1:937854044114:ios:26665224665703678d2a0b',
-    messagingSenderId: '937854044114',
-    projectId: 'job-sync-5b0ad',
-    storageBucket: 'job-sync-5b0ad.firebasestorage.app',
-    iosBundleId: 'com.example.elitehire',
+    apiKey: 'AIzaSyCjq0Ek5wRt_b03u-gcPXJghM0USre9q0M',
+    appId: '1:197211019146:ios:d165161701b2bf4f8a9a73',
+    messagingSenderId: '197211019146',
+    projectId: 'carreriq-50093',
+    storageBucket: 'carreriq-50093.firebasestorage.app',
+    iosBundleId: 'com.example.careeriq',
   );
 }

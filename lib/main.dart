@@ -34,20 +34,20 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AIProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: const EliteHireApp(),
+      child: const CareerIQApp(),
     ),
   );
 }
 
-class EliteHireApp extends StatelessWidget {
-  const EliteHireApp({super.key});
+class CareerIQApp extends StatelessWidget {
+  const CareerIQApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
-      title: 'Elite Hire',
+      title: 'CareerIQ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

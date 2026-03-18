@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "937854044114",
-    "project_id": "job-sync-5b0ad",
-    "storage_bucket": "job-sync-5b0ad.firebasestorage.app"
+    "project_number": "197211019146",
+    "project_id": "carreriq-50093",
+    "storage_bucket": "carreriq-50093.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:937854044114:android:5d8d2b8a28d6751f8d2a0b",
+        "mobilesdk_app_id": "1:197211019146:android:cbc86fc0996770b58a9a73",
         "android_client_info": {
-          "package_name": "com.example.elitehire"
+          "package_name": "com.example.careeriq"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBQwTxtiAXOIDLbEVFJElr8PJXawmNzmL0"
+          "current_key": "AIzaSyCliV2ZY81_0m9vZ_gBrIDuZ25a0eULUNI"
         }
       ],
       "services": {

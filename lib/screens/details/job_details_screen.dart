@@ -2,10 +2,10 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:elitehire/models/job.dart';
-import 'package:elitehire/providers/job_provider.dart';
-import 'package:elitehire/providers/auth_provider.dart';
-import 'package:elitehire/core/theme.dart';
+import 'package:careeriq/models/job.dart';
+import 'package:careeriq/providers/job_provider.dart';
+import 'package:careeriq/providers/auth_provider.dart';
+import 'package:careeriq/core/theme.dart';
 import 'ai_cover_letter_screen.dart';
 
 class JobDetailsScreen extends StatelessWidget {

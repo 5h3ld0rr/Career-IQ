@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ai_provider.dart';
-import 'package:elitehire/core/theme.dart';
+import 'package:careeriq/core/theme.dart';
 import 'package:flutter/services.dart';
 
 class AICoverLetterScreen extends StatefulWidget {

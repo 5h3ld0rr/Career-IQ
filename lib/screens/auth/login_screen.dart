@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:elitehire/providers/auth_provider.dart';
-import 'package:elitehire/core/theme.dart';
+import 'package:careeriq/providers/auth_provider.dart';
+import 'package:careeriq/core/theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

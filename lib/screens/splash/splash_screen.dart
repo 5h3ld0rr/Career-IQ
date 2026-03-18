@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:elitehire/providers/auth_provider.dart';
-import 'package:elitehire/core/theme.dart';
+import 'package:careeriq/providers/auth_provider.dart';
+import 'package:careeriq/core/theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -71,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               const SizedBox(height: 24),
               Text(
-                'Elite Hire',
+                'CareerIQ',
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color: Colors.white,
                   letterSpacing: 1.2,

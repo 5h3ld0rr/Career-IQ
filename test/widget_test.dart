@@ -7,14 +7,14 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:elitehire/main.dart';
+import 'package:careeriq/main.dart';
 
 void main() {
   testWidgets('App loads smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const EliteHireApp());
+    await tester.pumpWidget(const CareerIQApp());
 
     // Verify that the splash screen text appears.
-    expect(find.text('Elite Hire'), findsOneWidget);
+    expect(find.text('CareerIQ'), findsOneWidget);
   });
 }

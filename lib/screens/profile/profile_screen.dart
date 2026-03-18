@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:elitehire/providers/auth_provider.dart';
-import 'package:elitehire/core/theme.dart';
-import 'package:elitehire/providers/theme_provider.dart';
+import 'package:careeriq/providers/auth_provider.dart';
+import 'package:careeriq/core/theme.dart';
+import 'package:careeriq/providers/theme_provider.dart';
 import 'ai_tips_screen.dart';
 
 class ProfileScreen extends StatelessWidget {

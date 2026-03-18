@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:elitehire/services/auth_service.dart';
+import 'package:careeriq/services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();

@@ -1,4 +1,4 @@
-# Elite Hire
+# CareerIQ
 
 A new Flutter project.
 
