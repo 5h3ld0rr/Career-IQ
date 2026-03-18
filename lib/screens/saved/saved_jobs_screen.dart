@@ -75,23 +75,25 @@ class SavedJobsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24, bool disableBlur = false}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withOpacity(disableBlur ? 0.8 : 0.6),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(20),
-            child: child,
-          ),
-        ),
+        child: disableBlur 
+          ? Padding(padding: padding ?? const EdgeInsets.all(20), child: child)
+          : BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Padding(
+                padding: padding ?? const EdgeInsets.all(20),
+                child: child,
+              ),
+            ),
       ),
     );
   }
@@ -117,11 +119,13 @@ class SavedJobsScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job))),
       child: _buildGlassBox(
+        disableBlur: true,
         child: Row(
           children: [
             _buildGlassBox(
               borderRadius: 16,
               padding: const EdgeInsets.all(8),
+              disableBlur: true,
               child: CachedNetworkImage(imageUrl: job.logoUrl, width: 40, height: 40),
             ),
             const SizedBox(width: 16),

@@ -10,7 +10,6 @@ import '../details/job_details_screen.dart';
 import '../cv_analysis/cv_upload_screen.dart';
 import '../tracker/application_tracker_screen.dart';
 import '../interview/mock_interview_screen.dart';
-import '../../widgets/job_filter_modal.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,33 +44,83 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             child: RefreshIndicator(
               onRefresh: () => jobs.loadJobs(),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 20),
+              child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(auth, context),
-                    const SizedBox(height: 24),
-                    _buildSearchArea(context, jobs),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('AI Career Tools'),
-                    _buildQuickActions(context),
-                    const SizedBox(height: 24),
-                    _buildCategoryFilters(jobs),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('Featured Jobs', showSeeAll: true),
-                    _buildFeaturedJobs(jobs),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('Latest Job Listings', showSeeAll: true),
-                    _buildLatestJobs(jobs),
-                    const SizedBox(height: 100),
-                  ],
-                ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(auth, context),
+                          const SizedBox(height: 24),
+                          _buildSearchArea(context, jobs),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle('AI Career Tools'),
+                          _buildQuickActions(context),
+                          const SizedBox(height: 24),
+                          _buildCategoryFilters(jobs),
+                          const SizedBox(height: 32),
+                          _buildSectionTitle('Featured Jobs', showSeeAll: true),
+                          _buildFeaturedJobs(jobs),
+                          const SizedBox(height: 32),
+                          _buildSectionTitle('Latest Job Listings', showSeeAll: true),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, i) {
+                          final job = jobs.jobs[i];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildJobListItem(job, context),
+                          );
+                        },
+                        childCount: jobs.jobs.length,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildJobListItem(Job job, BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job))),
+      child: _buildGlassBox(
+        disableBlur: true, // Optimizing performance in list
+        child: Row(
+          children: [
+            _buildGlassBox(
+              borderRadius: 12, 
+              padding: const EdgeInsets.all(8), 
+              disableBlur: true,
+              child: CachedNetworkImage(imageUrl: job.logoUrl, width: 32, height: 32)
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(job.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text('${job.companyName} • ${job.location}', style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.black26),
+          ],
+        ),
       ),
     );
   }
@@ -91,24 +140,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildGlassBox({required Widget child, double? width, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox({required Widget child, double? width, EdgeInsets? padding, double borderRadius = 24, bool disableBlur = false}) {
     return Container(
       width: width,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withOpacity(disableBlur ? 0.9 : 0.6),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(16),
-            child: child,
-          ),
-        ),
+        child: disableBlur 
+          ? Padding(padding: padding ?? const EdgeInsets.all(16), child: child)
+          : BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Padding(
+                padding: padding ?? const EdgeInsets.all(16),
+                child: child,
+              ),
+            ),
       ),
     );
   }
@@ -253,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildGlassBox(padding: const EdgeInsets.all(8), borderRadius: 12, child: CachedNetworkImage(imageUrl: job.logoUrl, width: 24, height: 24)),
+                  _buildGlassBox(padding: const EdgeInsets.all(8), borderRadius: 12, disableBlur: true, child: CachedNetworkImage(imageUrl: job.logoUrl, width: 24, height: 24)),
                   const Icon(Icons.bookmark_outline_rounded, color: Colors.black54),
                 ],
               ),
@@ -265,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(job.salary, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  _buildGlassBox(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), borderRadius: 8, child: Text(job.jobType, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
+                  _buildGlassBox(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), borderRadius: 8, disableBlur: true, child: Text(job.jobType, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
                 ],
               ),
             ],
@@ -274,41 +325,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  Widget _buildLatestJobs(JobProvider jobs) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: jobs.jobs.length,
-        itemBuilder: (context, i) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailsScreen(job: jobs.jobs[i]))),
-            child: _buildGlassBox(
-              child: Row(
-                children: [
-                  _buildGlassBox(borderRadius: 12, padding: const EdgeInsets.all(8), child: CachedNetworkImage(imageUrl: jobs.jobs[i].logoUrl, width: 32, height: 32)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(jobs.jobs[i].title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text('${jobs.jobs[i].companyName} • ${jobs.jobs[i].location}', style: const TextStyle(color: Colors.black54, fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right_rounded, color: Colors.black26),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLatestJobsList(JobProvider jobs) { return Container(); } // Placeholder not needed
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
+import 'package:careeriq/widgets/google_sign_in_button.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -152,15 +153,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildGoogleButton(bool isLoading) {
-    return SizedBox(
-      width: double.infinity,
-      height: 58,
-      child: OutlinedButton.icon(
-        onPressed: isLoading ? null : _handleGoogleLogin,
-        style: OutlinedButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.3), foregroundColor: Colors.black, side: BorderSide.none, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-        icon: const Icon(Icons.g_mobiledata, size: 30),
-        label: const Text('GOOGLE SIGN UP', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-      ),
+    return GoogleSignInButton(
+      isLoading: isLoading,
+      onPressed: _handleGoogleLogin,
+      label: 'Google Sign Up',
     );
   }
 }
