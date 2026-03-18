@@ -28,7 +28,7 @@ class JobProvider with ChangeNotifier {
   }) async {
     _currentQuery = query ?? _currentQuery;
     _currentCategory = category ?? _currentCategory;
-    
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -39,9 +39,11 @@ class JobProvider with ChangeNotifier {
         jobType: _currentCategory,
         location: location,
       );
-      
+
       // Auto-seed if database is empty and no query/filter is applied
-      if (_jobs.isEmpty && (_currentQuery == null || _currentQuery!.isEmpty) && (_currentCategory == null || _currentCategory == 'All')) {
+      if (_jobs.isEmpty &&
+          (_currentQuery == null || _currentQuery!.isEmpty) &&
+          (_currentCategory == null || _currentCategory == 'All')) {
         await _jobService.seedJobs();
         _jobs = await _jobService.fetchJobs();
       }
@@ -57,7 +59,6 @@ class JobProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   Future<void> clearFilters() async {
     _currentQuery = null;

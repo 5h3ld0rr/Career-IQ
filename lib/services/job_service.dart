@@ -79,21 +79,30 @@ class JobService {
 
     final snapshot = await queryRef.get();
     List<Job> jobs = snapshot.docs.map((doc) {
-      final Map<String, dynamic> data = Map<String, dynamic>.from(doc.data() as Map);
+      final Map<String, dynamic> data = Map<String, dynamic>.from(
+        doc.data() as Map,
+      );
       data['id'] = doc.id;
       return Job.fromJson(data);
     }).toList();
 
     // Client side filtering for text search because Firestore doesn't support partial text queries natively without integration
     if (query != null && query.isNotEmpty) {
-      jobs = jobs.where((j) =>
-          j.title.toLowerCase().contains(query.toLowerCase()) ||
-          j.companyName.toLowerCase().contains(query.toLowerCase())).toList();
+      jobs = jobs
+          .where(
+            (j) =>
+                j.title.toLowerCase().contains(query.toLowerCase()) ||
+                j.companyName.toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList();
     }
 
     if (location != null && location.isNotEmpty) {
-      jobs = jobs.where((j) =>
-          j.location.toLowerCase().contains(location.toLowerCase())).toList();
+      jobs = jobs
+          .where(
+            (j) => j.location.toLowerCase().contains(location.toLowerCase()),
+          )
+          .toList();
     }
 
     // Sort by posted_at descending
@@ -103,24 +112,22 @@ class JobService {
   }
 
   Future<List<Job>> fetchFeaturedJobs() async {
-    final snapshot = await _firestore
-        .collection('jobs')
-        .limit(5)
-        .get();
-    
+    final snapshot = await _firestore.collection('jobs').limit(5).get();
+
     return snapshot.docs.map((doc) {
-      final Map<String, dynamic> data = Map<String, dynamic>.from(doc.data() as Map);
+      final Map<String, dynamic> data = Map<String, dynamic>.from(
+        doc.data() as Map,
+      );
       data['id'] = doc.id;
       return Job.fromJson(data);
     }).toList();
   }
 
-
   /// One-time method to seed some initial data into Firestore
   Future<void> seedJobs() async {
     final List<dynamic> data = json.decode(_mockJobsJson);
     final batch = _firestore.batch();
-    
+
     for (var jobData in data) {
       final jsonMap = jobData as Map<String, dynamic>;
       final docRef = _firestore.collection('jobs').doc(jsonMap['id']);
@@ -129,7 +136,7 @@ class JobService {
       cleanData.remove('id');
       batch.set(docRef, cleanData);
     }
-    
+
     await batch.commit();
   }
 
@@ -142,5 +149,3 @@ class JobService {
     });
   }
 }
-
-

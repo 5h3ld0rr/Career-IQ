@@ -43,7 +43,11 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final user = await _authService.signUpWithEmail(email, password, displayName: name);
+      final user = await _authService.signUpWithEmail(
+        email,
+        password,
+        displayName: name,
+      );
       if (user != null) {
         _isAuthenticated = true;
         _userName = name;
@@ -56,7 +60,6 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   Future<void> googleLogin() async {
     _isLoading = true;
@@ -86,4 +89,3 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

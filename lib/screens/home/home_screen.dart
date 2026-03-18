@@ -6,6 +6,9 @@ import 'package:elitehire/providers/job_provider.dart';
 import 'package:elitehire/providers/auth_provider.dart';
 import 'package:elitehire/core/theme.dart';
 import '../details/job_details_screen.dart';
+import '../cv_analysis/cv_upload_screen.dart';
+import '../tracker/application_tracker_screen.dart';
+import '../interview/mock_interview_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +19,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
-  final List<String> _categories = ['All', 'Design', 'Tech', 'Marketing', 'Sales', 'Finance'];
+  final List<String> _categories = [
+    'All',
+    'Design',
+    'Tech',
+    'Marketing',
+    'Sales',
+    'Finance',
+  ];
 
   @override
   void initState() {
@@ -50,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Hello, \${authProvider.userName ?? "User"}!',
+                            'Hello, ${authProvider.userName ?? "User"}!',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           Text(
@@ -61,10 +71,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: AppTheme.secondaryBlue,
+                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                         child: Text(
-                          authProvider.userName?.substring(0, 1).toUpperCase() ?? 'U',
-                          style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold),
+                          authProvider.userName
+                                  ?.substring(0, 1)
+                                  .toUpperCase() ??
+                              'U',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -84,52 +100,74 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search for jobs, companies...',
                       prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: _searchController.text.isNotEmpty 
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, size: 20),
-                            onPressed: () {
-                              _searchController.clear();
-                              jobProvider.loadJobs(query: '');
-                            },
-                          )
-                        : Container(
-                            margin: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryBlue,
-                              borderRadius: BorderRadius.circular(8),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded, size: 20),
+                              onPressed: () {
+                                _searchController.clear();
+                                jobProvider.loadJobs(query: '');
+                              },
+                            )
+                          : Container(
+                              margin: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryBlue,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.tune_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
-                            child: const Icon(Icons.tune_rounded, color: Colors.white, size: 20),
-                          ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    'AI Career Tools',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontSize: 18),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildQuickActions(context),
                 const SizedBox(height: 24),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     children: _categories
-                        .map((cat) => Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: ChoiceChip(
-                                label: Text(cat),
-                                selected: jobProvider.currentCategory == cat,
-                                onSelected: (selected) {
-                                  if (selected) {
-                                    jobProvider.loadJobs(category: cat);
-                                  }
-                                },
-                                selectedColor: AppTheme.primaryBlue,
-                                labelStyle: TextStyle(
-                                  color: jobProvider.currentCategory == cat ? Colors.white : AppTheme.darkGray,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                backgroundColor: AppTheme.lightGray,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                side: BorderSide.none,
-                                showCheckmark: false,
+                        .map(
+                          (cat) => Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: ChoiceChip(
+                              label: Text(cat),
+                              selected: jobProvider.currentCategory == cat,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  jobProvider.loadJobs(category: cat);
+                                }
+                              },
+                              selectedColor: Theme.of(context).primaryColor,
+                              labelStyle: TextStyle(
+                                color: jobProvider.currentCategory == cat
+                                    ? Colors.white
+                                    : Theme.of(context).textTheme.bodyLarge?.color,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ))
+                              backgroundColor: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              side: BorderSide.none,
+                              showCheckmark: false,
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                 ),
@@ -141,7 +179,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 180,
-                  child: jobProvider.isLoading && jobProvider.featuredJobs.isEmpty
+                  child:
+                      jobProvider.isLoading && jobProvider.featuredJobs.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -180,6 +219,86 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          _buildActionItem(
+            context,
+            'CV Analysis',
+            Icons.document_scanner_rounded,
+            Colors.orange,
+            const CVUploadScreen(),
+          ),
+          _buildActionItem(
+            context,
+            'Tracker',
+            Icons.dashboard_customize_rounded,
+            Colors.blue,
+            const ApplicationTrackerScreen(),
+          ),
+          _buildActionItem(
+            context,
+            'Mock Interview',
+            Icons.mic_rounded,
+            Colors.purple,
+            const MockInterviewScreen(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionItem(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    Widget screen,
+  ) {
+    return GestureDetector(
+      onTap:
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => screen),
+          ),
+      child: Container(
+        width: 130,
+        margin: const EdgeInsets.only(right: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: color.withOpacity(0.8),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class SectionHeader extends StatelessWidget {
@@ -205,7 +324,10 @@ class FeaturedJobCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job))),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job)),
+      ),
       child: Container(
         width: 280,
         margin: const EdgeInsets.only(right: 16),
@@ -223,30 +345,69 @@ class FeaturedJobCard extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                  child: CachedNetworkImage(imageUrl: job.logoUrl, width: 32, height: 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: job.logoUrl,
+                    width: 32,
+                    height: 32,
+                  ),
                 ),
                 IconButton(
-                  icon: Icon(job.isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded, color: Colors.white),
-                  onPressed: () => Provider.of<JobProvider>(context, listen: false).toggleSaveJob(job),
+                  icon: Icon(
+                    job.isSaved
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_outline_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => Provider.of<JobProvider>(
+                    context,
+                    listen: false,
+                  ).toggleSaveJob(job),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(job.title,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-            Text(job.companyName, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            Text(
+              job.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              job.companyName,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(job.salary, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                Text(
+                  job.salary,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8)),
-                  child: Text(job.jobType, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    job.jobType,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                 ),
               ],
             ),
@@ -264,41 +425,73 @@ class JobListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job))),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job)),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.lightGray),
+          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+            BoxShadow(
+              color: Theme.of(context).shadowColor.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: AppTheme.lightGray, borderRadius: BorderRadius.circular(12)),
-              child: CachedNetworkImage(imageUrl: job.logoUrl, width: 40, height: 40),
+              decoration: BoxDecoration(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: CachedNetworkImage(
+                imageUrl: job.logoUrl,
+                width: 40,
+                height: 40,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(job.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    job.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('\${job.companyName} • \${job.location}',
-                      style: const TextStyle(color: AppTheme.mediumGray, fontSize: 13)),
+                  Text(
+                    '${job.companyName} • ${job.location}',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(job.isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                  color: job.isSaved ? AppTheme.primaryBlue : AppTheme.mediumGray),
-              onPressed: () => Provider.of<JobProvider>(context, listen: false).toggleSaveJob(job),
+              icon: Icon(
+                job.isSaved
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_outline_rounded,
+                color: job.isSaved ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
+              ),
+              onPressed: () => Provider.of<JobProvider>(
+                context,
+                listen: false,
+              ).toggleSaveJob(job),
             ),
           ],
         ),

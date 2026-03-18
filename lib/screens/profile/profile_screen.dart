@@ -19,7 +19,11 @@ class ProfileScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(themeProvider.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+            icon: Icon(
+              themeProvider.isDarkMode
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+            ),
             onPressed: () => themeProvider.toggleTheme(),
           ),
           IconButton(
@@ -37,8 +41,11 @@ class ProfileScreen extends StatelessWidget {
               backgroundColor: AppTheme.secondaryBlue,
               child: Text(
                 authProvider.userName?.substring(0, 1).toUpperCase() ?? 'U',
-                style:
-                    const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryBlue,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -58,25 +65,42 @@ class ProfileScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.mediumGray.withOpacity(0.3), width: 1.5),
+                  border: Border.all(
+                    color: AppTheme.mediumGray.withOpacity(0.3),
+                    width: 1.5,
+                  ),
                   borderRadius: BorderRadius.circular(16),
                   color: AppTheme.lightGray.withOpacity(0.5),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.description_outlined, color: AppTheme.primaryBlue),
+                    const Icon(
+                      Icons.description_outlined,
+                      color: AppTheme.primaryBlue,
+                    ),
                     const SizedBox(width: 16),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('My_Resume.pdf', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Uploaded on Mar 12, 2024',
-                              style: TextStyle(fontSize: 12, color: AppTheme.mediumGray)),
+                          Text(
+                            'My_Resume.pdf',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Uploaded on Mar 12, 2024',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.mediumGray,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    IconButton(icon: const Icon(Icons.file_upload_outlined), onPressed: () {}),
+                    IconButton(
+                      icon: const Icon(Icons.file_upload_outlined),
+                      onPressed: () {},
+                    ),
                   ],
                 ),
               ),
@@ -103,16 +127,29 @@ class ProfileScreen extends StatelessWidget {
               title: 'Account',
               child: Column(
                 children: [
-                  _buildMenuTile(Icons.auto_awesome_rounded, 'AI Resume Tips', onTap: () {
-                    Navigator.push(
-                        context, MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()));
-                  }),
+                  _buildMenuTile(
+                    Icons.auto_awesome_rounded,
+                    'AI Resume Tips',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AIResumeTipsScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _buildMenuTile(Icons.history_rounded, 'Application History'),
                   _buildMenuTile(Icons.lock_outline_rounded, 'Change Password'),
-                  _buildMenuTile(Icons.logout_rounded, 'Logout', isDestructive: true, onTap: () {
-                    authProvider.logout();
-                    Navigator.pushReplacementNamed(context, '/login');
-                  }),
+                  _buildMenuTile(
+                    Icons.logout_rounded,
+                    'Logout',
+                    isDestructive: true,
+                    onTap: () {
+                      authProvider.logout();
+                      Navigator.pushReplacementNamed(context, '/login');
+                    },
+                  ),
                 ],
               ),
             ),
@@ -122,11 +159,18 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileSection(BuildContext context, {required String title, required Widget child}) {
+  Widget _buildProfileSection(
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 12),
         child,
       ],
@@ -141,19 +185,41 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.3)),
       ),
-      child:
-          Text(label, style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.w600, fontSize: 13)),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppTheme.primaryBlue,
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+      ),
     );
   }
 
-  Widget _buildMenuTile(IconData icon, String title, {bool isDestructive = false, VoidCallback? onTap}) {
+  Widget _buildMenuTile(
+    IconData icon,
+    String title, {
+    bool isDestructive = false,
+    VoidCallback? onTap,
+  }) {
     return ListTile(
       onTap: onTap,
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: isDestructive ? AppTheme.error : AppTheme.darkGray),
-      title: Text(title,
-          style: TextStyle(color: isDestructive ? AppTheme.error : AppTheme.darkGray, fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.mediumGray),
+      leading: Icon(
+        icon,
+        color: isDestructive ? AppTheme.error : AppTheme.darkGray,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isDestructive ? AppTheme.error : AppTheme.darkGray,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right_rounded,
+        color: AppTheme.mediumGray,
+      ),
     );
   }
 }

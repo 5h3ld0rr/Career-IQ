@@ -16,7 +16,11 @@ class AuthService {
     return result.user;
   }
 
-  Future<User?> signUpWithEmail(String email, String password, {String? displayName}) async {
+  Future<User?> signUpWithEmail(
+    String email,
+    String password, {
+    String? displayName,
+  }) async {
     UserCredential result = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -29,7 +33,7 @@ class AuthService {
         'email': email,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      
+
       if (displayName != null) {
         await result.user!.updateDisplayName(displayName);
       }
@@ -41,17 +45,21 @@ class AuthService {
     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return null;
 
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
     final AuthCredential credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
     final UserCredential result = await _auth.signInWithCredential(credential);
-    
+
     // Sync Google user with Firestore if new
     if (result.user != null) {
-      final userDoc = await _firestore.collection('users').doc(result.user!.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(result.user!.uid)
+          .get();
       if (!userDoc.exists) {
         await _firestore.collection('users').doc(result.user!.uid).set({
           'name': result.user!.displayName,
@@ -61,7 +69,7 @@ class AuthService {
         });
       }
     }
-    
+
     return result.user;
   }
 
@@ -75,5 +83,3 @@ class AuthService {
     return doc.data();
   }
 }
-
-

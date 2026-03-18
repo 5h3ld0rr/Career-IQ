@@ -3,7 +3,7 @@ import '../services/ai_service.dart';
 
 class AIProvider with ChangeNotifier {
   final AIService _aiService = AIService();
-  
+
   List<String> _currentTips = [];
   bool _isLoading = false;
   String? _analysisResult;
@@ -18,7 +18,7 @@ class AIProvider with ChangeNotifier {
   Future<void> fetchTips(String category) async {
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       _currentTips = await _aiService.getTipsForCategory(category);
     } catch (e) {

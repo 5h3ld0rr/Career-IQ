@@ -24,7 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } else if (authProvider.error != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.error!), backgroundColor: AppTheme.error),
+          SnackBar(
+            content: Text(authProvider.error!),
+            backgroundColor: AppTheme.error,
+          ),
         );
       }
     }
@@ -39,7 +42,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } else if (authProvider.error != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.error!), backgroundColor: AppTheme.error),
+          SnackBar(
+            content: Text(authProvider.error!),
+            backgroundColor: AppTheme.error,
+          ),
         );
       }
     }
@@ -65,7 +71,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppTheme.primaryBlue,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.work_rounded, color: Colors.white, size: 40),
+                  child: const Icon(
+                    Icons.work_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
@@ -95,8 +105,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline_rounded),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
               ),
@@ -104,7 +119,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {},
-                  child: const Text('Forgot Password?', style: TextStyle(color: AppTheme.primaryBlue)),
+                  child: const Text(
+                    'Forgot Password?',
+                    style: TextStyle(color: AppTheme.primaryBlue),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -114,18 +132,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? const SizedBox(
                         width: 24,
                         height: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text('Login'),
               ),
               const SizedBox(height: 24),
               const Row(
                 children: [
-                   Expanded(child: Divider()),
+                  Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('OR', style: TextStyle(color: AppTheme.mediumGray)),
+                    child: Text(
+                      'OR',
+                      style: TextStyle(color: AppTheme.mediumGray),
+                    ),
                   ),
-                   Expanded(child: Divider()),
+                  Expanded(child: Divider()),
                 ],
               ),
               const SizedBox(height: 24),
@@ -133,16 +158,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: isLoading ? null : _handleGoogleLogin,
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   side: const BorderSide(color: AppTheme.lightGray),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.g_mobiledata, size: 32, color: AppTheme.darkGray),
+                    const Icon(
+                      Icons.g_mobiledata,
+                      size: 32,
+                      color: AppTheme.darkGray,
+                    ),
                     const SizedBox(width: 8),
-                    Text('Continue with Google',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      'Continue with Google',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -153,8 +188,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text('Don\'t have an account?'),
                   TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/signup'),
-                    child: const Text('Sign Up',
-                        style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: AppTheme.primaryBlue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),

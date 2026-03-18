@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'home/home_screen.dart';
 import 'saved/saved_jobs_screen.dart';
 import 'profile/profile_screen.dart';
+import 'tracker/application_tracker_screen.dart';
 import '../core/theme.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -17,7 +18,7 @@ class _MainWrapperState extends State<MainWrapper> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text('Search Screen (Integrated in Home)')),
+    const ApplicationTrackerScreen(),
     const SavedJobsScreen(),
     const ProfileScreen(),
   ];
@@ -26,15 +27,13 @@ class _MainWrapperState extends State<MainWrapper> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
   Widget _buildBottomNav() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 65,
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 30),
@@ -44,20 +43,42 @@ class _MainWrapperState extends State<MainWrapper> {
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.95),
+              color: isDark 
+                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.9)
+                  : Theme.of(context).primaryColor.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.12),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem(0, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Home'),
-                _buildNavItem(1, Icons.search_rounded, Icons.search_rounded, 'Search'),
-                _buildNavItem(2, Icons.bookmark_rounded, Icons.bookmark_border_rounded, 'Saved'),
-                _buildNavItem(3, Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
+                _buildNavItem(
+                  0,
+                  Icons.grid_view_rounded,
+                  Icons.grid_view_outlined,
+                  'Home',
+                ),
+                _buildNavItem(
+                  1,
+                  Icons.dashboard_customize_rounded,
+                  Icons.dashboard_customize_outlined,
+                  'Tracker',
+                ),
+                _buildNavItem(
+                  2,
+                  Icons.bookmark_rounded,
+                  Icons.bookmark_border_rounded,
+                  'Saved',
+                ),
+                _buildNavItem(
+                  3,
+                  Icons.person_rounded,
+                  Icons.person_outline_rounded,
+                  'Profile',
+                ),
               ],
             ),
           ),
@@ -66,8 +87,16 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String label,
+  ) {
     bool isSelected = _selectedIndex == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = isDark ? Theme.of(context).primaryColor : Colors.white;
+    final inactiveColor = isDark ? Colors.white54 : Colors.white60;
 
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),
@@ -77,7 +106,9 @@ class _MainWrapperState extends State<MainWrapper> {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withOpacity(0.15) : Colors.transparent,
+          color: isSelected
+              ? (isDark ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.15))
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -85,15 +116,15 @@ class _MainWrapperState extends State<MainWrapper> {
           children: [
             Icon(
               isSelected ? activeIcon : inactiveIcon,
-              color: isSelected ? Colors.white : Colors.white.withOpacity(0.6),
+              color: isSelected ? activeColor : inactiveColor,
               size: 20,
             ),
             if (isSelected) ...[
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: activeColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryBlue = Color(0xFF3B82F6); // Light Blue (Modern Azure)
+  static const Color primaryBlue = Color(
+    0xFF3B82F6,
+  ); // Light Blue (Modern Azure)
   static const Color secondaryBlue = Color(0xFFEFF6FF);
-  static const Color accentBlue = Color(0xFF60A5FA); 
+  static const Color accentBlue = Color(0xFF60A5FA);
   static const Color darkBlue = Color(0xFF1E3A8A);
   static const Color lightGray = Color(0xFFF8FAFC);
   static const Color mediumGray = Color(0xFF94A3B8);
@@ -88,7 +90,7 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     primaryColor: primaryBlue,
-    scaffoldBackgroundColor: const Color(0xFF0F172A), 
+    scaffoldBackgroundColor: const Color(0xFF0F172A),
     colorScheme: ColorScheme.fromSeed(
       brightness: Brightness.dark,
       seedColor: primaryBlue,

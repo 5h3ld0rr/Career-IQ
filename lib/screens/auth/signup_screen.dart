@@ -18,14 +18,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _handleSignUp() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.signUp(_nameController.text, _emailController.text, _passwordController.text);
+    await authProvider.signUp(
+      _nameController.text,
+      _emailController.text,
+      _passwordController.text,
+    );
 
     if (authProvider.isAuthenticated) {
       if (mounted) Navigator.pushReplacementNamed(context, '/main');
     } else if (authProvider.error != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.error!), backgroundColor: AppTheme.error),
+          SnackBar(
+            content: Text(authProvider.error!),
+            backgroundColor: AppTheme.error,
+          ),
         );
       }
     }
@@ -40,7 +47,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } else if (authProvider.error != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.error!), backgroundColor: AppTheme.error),
+          SnackBar(
+            content: Text(authProvider.error!),
+            backgroundColor: AppTheme.error,
+          ),
         );
       }
     }
@@ -93,8 +103,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   hintText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline_rounded),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
               ),
@@ -105,7 +120,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ? const SizedBox(
                         width: 24,
                         height: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text('Sign Up'),
               ),
               const SizedBox(height: 24),
@@ -114,7 +133,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('OR', style: TextStyle(color: AppTheme.mediumGray)),
+                    child: Text(
+                      'OR',
+                      style: TextStyle(color: AppTheme.mediumGray),
+                    ),
                   ),
                   Expanded(child: Divider()),
                 ],
@@ -124,16 +146,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 onPressed: isLoading ? null : _handleGoogleLogin,
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   side: const BorderSide(color: AppTheme.lightGray),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.g_mobiledata, size: 32, color: AppTheme.darkGray),
+                    const Icon(
+                      Icons.g_mobiledata,
+                      size: 32,
+                      color: AppTheme.darkGray,
+                    ),
                     const SizedBox(width: 8),
-                    Text('Continue with Google',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      'Continue with Google',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -144,8 +176,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const Text('Already have an account?'),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Login',
-                        style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(
+                        color: AppTheme.primaryBlue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),

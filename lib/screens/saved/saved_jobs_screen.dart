@@ -18,10 +18,18 @@ class SavedJobsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bookmark_border_rounded, size: 80, color: AppTheme.mediumGray.withOpacity(0.5)),
+                  Icon(
+                    Icons.bookmark_border_rounded,
+                    size: 80,
+                    color: AppTheme.mediumGray.withOpacity(0.5),
+                  ),
                   const SizedBox(height: 16),
-                  Text('No saved jobs yet',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.mediumGray)),
+                  Text(
+                    'No saved jobs yet',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppTheme.mediumGray,
+                    ),
+                  ),
                   TextButton(
                     onPressed: () {}, // Navigate back to home or search
                     child: const Text('Browse Jobs'),

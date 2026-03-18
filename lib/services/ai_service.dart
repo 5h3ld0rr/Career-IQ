@@ -3,13 +3,11 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 class AIService {
   // TODO: Replace with your actual Gemini API Key or load from secure storage
   static const String _apiKey = 'REPLACE_WITH_YOUR_GEMINI_API_KEY';
-  
+
   final GenerativeModel _model;
 
-  AIService() : _model = GenerativeModel(
-    model: 'gemini-1.5-flash',
-    apiKey: _apiKey,
-  );
+  AIService()
+    : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
 
   static const List<String> _generalTips = [
     "Use strong action verbs list like 'managed', 'developed', 'coordinated'.",
@@ -51,7 +49,8 @@ class AIService {
     }
 
     try {
-      final prompt = "Analyze the following resume content and provide constructive feedback, highlighting strengths and areas for improvement. Keep it professional and encouraging:\n\n$content";
+      final prompt =
+          "Analyze the following resume content and provide constructive feedback, highlighting strengths and areas for improvement. Keep it professional and encouraging:\n\n$content";
       final response = await _model.generateContent([Content.text(prompt)]);
       return response.text ?? "AI couldn't generate a response at this time.";
     } catch (e) {
@@ -68,7 +67,8 @@ class AIService {
     }
 
     try {
-      final prompt = "Based on the following resume and job description, generate a professional and compelling cover letter:\n\nResume:\n$resumeContent\n\nJob Description:\n$jobDescription";
+      final prompt =
+          "Based on the following resume and job description, generate a professional and compelling cover letter:\n\nResume:\n$resumeContent\n\nJob Description:\n$jobDescription";
       final response = await _model.generateContent([Content.text(prompt)]);
       return response.text ?? "AI couldn't generate a cover letter.";
     } catch (e) {

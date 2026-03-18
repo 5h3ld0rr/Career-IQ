@@ -10,7 +10,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
@@ -72,16 +73,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               Text(
                 'Elite Hire',
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      color: Colors.white,
-                      letterSpacing: 1.2,
-                    ),
+                  color: Colors.white,
+                  letterSpacing: 1.2,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Propel Your Career',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withOpacity(0.8),
-                    ),
+                  color: Colors.white.withOpacity(0.8),
+                ),
               ),
             ],
           ),

@@ -44,5 +44,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'job-sync-5b0ad.firebasestorage.app',
     iosBundleId: 'com.example.elitehire',
   );
-
 }

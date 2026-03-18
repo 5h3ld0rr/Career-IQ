@@ -7,11 +7,11 @@ import 'package:flutter/services.dart';
 class AICoverLetterScreen extends StatefulWidget {
   final String jobTitle;
   final String jobDescription;
-  
+
   const AICoverLetterScreen({
-    super.key, 
-    required this.jobTitle, 
-    required this.jobDescription
+    super.key,
+    required this.jobTitle,
+    required this.jobDescription,
   });
 
   @override
@@ -28,7 +28,8 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
   void _generate() {
     Future.microtask(() {
       Provider.of<AIProvider>(context, listen: false).generateCoverLetter(
-        resumeContent: "I am a Senior Product Designer expert in Figma and UX Research.", // Placeholder resume
+        resumeContent:
+            "I am a Senior Product Designer expert in Figma and UX Research.", // Placeholder resume
         jobDescription: widget.jobDescription,
       );
     });
@@ -39,10 +40,7 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
     final aiProvider = Provider.of<AIProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Cover Letter'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('AI Cover Letter'), centerTitle: true),
       body: aiProvider.isLoading
           ? Center(
               child: Column(
@@ -50,8 +48,10 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                 children: [
                   const CircularProgressIndicator(),
                   const SizedBox(height: 24),
-                  Text('Crafting your perfect cover letter...', 
-                      style: Theme.of(context).textTheme.bodyLarge),
+                  Text(
+                    'Crafting your perfect cover letter...',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ],
               ),
             )
@@ -68,14 +68,21 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.description_rounded, color: AppTheme.primaryBlue, size: 32),
+                        const Icon(
+                          Icons.description_rounded,
+                          color: AppTheme.primaryBlue,
+                          size: 32,
+                        ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Elite AI Write',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.primaryBlue)),
+                              Text(
+                                'Elite AI Write',
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(color: AppTheme.primaryBlue),
+                              ),
                               const SizedBox(height: 4),
                               Text('Generated for ${widget.jobTitle}'),
                             ],
@@ -97,7 +104,7 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                             color: Colors.black.withOpacity(0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
-                          )
+                          ),
                         ],
                       ),
                       child: Text(
@@ -111,9 +118,13 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              Clipboard.setData(ClipboardData(text: aiProvider.coverLetter!));
+                              Clipboard.setData(
+                                ClipboardData(text: aiProvider.coverLetter!),
+                              );
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Copied to clipboard!')),
+                                const SnackBar(
+                                  content: Text('Copied to clipboard!'),
+                                ),
                               );
                             },
                             icon: const Icon(Icons.copy_rounded),
@@ -131,7 +142,9 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                       ],
                     ),
                   ] else ...[
-                    const Center(child: Text('Something went wrong. Please try again.')),
+                    const Center(
+                      child: Text('Something went wrong. Please try again.'),
+                    ),
                   ],
                 ],
               ),

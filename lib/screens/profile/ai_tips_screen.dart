@@ -44,20 +44,25 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
               )
             else ...[
               if (aiProvider.analysisResult != null) ...[
-                Text('Analysis Results', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Analysis Results',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.1)),
+                    border: Border.all(
+                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.02),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
-                      )
+                      ),
                     ],
                   ),
                   child: Text(
@@ -67,7 +72,10 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
                 ),
                 const SizedBox(height: 32),
               ],
-              Text('Smart Tips for You', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Smart Tips for You',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 16),
               ...aiProvider.currentTips.map((tip) => _buildTipCard(tip)),
             ],
@@ -77,9 +85,11 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(24),
         child: ElevatedButton.icon(
-          onPressed: aiProvider.isLoading 
-              ? null 
-              : () => aiProvider.analyzeResume("I am a Senior Product Designer expert in Figma and UX Research."),
+          onPressed: aiProvider.isLoading
+              ? null
+              : () => aiProvider.analyzeResume(
+                  "I am a Senior Product Designer expert in Figma and UX Research.",
+                ),
           icon: const Icon(Icons.psychology_rounded),
           label: const Text('Analyze My Resume Now'),
         ),
@@ -96,14 +106,23 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.auto_awesome_rounded, color: AppTheme.primaryBlue, size: 32),
+          const Icon(
+            Icons.auto_awesome_rounded,
+            color: AppTheme.primaryBlue,
+            size: 32,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Elite Resume Optimizer',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
+                Text(
+                  'Elite Resume Optimizer',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTheme.primaryBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 const Text('Get AI-powered feedback to land your dream job.'),
               ],
@@ -126,9 +145,15 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.lightbulb_outline_rounded, color: Colors.amber, size: 24),
+          const Icon(
+            Icons.lightbulb_outline_rounded,
+            color: Colors.amber,
+            size: 24,
+          ),
           const SizedBox(width: 12),
-          Expanded(child: Text(tip, style: const TextStyle(fontSize: 14, height: 1.4))),
+          Expanded(
+            child: Text(tip, style: const TextStyle(fontSize: 14, height: 1.4)),
+          ),
         ],
       ),
     );
