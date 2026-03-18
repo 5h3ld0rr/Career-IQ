@@ -8,7 +8,6 @@ class ApplicationTrackerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
       body: Stack(
         children: [
           _buildBackgroundDecor(),
@@ -21,6 +20,7 @@ class ApplicationTrackerScreen extends StatelessWidget {
                 leading: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: _buildGlassBox(
+                    context,
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
@@ -37,6 +37,7 @@ class ApplicationTrackerScreen extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _buildGlassBox(
+                      context,
                       child: _buildQuickActions(context),
                     ),
                     const SizedBox(height: 32),
@@ -84,13 +85,13 @@ class ApplicationTrackerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 28}) {
+  Widget _buildGlassBox(BuildContext context, {required Widget child, EdgeInsets? padding, double borderRadius = 28}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 10))],
+        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2), blurRadius: 20, offset: const Offset(0, 10))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -167,11 +168,12 @@ class ApplicationTrackerScreen extends StatelessWidget {
       children: apps.map((app) => Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: _buildGlassBox(
+          context,
           child: Column(
             children: [
               Row(
                 children: [
-                  _buildGlassBox(borderRadius: 12, padding: const EdgeInsets.all(8), child: Text(app['company'].substring(0, 1), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20))),
+                  _buildGlassBox(context, borderRadius: 12, padding: const EdgeInsets.all(8), child: Text(app['company'].substring(0, 1), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Theme.of(context).colorScheme.onSurface))),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
