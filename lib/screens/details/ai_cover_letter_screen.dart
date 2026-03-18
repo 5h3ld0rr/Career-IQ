@@ -29,7 +29,8 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
   void _generate() {
     Future.microtask(() {
       Provider.of<AIProvider>(context, listen: false).generateCoverLetter(
-        resumeContent: "I am a Senior Product Designer expert in Figma and UX Research.", 
+        resumeContent:
+            "I am a Senior Product Designer expert in Figma and UX Research.",
         jobDescription: widget.jobDescription,
       );
     });
@@ -57,7 +58,10 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -67,25 +71,30 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
               SliverPadding(
                 padding: const EdgeInsets.all(24),
                 sliver: aiProvider.isLoading
-                  ? SliverFillRemaining(child: _buildLoadingState())
-                  : SliverList(
-                      delegate: SliverChildListDelegate([
-                        _buildGlassBox(child: _buildHeader()),
-                        const SizedBox(height: 32),
-                        if (aiProvider.coverLetter != null) ...[
-                          _buildGlassBox(
-                            padding: const EdgeInsets.all(32),
-                            child: SelectableText(
-                              aiProvider.coverLetter!,
-                              style: const TextStyle(height: 1.7, fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w600),
-                            ),
-                          ),
+                    ? SliverFillRemaining(child: _buildLoadingState())
+                    : SliverList(
+                        delegate: SliverChildListDelegate([
+                          _buildGlassBox(child: _buildHeader()),
                           const SizedBox(height: 32),
-                          _buildActionRow(context, aiProvider),
-                          const SizedBox(height: 48),
-                        ],
-                      ]),
-                    ),
+                          if (aiProvider.coverLetter != null) ...[
+                            _buildGlassBox(
+                              padding: const EdgeInsets.all(32),
+                              child: SelectableText(
+                                aiProvider.coverLetter!,
+                                style: const TextStyle(
+                                  height: 1.7,
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            _buildActionRow(context, aiProvider),
+                            const SizedBox(height: 48),
+                          ],
+                        ]),
+                      ),
               ),
             ],
           ),
@@ -103,19 +112,37 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.35), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.35),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox({
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 24,
+  }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -137,7 +164,10 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
         children: [
           const CircularProgressIndicator(color: AppTheme.primaryBlue),
           const SizedBox(height: 24),
-          const Text('AI is crafting your letter...', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+          const Text(
+            'AI is crafting your letter...',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
         ],
       ),
     );
@@ -148,16 +178,33 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), shape: BoxShape.circle),
-          child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF03A9F4), size: 28),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.8),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.auto_awesome_rounded,
+            color: Color(0xFF03A9F4),
+            size: 28,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Professional Cover Letter', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-              Text('Optimized for ${widget.jobTitle}', style: const TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600)),
+              const Text(
+                'Professional Cover Letter',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+              ),
+              Text(
+                'Optimized for ${widget.jobTitle}',
+                style: const TextStyle(
+                  color: Colors.black54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -175,14 +222,32 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
             child: ElevatedButton.icon(
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: aiProvider.coverLetter!));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied!'), behavior: SnackBarBehavior.floating));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Copied!'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
               },
-              icon: const Icon(Icons.copy_all_rounded, size: 20, color: Color(0xFF03A9F4)),
-              label: const Text('COPY TEXT', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.black)),
+              icon: const Icon(
+                Icons.copy_all_rounded,
+                size: 20,
+                color: Color(0xFF03A9F4),
+              ),
+              label: const Text(
+                'COPY TEXT',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  color: Colors.black,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.6),
+                backgroundColor: Colors.white.withValues(alpha: 0.6),
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             ),
           ),

@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
               Text(
                 'Propel Your Career',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                 ),
               ),
             ],

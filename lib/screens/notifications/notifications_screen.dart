@@ -24,12 +24,18 @@ class NotificationsScreen extends StatelessWidget {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
                 ),
-                title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.w900)),
+                title: const Text(
+                  'Notifications',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
                 centerTitle: true,
               ),
               SliverPadding(
@@ -81,24 +87,41 @@ class NotificationsScreen extends StatelessWidget {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.35), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.35),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox(BuildContext context, {required Widget child, EdgeInsets? padding, double borderRadius = 28}) {
+  Widget _buildGlassBox(
+    BuildContext context, {
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 28,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
+        border: Border.all(
+          color: AppTheme.getGlassBorderColor(context),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2),
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.04
+                  : 0.2,
+            ),
             blurRadius: 20,
             offset: const Offset(0, 10),
-          )
+          ),
         ],
       ),
       child: ClipRRect(
@@ -132,7 +155,7 @@ class NotificationsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: iconColor, size: 24),
@@ -145,15 +168,30 @@ class NotificationsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                    Text(time, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10, fontWeight: FontWeight.normal)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 10,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
                   message,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.8),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                     fontSize: 12,
                     height: 1.4,
                   ),

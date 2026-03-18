@@ -42,7 +42,10 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -56,25 +59,48 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
                     _buildGlassBox(child: _buildHeader(aiProvider)),
                     const SizedBox(height: 32),
                     if (aiProvider.isLoading)
-                      const Center(child: CircularProgressIndicator(color: AppTheme.primaryBlue))
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryBlue,
+                        ),
+                      )
                     else ...[
                       if (aiProvider.analysisResult != null) ...[
-                        const Text('Analysis Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                        const Text(
+                          'Analysis Results',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         _buildGlassBox(
                           child: SelectableText(
                             aiProvider.analysisResult!,
-                            style: const TextStyle(height: 1.7, fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
+                            style: const TextStyle(
+                              height: 1.7,
+                              fontSize: 14,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 32),
                       ],
-                      const Text('Smart Recommendations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                      const Text(
+                        'Smart Recommendations',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      ...aiProvider.currentTips.map((tip) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildGlassBox(child: _buildTipItem(tip)),
-                      )),
+                      ...aiProvider.currentTips.map(
+                        (tip) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildGlassBox(child: _buildTipItem(tip)),
+                        ),
+                      ),
                       const SizedBox(height: 100),
                     ],
                   ]),
@@ -82,7 +108,12 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
               ),
             ],
           ),
-          Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomAction(aiProvider)),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildBottomAction(aiProvider),
+          ),
         ],
       ),
     );
@@ -97,19 +128,37 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.3), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.3),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox({
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 24,
+  }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -129,16 +178,33 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), shape: BoxShape.circle),
-          child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF03A9F4), size: 28),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.8),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.auto_awesome_rounded,
+            color: Color(0xFF03A9F4),
+            size: 28,
+          ),
         ),
         const SizedBox(width: 16),
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Elite Optimizer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-              Text('AI-powered career feedback.', style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(
+                'Elite Optimizer',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
+              Text(
+                'AI-powered career feedback.',
+                style: TextStyle(
+                  color: Colors.black54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -152,7 +218,17 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
       children: [
         const Icon(Icons.lightbulb_rounded, color: Colors.amber, size: 20),
         const SizedBox(width: 16),
-        Expanded(child: Text(tip, style: const TextStyle(fontSize: 13, height: 1.5, color: Colors.black87, fontWeight: FontWeight.w500))),
+        Expanded(
+          child: Text(
+            tip,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -166,20 +242,32 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white),
             ),
             child: ElevatedButton.icon(
-              onPressed: aiProvider.isLoading ? null : () => aiProvider.analyzeResume("I am a Senior Product Designer expert in Figma and UX Research."),
+              onPressed: aiProvider.isLoading
+                  ? null
+                  : () => aiProvider.analyzeResume(
+                      "I am a Senior Product Designer expert in Figma and UX Research.",
+                    ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.8),
+                backgroundColor: Colors.white.withValues(alpha: 0.8),
                 foregroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
-              icon: const Icon(Icons.psychology_rounded, color: Color(0xFF03A9F4)),
-              label: const Text('ANALYZE MY RESUME', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+              icon: const Icon(
+                Icons.psychology_rounded,
+                color: Color(0xFF03A9F4),
+              ),
+              label: const Text(
+                'ANALYZE MY RESUME',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+              ),
             ),
           ),
         ),

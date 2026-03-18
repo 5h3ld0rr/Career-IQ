@@ -21,7 +21,13 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
             children: [
               const CircularProgressIndicator(color: AppTheme.primaryBlue),
               const SizedBox(height: 24),
-              Text('Analyzing your skills gap...', style: const TextStyle(color: AppTheme.mediumSlate, fontWeight: FontWeight.bold)),
+              Text(
+                'Analyzing your skills gap...',
+                style: const TextStyle(
+                  color: AppTheme.mediumSlate,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -37,9 +43,15 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     }
 
     final int matchPercentage = gapData['matchPercentage'] ?? 0;
-    final List<String> currentSkills = List<String>.from(gapData['currentSkills'] ?? []);
-    final List<String> missingSkills = List<String>.from(gapData['missingSkills'] ?? []);
-    final List<String> recommendations = List<String>.from(gapData['recommendations'] ?? []);
+    final List<String> currentSkills = List<String>.from(
+      gapData['currentSkills'] ?? [],
+    );
+    final List<String> missingSkills = List<String>.from(
+      gapData['missingSkills'] ?? [],
+    );
+    final List<String> recommendations = List<String>.from(
+      gapData['recommendations'] ?? [],
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F8FF),
@@ -59,7 +71,10 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -74,19 +89,40 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
                       child: _buildMatchCard(context, matchPercentage),
                     ),
                     const SizedBox(height: 32),
-                    _buildSkillSection(context, 'Core Skills You Possess', currentSkills, Colors.blueAccent),
+                    _buildSkillSection(
+                      context,
+                      'Core Skills You Possess',
+                      currentSkills,
+                      Colors.blueAccent,
+                    ),
                     const SizedBox(height: 32),
-                    _buildSkillSection(context, 'Growth Opportunities', missingSkills, Colors.cyan),
+                    _buildSkillSection(
+                      context,
+                      'Growth Opportunities',
+                      missingSkills,
+                      Colors.cyan,
+                    ),
                     const SizedBox(height: 32),
                     const Text(
                       'Expert Recommendations',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black, letterSpacing: -0.5),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        letterSpacing: -0.5,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    ...recommendations.map((rec) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildGlassBox(child: _buildRecommendationItem(rec)),
-                    )).toList(),
+                    ...recommendations
+                        .map(
+                          (rec) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildGlassBox(
+                              child: _buildRecommendationItem(rec),
+                            ),
+                          ),
+                        )
+                        .toList(),
                     const SizedBox(height: 48),
                   ]),
                 ),
@@ -107,19 +143,37 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.3), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.3),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox({
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 24,
+  }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -147,13 +201,19 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
                 value: percentage / 100,
                 strokeWidth: 8,
                 backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF03A9F4)),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFF03A9F4),
+                ),
                 strokeCap: StrokeCap.round,
               ),
             ),
             Text(
               '$percentage%',
-              style: const TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900),
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ],
         ),
@@ -162,11 +222,22 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Matching Score', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black)),
+              Text(
+                'Matching Score',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
               SizedBox(height: 4),
               Text(
                 'Based on your profile vs industry standards.',
-                style: TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.black54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -175,23 +246,46 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSkillSection(BuildContext context, String title, List<String> skills, Color color) {
+  Widget _buildSkillSection(
+    BuildContext context,
+    String title,
+    List<String> skills,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black)),
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+            color: Colors.black,
+          ),
+        ),
         const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: skills.map((skill) => _buildGlassBox(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            borderRadius: 12,
-            child: Text(
-              skill,
-              style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 13),
-            ),
-          )).toList(),
+          children: skills
+              .map(
+                (skill) => _buildGlassBox(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  borderRadius: 12,
+                  child: Text(
+                    skill,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -201,12 +295,21 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.auto_awesome_rounded, color: Color(0xFF03A9F4), size: 20),
+        const Icon(
+          Icons.auto_awesome_rounded,
+          color: Color(0xFF03A9F4),
+          size: 20,
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.5, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

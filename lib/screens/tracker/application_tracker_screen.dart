@@ -24,7 +24,10 @@ class ApplicationTrackerScreen extends StatelessWidget {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -36,16 +39,17 @@ class ApplicationTrackerScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    _buildGlassBox(
-                      context,
-                      child: _buildQuickActions(context),
-                    ),
+                    _buildGlassBox(context, child: _buildQuickActions(context)),
                     const SizedBox(height: 32),
                     _buildStatsRow(context),
                     const SizedBox(height: 32),
                     const Text(
                       'Active Applications',
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, letterSpacing: -0.5),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                        letterSpacing: -0.5,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _buildApplicationList(context),
@@ -79,31 +83,58 @@ class ApplicationTrackerScreen extends StatelessWidget {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.35), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.35),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox(BuildContext context, {required Widget child, EdgeInsets? padding, double borderRadius = 28}) {
+  Widget _buildGlassBox(
+    BuildContext context, {
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 28,
+    bool disableBlur = false,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2), blurRadius: 20, offset: const Offset(0, 10))],
+        border: Border.all(
+          color: AppTheme.getGlassBorderColor(context),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.04
+                  : 0.2,
+            ),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: disableBlur 
-          ? Padding(padding: padding ?? const EdgeInsets.all(20), child: child)
-          : BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Padding(
+        child: disableBlur
+            ? Padding(
                 padding: padding ?? const EdgeInsets.all(20),
                 child: child,
+              )
+            : BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Padding(
+                  padding: padding ?? const EdgeInsets.all(20),
+                  child: child,
+                ),
               ),
-            ),
       ),
     );
   }
@@ -113,24 +144,47 @@ class ApplicationTrackerScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(16)),
-          child: const Icon(Icons.event_available_rounded, color: Colors.blueAccent, size: 28),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.event_available_rounded,
+            color: Colors.blueAccent,
+            size: 28,
+          ),
         ),
         const SizedBox(width: 16),
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Next Interview', style: TextStyle(color: Colors.black54, fontSize: 13, fontWeight: FontWeight.w600)),
-              Text('Google UX Design', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              Text(
+                'Next Interview',
+                style: TextStyle(
+                  color: Colors.black54,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                'Google UX Design',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+              ),
             ],
           ),
         ),
         const Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text('Tomorrow', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-            Text('10:30 AM', style: TextStyle(color: Colors.black54, fontSize: 12)),
+            Text(
+              'Tomorrow',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+            ),
+            Text(
+              '10:30 AM',
+              style: TextStyle(color: Colors.black54, fontSize: 12),
+            ),
           ],
         ),
       ],
@@ -152,63 +206,141 @@ class ApplicationTrackerScreen extends StatelessWidget {
   Widget _buildStatItem(String label, String count) {
     return Column(
       children: [
-        Text(count, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: Colors.black)),
+        Text(
+          count,
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 24,
+            color: Colors.black,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(label.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.black54, letterSpacing: 0.5)),
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: Colors.black54,
+            letterSpacing: 0.5,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildApplicationList(BuildContext context) {
     final List<Map<String, dynamic>> apps = [
-      {'company': 'Canva', 'role': 'UX Designer', 'status': 'Interviewing', 'date': 'Oct 14', 'progress': 0.6},
-      {'company': 'Atlassian', 'role': 'Product Designer', 'status': 'Applied', 'date': 'Oct 12', 'progress': 0.2},
-      {'company': 'Slack', 'role': 'Lead Designer', 'status': 'Offered', 'date': 'Oct 8', 'progress': 1.0},
+      {
+        'company': 'Canva',
+        'role': 'UX Designer',
+        'status': 'Interviewing',
+        'date': 'Oct 14',
+        'progress': 0.6,
+      },
+      {
+        'company': 'Atlassian',
+        'role': 'Product Designer',
+        'status': 'Applied',
+        'date': 'Oct 12',
+        'progress': 0.2,
+      },
+      {
+        'company': 'Slack',
+        'role': 'Lead Designer',
+        'status': 'Offered',
+        'date': 'Oct 8',
+        'progress': 1.0,
+      },
     ];
 
     return Column(
-      children: apps.map((app) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: _buildGlassBox(
-          context,
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  _buildGlassBox(context, borderRadius: 12, padding: const EdgeInsets.all(8), child: Text(app['company'].substring(0, 1), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Theme.of(context).colorScheme.onSurface))),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      children: apps
+          .map(
+            (app) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildGlassBox(
+                context,
+                disableBlur: true,
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        Text(app['role'], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                        Text(app['company'], style: const TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.bold)),
+                        _buildGlassBox(
+                          context,
+                          borderRadius: 12,
+                          padding: const EdgeInsets.all(8),
+                          disableBlur: true,
+                          child: Text(
+                            app['company'].substring(0, 1),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 20,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                app['role'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                app['company'],
+                                style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildStatusPill(app['status']),
                       ],
                     ),
-                  ),
-                  _buildStatusPill(app['status']),
-                ],
+                    const SizedBox(height: 20),
+                    LinearProgressIndicator(
+                      value: app['progress'],
+                      backgroundColor: Colors.white,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        app['status'] == 'Offered'
+                            ? Colors.blueAccent
+                            : Colors.lightBlueAccent,
+                      ),
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-              LinearProgressIndicator(
-                value: app['progress'],
-                backgroundColor: Colors.white,
-                valueColor: AlwaysStoppedAnimation<Color>(app['status'] == 'Offered' ? Colors.blueAccent : Colors.lightBlueAccent),
-                minHeight: 6,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ],
-          ),
-        ),
-      )).toList(),
+            ),
+          )
+          .toList(),
     );
   }
 
   Widget _buildStatusPill(String status) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(10)),
-      child: Text(status.toUpperCase(), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.black54)),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          color: Colors.black54,
+        ),
+      ),
     );
   }
 }

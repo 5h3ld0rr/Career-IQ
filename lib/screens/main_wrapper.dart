@@ -39,10 +39,17 @@ class _MainWrapperState extends State<MainWrapper> {
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
+        border: Border.all(
+          color: AppTheme.getGlassBorderColor(context),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2),
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.04
+                  : 0.2,
+            ),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -73,7 +80,7 @@ class _MainWrapperState extends State<MainWrapper> {
     bool isSelected = _selectedIndex == index;
     final theme = Theme.of(context);
     final activeColor = theme.colorScheme.primary;
-    final inactiveColor = theme.colorScheme.onSurface.withOpacity(0.4);
+    final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);
 
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),
@@ -83,7 +90,9 @@ class _MainWrapperState extends State<MainWrapper> {
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.12) : Colors.transparent,
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.12)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -94,12 +103,15 @@ class _MainWrapperState extends State<MainWrapper> {
               color: isSelected ? activeColor : inactiveColor,
               size: 24,
             ),
-            if (isSelected) 
+            if (isSelected)
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 width: 4,
                 height: 4,
-                decoration: BoxDecoration(color: activeColor, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: activeColor,
+                  shape: BoxShape.circle,
+                ),
               ),
           ],
         ),

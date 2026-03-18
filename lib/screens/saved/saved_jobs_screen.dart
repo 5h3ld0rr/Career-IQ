@@ -32,7 +32,10 @@ class SavedJobsScreen extends StatelessWidget {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -41,17 +44,20 @@ class SavedJobsScreen extends StatelessWidget {
               ),
               SliverPadding(
                 padding: const EdgeInsets.all(24),
-                sliver: jobProvider.savedJobs.isEmpty 
-                  ? SliverFillRemaining(child: _buildEmptyState(context))
-                  : SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildSavedJobCard(jobProvider.savedJobs[index], context),
+                sliver: jobProvider.savedJobs.isEmpty
+                    ? SliverFillRemaining(child: _buildEmptyState(context))
+                    : SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildSavedJobCard(
+                              jobProvider.savedJobs[index],
+                              context,
+                            ),
+                          ),
+                          childCount: jobProvider.savedJobs.length,
                         ),
-                        childCount: jobProvider.savedJobs.length,
                       ),
-                    ),
               ),
             ],
           ),
@@ -69,31 +75,58 @@ class SavedJobsScreen extends StatelessWidget {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.3), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.3),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox(BuildContext context, {required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox(
+    BuildContext context, {
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 24,
+    bool disableBlur = false,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(
+          color: AppTheme.getGlassBorderColor(context),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.04
+                  : 0.2,
+            ),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: disableBlur 
-          ? Padding(padding: padding ?? const EdgeInsets.all(20), child: child)
-          : BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Padding(
+        child: disableBlur
+            ? Padding(
                 padding: padding ?? const EdgeInsets.all(20),
                 child: child,
+              )
+            : BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Padding(
+                  padding: padding ?? const EdgeInsets.all(20),
+                  child: child,
+                ),
               ),
-            ),
       ),
     );
   }
@@ -107,10 +140,21 @@ class SavedJobsScreen extends StatelessWidget {
             context,
             borderRadius: 50,
             padding: const EdgeInsets.all(24),
-            child: const Icon(Icons.bookmark_border_rounded, size: 60, color: Colors.black26),
+            child: const Icon(
+              Icons.bookmark_border_rounded,
+              size: 60,
+              color: Colors.black26,
+            ),
           ),
           const SizedBox(height: 24),
-          const Text('No saved jobs yet', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black54)),
+          const Text(
+            'No saved jobs yet',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              color: Colors.black54,
+            ),
+          ),
         ],
       ),
     );
@@ -118,9 +162,13 @@ class SavedJobsScreen extends StatelessWidget {
 
   Widget _buildSavedJobCard(Job job, BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job))),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job)),
+      ),
       child: _buildGlassBox(
         context,
+        disableBlur: true,
         child: Row(
           children: [
             _buildGlassBox(
@@ -128,21 +176,49 @@ class SavedJobsScreen extends StatelessWidget {
               borderRadius: 16,
               padding: const EdgeInsets.all(8),
               disableBlur: true,
-              child: CachedNetworkImage(imageUrl: job.logoUrl, width: 40, height: 40),
+              child: CachedNetworkImage(
+                imageUrl: job.logoUrl,
+                width: 40,
+                height: 40,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(job.title, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Theme.of(context).colorScheme.onSurface)),
-                  Text('${job.companyName} • ${job.location}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(
+                    job.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '${job.companyName} • ${job.location}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text(job.salary, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Theme.of(context).colorScheme.primary)),
+                  Text(
+                    job.salary,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.bookmark_rounded, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.bookmark_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ],
         ),
       ),

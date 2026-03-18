@@ -59,7 +59,9 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
   }
 
   Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.any);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+    );
     if (result != null) {
       setState(() => _fileName = result.files.single.name);
       _startAnalysis();
@@ -83,7 +85,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF81D4FA).withOpacity(0.4),
+                    const Color(0xFF81D4FA).withValues(alpha: 0.4),
                     Colors.transparent,
                   ],
                 ),
@@ -102,12 +104,15 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                     padding: const EdgeInsets.all(8.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 1.5),
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 16,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -119,11 +124,14 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 1.5),
                         ),
-                        child: const Icon(Icons.person_outline_rounded, size: 24),
+                        child: const Icon(
+                          Icons.person_outline_rounded,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ],
@@ -135,23 +143,31 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                       const Center(
                         child: Text(
                           'Upload Your CV',
-                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 32),
-                      _buildGlassContainer(
-                        child: _buildUploadZone(),
-                      ),
-                      if ( _fileName != null) ...[
+                      _buildGlassContainer(child: _buildUploadZone()),
+                      if (_fileName != null) ...[
                         const SizedBox(height: 16),
-                        Center(child: Text(_fileName!, style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600))),
+                        Center(
+                          child: Text(
+                            _fileName!,
+                            style: const TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
                       const SizedBox(height: 32),
                       if (_isUploading) _buildLoadingSection(),
                       if (_isAnalyzed) ...[
-                        _buildGlassContainer(
-                          child: _buildSkillsMatchSection(),
-                        ),
+                        _buildGlassContainer(child: _buildSkillsMatchSection()),
                         const SizedBox(height: 32),
                         _buildGlassButton('Continue with Profile'),
                       ],
@@ -169,12 +185,15 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
   Widget _buildGlassContainer({required Widget child, EdgeInsets? padding}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -198,28 +217,50 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
       onTap: _pickFile,
       child: Column(
         children: [
-          const Text('Upload CV', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const Text(
+            'Upload CV',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 40),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.black12, style: BorderStyle.solid), // In Flutter solid is easier than dashed for simple impl
+              border: Border.all(
+                color: Colors.black12,
+                style: BorderStyle.solid,
+              ), // In Flutter solid is easier than dashed for simple impl
             ),
             child: Column(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.cloud_upload_outlined, color: Colors.black54, size: 32),
+                  child: const Icon(
+                    Icons.cloud_upload_outlined,
+                    color: Colors.black54,
+                    size: 32,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Upload CV (PDF, DOCX)', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w600, fontSize: 13)),
+                const Text(
+                  'Upload CV (PDF, DOCX)',
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
           ),
@@ -234,8 +275,17 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('AI Skill Analysis', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Text('${(_analysisProgress * 100).toInt()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
+            const Text(
+              'AI Skill Analysis',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            Text(
+              '${(_analysisProgress * 100).toInt()}%',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -249,7 +299,10 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Text(_analysisStep, style: const TextStyle(color: Colors.black45, fontSize: 13)),
+        Text(
+          _analysisStep,
+          style: const TextStyle(color: Colors.black45, fontSize: 13),
+        ),
       ],
     );
   }
@@ -258,12 +311,19 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Extracted Skills Match:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        const Text(
+          'Extracted Skills Match:',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         const SizedBox(height: 20),
-        ..._mockSkills.map((skill) => Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildSkillRow(skill),
-        )).toList(),
+        ..._mockSkills
+            .map(
+              (skill) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildSkillRow(skill),
+              ),
+            )
+            .toList(),
       ],
     );
   }
@@ -272,7 +332,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.4),
+        color: Colors.white.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white, width: 1.5),
       ),
@@ -280,7 +340,10 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(skill['icon'], size: 20, color: Colors.black87),
           ),
           const SizedBox(width: 16),
@@ -291,8 +354,21 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(skill['skill'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    Text('${skill['match']}% Match', style: const TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(
+                      skill['skill'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      '${skill['match']}% Match',
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -303,7 +379,9 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                     minHeight: 8,
                     backgroundColor: Colors.white,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      skill['match'] > 90 ? const Color(0xFF039BE5) : const Color(0xFF81D4FA),
+                      skill['match'] > 90
+                          ? const Color(0xFF039BE5)
+                          : const Color(0xFF81D4FA),
                     ),
                   ),
                 ),
@@ -320,12 +398,12 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
       width: double.infinity,
       height: 56,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -334,7 +412,11 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
       child: Center(
         child: Text(
           text,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.black87,
+          ),
         ),
       ),
     );

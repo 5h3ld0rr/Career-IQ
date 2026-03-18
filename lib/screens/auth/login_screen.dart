@@ -23,7 +23,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (authProvider.isAuthenticated) {
       if (mounted) Navigator.pushReplacementNamed(context, '/main');
     } else if (authProvider.error != null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error!), backgroundColor: AppTheme.error, behavior: SnackBarBehavior.floating));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.error!),
+            backgroundColor: AppTheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
     }
   }
 
@@ -33,7 +40,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (authProvider.isAuthenticated) {
       if (mounted) Navigator.pushReplacementNamed(context, '/main');
     } else if (authProvider.error != null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.error!), backgroundColor: AppTheme.error, behavior: SnackBarBehavior.floating));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.error!),
+            backgroundColor: AppTheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
     }
   }
 
@@ -57,27 +71,69 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildGlassBox(
                       borderRadius: 16,
                       padding: const EdgeInsets.all(16),
-                      child: const Icon(Icons.work_rounded, color: Color(0xFF03A9F4), size: 32),
+                      child: const Icon(
+                        Icons.work_rounded,
+                        color: Color(0xFF03A9F4),
+                        size: 32,
+                      ),
                     ),
                     const SizedBox(height: 32),
-                    const Text('Welcome Back!', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+                    const Text(
+                      'Welcome Back!',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Login to continue your career journey.', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w600)),
+                    const Text(
+                      'Login to continue your career journey.',
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 48),
                     _buildGlassBox(
                       child: Column(
                         children: [
-                          _buildTextField(_emailController, 'Email Address', Icons.email_outlined),
+                          _buildTextField(
+                            _emailController,
+                            'Email Address',
+                            Icons.email_outlined,
+                          ),
                           const SizedBox(height: 20),
-                          _buildTextField(_passwordController, 'Password', Icons.lock_outline_rounded, isPassword: true),
+                          _buildTextField(
+                            _passwordController,
+                            'Password',
+                            Icons.lock_outline_rounded,
+                            isPassword: true,
+                          ),
                           Align(
                             alignment: Alignment.centerRight,
-                            child: TextButton(onPressed: () {}, child: const Text('Forgot?', style: TextStyle(color: Color(0xFF03A9F4), fontWeight: FontWeight.bold))),
+                            child: TextButton(
+                              onPressed: () {},
+                              child: const Text(
+                                'Forgot?',
+                                style: TextStyle(
+                                  color: Color(0xFF03A9F4),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 8),
                           _buildPrimaryButton(isLoading, _handleLogin, 'LOGIN'),
                           const SizedBox(height: 24),
-                          const Text('OR', style: TextStyle(color: Colors.black26, fontWeight: FontWeight.w900, fontSize: 12)),
+                          const Text(
+                            'OR',
+                            style: TextStyle(
+                              color: Colors.black26,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           _buildGoogleButton(isLoading),
                         ],
@@ -88,7 +144,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text('First time here?'),
-                        TextButton(onPressed: () => Navigator.pushNamed(context, '/signup'), child: const Text('Join Elite', style: TextStyle(color: Color(0xFF0288D1), fontWeight: FontWeight.w900))),
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/signup'),
+                          child: const Text(
+                            'Join Elite',
+                            style: TextStyle(
+                              color: Color(0xFF0288D1),
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -108,32 +174,64 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Container(
         width: 400,
         height: 400,
-        decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.3), Colors.transparent])),
-      ),
-    );
-  }
-
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 30}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 30, offset: const Offset(0, 10))],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(padding: padding ?? const EdgeInsets.all(24), child: child),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.3),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false}) {
+  Widget _buildGlassBox({
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 30,
+  }) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.35), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(24),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint,
+    IconData icon, {
+    bool isPassword = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: TextField(
         controller: controller,
         obscureText: isPassword && _obscurePassword,
@@ -141,7 +239,16 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(icon, color: Colors.black38),
-          suffixIcon: isPassword ? IconButton(icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.black38), onPressed: () => setState(() => _obscurePassword = !_obscurePassword)) : null,
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black38,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                )
+              : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18),
         ),
@@ -149,14 +256,34 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPrimaryButton(bool isLoading, VoidCallback onPressed, String label) {
+  Widget _buildPrimaryButton(
+    bool isLoading,
+    VoidCallback onPressed,
+    String label,
+  ) {
     return SizedBox(
       width: double.infinity,
       height: 58,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF03A9F4).withOpacity(0.1), foregroundColor: const Color(0xFF03A9F4), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFF03A9F4), width: 1.5))),
-        child: isLoading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF03A9F4))) : Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF03A9F4).withValues(alpha: 0.1),
+          foregroundColor: const Color(0xFF03A9F4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFF03A9F4), width: 1.5),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF03A9F4),
+                ),
+              )
+            : Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
       ),
     );
   }

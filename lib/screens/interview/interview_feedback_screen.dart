@@ -32,7 +32,10 @@ class InterviewFeedbackScreen extends StatelessWidget {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -43,21 +46,30 @@ class InterviewFeedbackScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    _buildGlassBox(
-                      child: _buildScoreHeader(),
-                    ),
+                    _buildGlassBox(child: _buildScoreHeader()),
                     const SizedBox(height: 32),
                     _buildMetricsGrid(context),
                     const SizedBox(height: 32),
                     const Text(
                       'Detailed Feedback',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black, letterSpacing: -0.5),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        letterSpacing: -0.5,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    ...insights.map((insight) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildGlassBox(child: _buildInsightCard(context, insight)),
-                    )).toList(),
+                    ...insights
+                        .map(
+                          (insight) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildGlassBox(
+                              child: _buildInsightCard(context, insight),
+                            ),
+                          ),
+                        )
+                        .toList(),
                     const SizedBox(height: 32),
                     _buildActionButtons(context),
                     const SizedBox(height: 48),
@@ -80,19 +92,37 @@ class InterviewFeedbackScreen extends StatelessWidget {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.3), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.3),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox({
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 24,
+  }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -120,23 +150,36 @@ class InterviewFeedbackScreen extends StatelessWidget {
                 value: score / 100,
                 strokeWidth: 8,
                 backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF03A9F4)),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFF03A9F4),
+                ),
                 strokeCap: StrokeCap.round,
               ),
             ),
             Text(
               '${score.toInt()}%',
-              style: const TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w900),
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        const Text('Confidence Score', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+        const Text(
+          'Confidence Score',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+        ),
         const SizedBox(height: 4),
         const Text(
           'Your tone was professional and steady.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.black54, fontSize: 13, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.black54,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -162,9 +205,24 @@ class InterviewFeedbackScreen extends StatelessWidget {
           borderRadius: 20,
           child: Column(
             children: [
-              Text('$value%', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color)),
+              Text(
+                '$value%',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: color,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(label.toUpperCase(), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.black45, letterSpacing: 0.5)),
+              Text(
+                label.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black45,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
         ),
@@ -176,17 +234,32 @@ class InterviewFeedbackScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(insight['icon'] ?? Icons.lightbulb_outline_rounded, color: const Color(0xFF03A9F4), size: 24),
+        Icon(
+          insight['icon'] ?? Icons.lightbulb_outline_rounded,
+          color: const Color(0xFF03A9F4),
+          size: 24,
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(insight['title'], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+              Text(
+                insight['title'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 15,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(
                 insight['subtitle'],
-                style: const TextStyle(fontSize: 12, color: Colors.black54, height: 1.4, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                  height: 1.4,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -200,12 +273,22 @@ class InterviewFeedbackScreen extends StatelessWidget {
       children: [
         ElevatedButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Practice Again', style: TextStyle(fontWeight: FontWeight.w900)),
+          child: const Text(
+            'Practice Again',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
         ),
         const SizedBox(height: 12),
         TextButton(
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-          child: const Text('Back to Dashboard', style: TextStyle(color: Colors.black45, fontWeight: FontWeight.bold)),
+          onPressed: () =>
+              Navigator.of(context).popUntil((route) => route.isFirst),
+          child: const Text(
+            'Back to Dashboard',
+            style: TextStyle(
+              color: Colors.black45,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ],
     );

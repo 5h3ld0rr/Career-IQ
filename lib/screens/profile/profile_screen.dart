@@ -34,7 +34,10 @@ class ProfileScreen extends StatelessWidget {
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -48,7 +51,12 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: 50,
                       padding: const EdgeInsets.all(4),
                       child: IconButton(
-                        icon: Icon(themeProvider.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded, size: 20),
+                        icon: Icon(
+                          themeProvider.isDarkMode
+                              ? Icons.light_mode_rounded
+                              : Icons.dark_mode_rounded,
+                          size: 20,
+                        ),
                         onPressed: () => themeProvider.toggleTheme(),
                       ),
                     ),
@@ -62,13 +70,20 @@ class ProfileScreen extends StatelessWidget {
                     _buildProfileHeader(context, authProvider),
                     const SizedBox(height: 32),
                     _buildSectionTitle(context, 'Resume'),
-                    _buildGlassBox(context, child: _buildResumeSection(context, authProvider)),
+                    _buildGlassBox(
+                      context,
+                      child: _buildResumeSection(context, authProvider),
+                    ),
                     const SizedBox(height: 32),
                     _buildSectionTitle(context, 'Skills'),
                     _buildSkillsSection(context),
                     const SizedBox(height: 32),
                     _buildSectionTitle(context, 'Elite Actions'),
-                    _buildGlassBox(context, padding: const EdgeInsets.all(8), child: _buildActionsMenu(context, authProvider)),
+                    _buildGlassBox(
+                      context,
+                      padding: const EdgeInsets.all(8),
+                      child: _buildActionsMenu(context, authProvider),
+                    ),
                     const SizedBox(height: 48),
                   ]),
                 ),
@@ -89,19 +104,42 @@ class ProfileScreen extends StatelessWidget {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.35), Colors.transparent]),
+          gradient: RadialGradient(
+            colors: [
+              const Color(0xFF81D4FA).withValues(alpha: 0.35),
+              Colors.transparent,
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox(BuildContext context, {required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+  Widget _buildGlassBox(
+    BuildContext context, {
+    required Widget child,
+    EdgeInsets? padding,
+    double borderRadius = 24,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(
+          color: AppTheme.getGlassBorderColor(context),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.04
+                  : 0.2,
+            ),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -126,7 +164,10 @@ class ProfileScreen extends StatelessWidget {
               withData: true,
             );
             if (result != null && result.files.single.bytes != null) {
-              await auth.updateProfilePicture(result.files.single.bytes, result.files.single.name);
+              await auth.updateProfilePicture(
+                result.files.single.bytes,
+                result.files.single.name,
+              );
             }
           },
           child: Stack(
@@ -138,11 +179,17 @@ class ProfileScreen extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Theme.of(context).colorScheme.surface,
-                  backgroundImage: auth.profilePictureUrl != null ? NetworkImage(auth.profilePictureUrl!) : null,
+                  backgroundImage: auth.profilePictureUrl != null
+                      ? NetworkImage(auth.profilePictureUrl!)
+                      : null,
                   child: auth.profilePictureUrl == null
                       ? Text(
                           auth.userName?.substring(0, 1).toUpperCase() ?? 'U',
-                          style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         )
                       : null,
                 ),
@@ -152,8 +199,15 @@ class ProfileScreen extends StatelessWidget {
                 right: 0,
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
-                  child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                 ),
               ),
             ],
@@ -163,7 +217,13 @@ class ProfileScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(auth.userName ?? 'User Name', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.onSurface)),
+            Text(
+              auth.userName ?? 'User Name',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.edit_rounded, size: 18),
               onPressed: () => _showEditNameDialog(context, auth),
@@ -180,9 +240,15 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Name'),
-        content: TextField(controller: controller, decoration: const InputDecoration(hintText: 'Enter your name')),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Enter your name'),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () async {
               if (controller.text.isNotEmpty) {
@@ -200,7 +266,14 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
-      child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.onSurface)),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w900,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
     );
   }
 
@@ -209,24 +282,49 @@ class ProfileScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface.withOpacity(0.8), borderRadius: BorderRadius.circular(16)),
-          child: Icon(Icons.description_rounded, color: Theme.of(context).colorScheme.primary, size: 24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            Icons.description_rounded,
+            color: Theme.of(context).colorScheme.primary,
+            size: 24,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(auth.resumeFileName ?? 'No resume uploaded', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
               Text(
-                auth.resumeUploadedAt != null ? 'Uploaded on ${auth.resumeUploadedAt!.day}/${auth.resumeUploadedAt!.month}/${auth.resumeUploadedAt!.year}' : 'Upload your resume to get started',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600),
+                auth.resumeFileName ?? 'No resume uploaded',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              Text(
+                auth.resumeUploadedAt != null
+                    ? 'Uploaded on ${auth.resumeUploadedAt!.day}/${auth.resumeUploadedAt!.month}/${auth.resumeUploadedAt!.year}'
+                    : 'Upload your resume to get started',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
         IconButton(
-          icon: Icon(auth.resumeUrl != null ? Icons.cloud_done_rounded : Icons.file_upload_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          icon: Icon(
+            auth.resumeUrl != null
+                ? Icons.cloud_done_rounded
+                : Icons.file_upload_outlined,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           onPressed: () async {
             FilePickerResult? result = await FilePicker.platform.pickFiles(
               type: FileType.custom,
@@ -234,7 +332,10 @@ class ProfileScreen extends StatelessWidget {
               withData: true,
             );
             if (result != null && result.files.single.bytes != null) {
-              await auth.uploadResume(result.files.single.bytes, result.files.single.name);
+              await auth.uploadResume(
+                result.files.single.bytes,
+                result.files.single.name,
+              );
             }
           },
         ),
@@ -243,24 +344,57 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildSkillsSection(BuildContext context) {
-    final List<String> skills = ['UI Design', 'UX Research', 'Flutter', 'Figma', 'Prototyping'];
+    final List<String> skills = [
+      'UI Design',
+      'UX Research',
+      'Flutter',
+      'Figma',
+      'Prototyping',
+    ];
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: skills.map((s) => _buildGlassBox(
-        context,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        borderRadius: 12,
-        child: Text(s, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
-      )).toList(),
+      children: skills
+          .map(
+            (s) => _buildGlassBox(
+              context,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              borderRadius: 12,
+              child: Text(
+                s,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
   Widget _buildActionsMenu(BuildContext context, AuthProvider auth) {
     return Column(
       children: [
-        _buildMenuTile(context, Icons.psychology_rounded, 'AI Resume Analysis', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()))),
-        _buildMenuTile(context, Icons.history_rounded, 'Application History', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ApplicationTrackerScreen()))),
+        _buildMenuTile(
+          context,
+          Icons.psychology_rounded,
+          'AI Resume Analysis',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()),
+          ),
+        ),
+        _buildMenuTile(
+          context,
+          Icons.history_rounded,
+          'Application History',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ApplicationTrackerScreen()),
+          ),
+        ),
         _buildMenuTile(context, Icons.logout_rounded, 'Logout', () {
           auth.logout();
           Navigator.pushReplacementNamed(context, '/login');
@@ -269,12 +403,36 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuTile(BuildContext context, IconData icon, String title, VoidCallback onTap, {bool isDestructive = false}) {
+  Widget _buildMenuTile(
+    BuildContext context,
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: isDestructive ? Colors.redAccent : Theme.of(context).colorScheme.primary, size: 22),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: isDestructive ? Colors.redAccent : Theme.of(context).colorScheme.onSurface)),
-      trailing: Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+      leading: Icon(
+        icon,
+        color: isDestructive
+            ? Colors.redAccent
+            : Theme.of(context).colorScheme.primary,
+        size: 22,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 14,
+          color: isDestructive
+              ? Colors.redAccent
+              : Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+      ),
     );
   }
 }
