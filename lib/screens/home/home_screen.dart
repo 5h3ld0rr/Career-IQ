@@ -124,6 +124,27 @@ class _HomeScreenState extends State<HomeScreen> {
               Text('Find your dream job', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900)),
             ],
           ),
+          _buildGlassBox(
+            borderRadius: 50,
+            padding: const EdgeInsets.all(4),
+            child: Stack(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.notifications_none_rounded, color: Theme.of(context).colorScheme.onSurface),
+                  onPressed: () {},
+                ),
+                Positioned(
+                  right: 12,
+                  top: 12,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

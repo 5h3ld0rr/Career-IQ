@@ -260,7 +260,6 @@ class ProfileScreen extends StatelessWidget {
       children: [
         _buildMenuTile(context, Icons.psychology_rounded, 'AI Resume Analysis', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()))),
         _buildMenuTile(context, Icons.history_rounded, 'Application History', () {}),
-        _buildMenuTile(context, Icons.notifications_none_rounded, 'Notifications', () {}),
         _buildMenuTile(context, Icons.logout_rounded, 'Logout', () {
           auth.logout();
           Navigator.pushReplacementNamed(context, '/login');
