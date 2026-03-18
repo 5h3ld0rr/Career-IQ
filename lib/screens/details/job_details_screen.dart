@@ -15,7 +15,7 @@ class JobDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           _buildBackgroundDecor(),
@@ -46,14 +46,23 @@ class JobDetailsScreen extends StatelessWidget {
                     child: _buildGlassBox(
                       borderRadius: 50,
                       padding: const EdgeInsets.all(4),
-                      child: IconButton(
-                        icon: Icon(
-                          job.isSaved
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_outline_rounded,
-                          size: 20,
+                      child: Consumer2<AuthProvider, JobProvider>(
+                        builder: (context, auth, jobs, _) => IconButton(
+                          icon: Icon(
+                            job.isSaved
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_outline_rounded,
+                            size: 20,
+                            color: job.isSaved
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          ),
+                          onPressed: () {
+                            if (auth.userId != null) {
+                              jobs.toggleSaveJob(auth.userId!, job);
+                            }
+                          },
                         ),
-                        onPressed: () {},
                       ),
                     ),
                   ),
@@ -186,6 +195,12 @@ class JobDetailsScreen extends StatelessWidget {
             imageUrl: job.logoUrl,
             width: 60,
             height: 60,
+            placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 2),
+            errorWidget: (context, url, error) => Icon(
+              Icons.business_rounded,
+              size: 40,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            ),
           ),
         ),
         const SizedBox(height: 20),

@@ -5,6 +5,7 @@ import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
 import 'package:careeriq/providers/theme_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:careeriq/providers/job_provider.dart';
 import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
 
@@ -394,6 +395,18 @@ class ProfileScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (_) => const ApplicationTrackerScreen()),
           ),
+        ),
+        _buildMenuTile(
+          context,
+          Icons.refresh_rounded,
+          'Reset System Data',
+          () async {
+            final jobProvider = Provider.of<JobProvider>(context, listen: false);
+            await jobProvider.seedDatabase();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Database seeded with new categories!')),
+            );
+          },
         ),
         _buildMenuTile(context, Icons.logout_rounded, 'Logout', () {
           auth.logout();

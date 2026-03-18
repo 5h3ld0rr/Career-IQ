@@ -9,59 +9,63 @@ class JobService {
   [
     {
       "id": "1",
-      "title": "Senior Product Designer",
+      "title": "Software Engineer",
       "company_name": "Google",
+      "category": "IT",
       "logo_url": "https://logo.clearbit.com/google.com",
       "location": "Mountain View, CA",
       "salary": "\$150k - \$200k",
-      "description": "We are looking for a Senior Product Designer to join our Cloud team...",
-      "responsibilities": ["Lead design for core cloud features", "Collaborate with PMs and Engineers", "Mentor junior designers"],
-      "requirements": ["5+ years of experience", "Strong portfolio", "Expert in Figma"],
+      "description": "We are looking for a Software Engineer...",
+      "responsibilities": ["Coding", "Design"],
+      "requirements": ["3+ years experience"],
       "job_type": "Full-time",
       "posted_at": "2024-03-10T10:00:00Z",
       "apply_url": "https://careers.google.com"
     },
     {
       "id": "2",
-      "title": "Software Engineer (Flutter)",
+      "title": "Business Analyst",
       "company_name": "Airbnb",
+      "category": "Business",
       "logo_url": "https://logo.clearbit.com/airbnb.com",
       "location": "Remote",
       "salary": "\$130k - \$180k",
-      "description": "Join our mobile team to build beautiful experiences with Flutter...",
-      "responsibilities": ["Develop new features using Flutter", "Ensure high performance and responsiveness", "Write clean, testable code"],
-      "requirements": ["3+ years of Flutter experience", "Deep understanding of Dart", "Experience with Firebase"],
+      "description": "Join our business team...",
+      "responsibilities": ["Analysis", "Strategy"],
+      "requirements": ["Expert in Excel"],
       "job_type": "Remote",
       "posted_at": "2024-03-12T09:00:00Z",
       "apply_url": "https://careers.airbnb.com"
     },
     {
       "id": "3",
-      "title": "Marketing Manager",
-      "company_name": "Spotify",
-      "logo_url": "https://logo.clearbit.com/spotify.com",
-      "location": "New York, NY",
-      "salary": "\$100k - \$140k",
-      "description": "Drive growth and engagement for our podcast platform...",
-      "responsibilities": ["Develop marketing campaigns", "Analyze user data", "Manage brand partnerships"],
-      "requirements": ["Bachelor's in Marketing", "4+ years of experience", "Passion for music and podcasts"],
+      "title": "Mechanical Engineer",
+      "company_name": "Tesla",
+      "category": "Engineering",
+      "logo_url": "https://logo.clearbit.com/tesla.com",
+      "location": "Palo Alto, CA",
+      "salary": "\$120k - \$160k",
+      "description": "Build cars...",
+      "responsibilities": ["AutoCAD", "Design"],
+      "requirements": ["BS in Engineering"],
       "job_type": "Full-time",
       "posted_at": "2024-03-13T14:30:00Z",
-      "apply_url": "https://careers.spotify.com"
+      "apply_url": "https://careers.tesla.com"
     },
     {
       "id": "4",
-      "title": "UI/UX Intern",
-      "company_name": "Adobe",
-      "logo_url": "https://logo.clearbit.com/adobe.com",
+      "title": "Hotel Manager",
+      "company_name": "Hilton",
+      "category": "Hotel",
+      "logo_url": "https://logo.clearbit.com/hilton.com",
       "location": "San Jose, CA",
-      "salary": "\$40/hr - \$55/hr",
-      "description": "Learn from the best in the industry and work on creative tools...",
-      "responsibilities": ["Assist in user research", "Create wireframes and prototypes", "Participate in design reviews"],
-      "requirements": ["Currently pursuing design degree", "Knowledge of Adobe Creative Cloud", "Eagerness to learn"],
-      "job_type": "Part-time",
+      "salary": "\$80k - \$110k",
+      "description": "Manage our premium hotels...",
+      "responsibilities": ["Guest service", "Operations"],
+      "requirements": ["Hospitality degree"],
+      "job_type": "Full-time",
       "posted_at": "2024-03-14T11:00:00Z",
-      "apply_url": "https://careers.adobe.com"
+      "apply_url": "https://careers.hilton.com"
     }
   ]
   ''';
@@ -123,8 +127,14 @@ class JobService {
     return jobs;
   }
 
-  Future<List<Job>> fetchFeaturedJobs() async {
-    final snapshot = await _firestore.collection('jobs').limit(5).get();
+  Future<List<Job>> fetchFeaturedJobs({String? category}) async {
+    Query query = _firestore.collection('jobs');
+    
+    if (category != null && category != 'All') {
+      query = query.where('category', isEqualTo: category);
+    }
+    
+    final snapshot = await query.limit(5).get();
 
     return snapshot.docs.map((doc) {
       final Map<String, dynamic> data = Map<String, dynamic>.from(
@@ -189,7 +199,45 @@ class JobService {
         });
       }
     }
-    
     return applications;
+  }
+
+  Future<void> saveJob(String userId, String jobId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('saved_jobs')
+        .doc(jobId)
+        .set({
+      'savedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> unsaveJob(String userId, String jobId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('saved_jobs')
+        .doc(jobId)
+        .delete();
+  }
+
+  Future<List<Job>> fetchSavedJobs(String userId) async {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('saved_jobs')
+        .get();
+
+    List<Job> savedJobs = [];
+    for (var doc in snapshot.docs) {
+      final jobDoc = await _firestore.collection('jobs').doc(doc.id).get();
+      if (jobDoc.exists) {
+        final job = Job.fromFirestore(jobDoc);
+        job.isSaved = true;
+        savedJobs.add(job);
+      }
+    }
+    return savedJobs;
   }
 }

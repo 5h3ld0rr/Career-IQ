@@ -7,7 +7,7 @@ class JobProvider with ChangeNotifier {
 
   List<Job> _jobs = [];
   List<Job> _featuredJobs = [];
-  final List<Job> _savedJobs = [];
+  List<Job> _savedJobs = [];
   bool _isLoading = false;
   String? _error;
   String? _currentQuery;
@@ -79,15 +79,15 @@ class JobProvider with ChangeNotifier {
     await loadJobs();
   }
 
-  Future<void> loadFeaturedJobs() async {
+  Future<void> loadFeaturedJobs({String? category}) async {
     try {
-      _featuredJobs = await _jobService.fetchFeaturedJobs();
+      _featuredJobs = await _jobService.fetchFeaturedJobs(category: category);
       for (var job in _featuredJobs) {
         job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
       }
       notifyListeners();
     } catch (e) {
-      debugPrint('Error loading featured jobs: \$e');
+      debugPrint('Error loading featured jobs: $e');
     }
   }
 
@@ -130,15 +130,50 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  void toggleSaveJob(Job job) {
-    if (job.isSaved) {
-      job.isSaved = false;
-      _savedJobs.removeWhere((j) => j.id == job.id);
-    } else {
-      job.isSaved = true;
-      _savedJobs.add(job);
+  Future<void> loadSavedJobs(String userId) async {
+    try {
+      _savedJobs = await _jobService.fetchSavedJobs(userId);
+      // Sync isSaved status across all lists
+      for (var job in _jobs) {
+        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+      }
+      for (var job in _featuredJobs) {
+        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading saved jobs: $e');
     }
-    // TODO: Persist to Firestore
-    notifyListeners();
+  }
+
+  Future<void> toggleSaveJob(String userId, Job job) async {
+    final originalStatus = job.isSaved;
+    try {
+      if (job.isSaved) {
+        job.isSaved = false;
+        _savedJobs.removeWhere((j) => j.id == job.id);
+        notifyListeners();
+        await _jobService.unsaveJob(userId, job.id);
+      } else {
+        job.isSaved = true;
+        _savedJobs.add(job);
+        notifyListeners();
+        await _jobService.saveJob(userId, job.id);
+      }
+      // Sync other lists that might contain this job
+      for (var j in _jobs) { if (j.id == job.id) j.isSaved = job.isSaved; }
+      for (var j in _featuredJobs) { if (j.id == job.id) j.isSaved = job.isSaved; }
+      notifyListeners();
+    } catch (e) {
+      // Revert on error
+      job.isSaved = originalStatus;
+      if (originalStatus) {
+        if (!_savedJobs.any((j) => j.id == job.id)) _savedJobs.add(job);
+      } else {
+        _savedJobs.removeWhere((j) => j.id == job.id);
+      }
+      debugPrint('Error toggling save job: $e');
+      notifyListeners();
+    }
   }
 }

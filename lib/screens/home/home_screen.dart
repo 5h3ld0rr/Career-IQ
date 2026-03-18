@@ -23,18 +23,23 @@ class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
   final List<String> _categories = [
     'All',
-    'Design',
-    'Tech',
-    'Marketing',
-    'Sales',
+    'IT',
+    'Business',
+    'Engineering',
+    'Hotel',
   ];
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-      Provider.of<JobProvider>(context, listen: false).loadJobs();
-      Provider.of<JobProvider>(context, listen: false).loadFeaturedJobs();
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final jobProvider = Provider.of<JobProvider>(context, listen: false);
+      jobProvider.loadJobs();
+      jobProvider.loadFeaturedJobs();
+      if (auth.userId != null) {
+        jobProvider.loadSavedJobs(auth.userId!);
+      }
     });
   }
 
@@ -119,6 +124,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 imageUrl: job.logoUrl,
                 width: 32,
                 height: 32,
+                placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 2),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.business_rounded,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -140,7 +151,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.black26),
+            Consumer<AuthProvider>(
+              builder: (context, auth, _) => IconButton(
+                onPressed: () {
+                  if (auth.userId != null) {
+                    Provider.of<JobProvider>(context, listen: false)
+                        .toggleSaveJob(auth.userId!, job);
+                  }
+                },
+                icon: Icon(
+                  job.isSaved
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_outline_rounded,
+                  color: job.isSaved
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.black26,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -393,42 +421,93 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCategoryFilters(JobProvider jobs) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        children: _categories
-            .map(
-              (cat) => Padding(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Explore Categories'),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: _categories.map((cat) {
+              final isSelected = jobs.currentCategory == cat;
+              return Padding(
                 padding: const EdgeInsets.only(right: 12),
-                child: ChoiceChip(
-                  label: Text(cat),
-                  selected: jobs.currentCategory == cat,
-                  onSelected: (sel) =>
-                      sel ? jobs.loadJobs(category: cat) : null,
-                  selectedColor: Colors.white,
-                  backgroundColor: Colors.white.withValues(alpha: 0.4),
-                  labelStyle: TextStyle(
-                    color: jobs.currentCategory == cat
-                        ? Colors.black
-                        : Colors.black54,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide.none,
+                child: GestureDetector(
+                  onTap: () {
+                    jobs.loadJobs(category: cat);
+                    jobs.loadFeaturedJobs(category: cat);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.9)
+                          : Colors.white.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: Colors.blueAccent.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ]
+                          : [],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getCategoryIcon(cat),
+                          size: 18,
+                          color: isSelected ? Colors.blueAccent : Colors.black54,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          cat,
+                          style: TextStyle(
+                            color: isSelected ? Colors.black : Colors.black54,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            )
-            .toList(),
-      ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'IT':
+        return Icons.code_rounded;
+      case 'Business':
+        return Icons.business_center_rounded;
+      case 'Engineering':
+        return Icons.engineering_rounded;
+      case 'Hotel':
+        return Icons.hotel_rounded;
+      default:
+        return Icons.grid_view_rounded;
+    }
   }
 
   Widget _buildFeaturedJobs(JobProvider jobs) {
     return SizedBox(
-      height: 180,
+      height: 200,
       child: jobs.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -464,13 +543,33 @@ class _HomeScreenState extends State<HomeScreen> {
                     disableBlur: true,
                     child: CachedNetworkImage(
                       imageUrl: job.logoUrl,
-                      width: 24,
-                      height: 24,
+                      width: 32,
+                      height: 32,
+                      placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 2),
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.business_rounded,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                      ),
                     ),
                   ),
-                  const Icon(
-                    Icons.bookmark_outline_rounded,
-                    color: Colors.black54,
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, _) => GestureDetector(
+                      onTap: () {
+                        if (auth.userId != null) {
+                          Provider.of<JobProvider>(context, listen: false)
+                              .toggleSaveJob(auth.userId!, job);
+                        }
+                      },
+                      child: Icon(
+                        job.isSaved
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_outline_rounded,
+                        color: job.isSaved
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.black54,
+                      ),
+                    ),
                   ),
                 ],
               ),

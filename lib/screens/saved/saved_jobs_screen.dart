@@ -180,6 +180,12 @@ class SavedJobsScreen extends StatelessWidget {
                 imageUrl: job.logoUrl,
                 width: 40,
                 height: 40,
+                placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 2),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.business_rounded,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                ),
               ),
             ),
             const SizedBox(width: 16),
