@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:careeriq/services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -10,6 +11,9 @@ class AuthProvider with ChangeNotifier {
   String? _userName;
   String? _userEmail;
   String? _profilePictureUrl;
+  String? _resumeFileName;
+  String? _resumeUrl;
+  DateTime? _resumeUploadedAt;
 
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
@@ -17,6 +21,9 @@ class AuthProvider with ChangeNotifier {
   String? get userName => _userName;
   String? get userEmail => _userEmail;
   String? get profilePictureUrl => _profilePictureUrl;
+  String? get resumeFileName => _resumeFileName;
+  String? get resumeUrl => _resumeUrl;
+  DateTime? get resumeUploadedAt => _resumeUploadedAt;
 
   Future<void> login(String email, String password) async {
     _isLoading = true;
@@ -33,6 +40,11 @@ class AuthProvider with ChangeNotifier {
         _userName = profile?['name'] ?? user.displayName ?? email.split('@')[0];
         if (profile?['photoUrl'] != null) {
           _profilePictureUrl = profile!['photoUrl'];
+        }
+        _resumeFileName = profile?['resumeFileName'];
+        _resumeUrl = profile?['resumeUrl'];
+        if (profile?['resumeUploadedAt'] != null) {
+          _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
         }
       }
     } catch (e) {
@@ -124,12 +136,38 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> uploadResume(dynamic fileBytes, String fileName) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final uid = _authService.currentUser?.uid;
+      if (uid != null) {
+        final url = await _authService.uploadResume(uid, fileBytes, fileName);
+        if (url != null) {
+          await _authService.updateResumeInfo(uid, fileName: fileName, url: url);
+          _resumeFileName = fileName;
+          _resumeUrl = url;
+          _resumeUploadedAt = DateTime.now();
+        }
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     await _authService.signOut();
     _isAuthenticated = false;
     _userEmail = null;
     _userName = null;
     _profilePictureUrl = null;
+    _resumeFileName = null;
+    _resumeUrl = null;
+    _resumeUploadedAt = null;
     notifyListeners();
   }
 }

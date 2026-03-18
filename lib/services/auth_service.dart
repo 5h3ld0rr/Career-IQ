@@ -113,4 +113,22 @@ class AuthService {
       return null;
     }
   }
+
+  Future<String?> uploadResume(String uid, dynamic fileBytes, String fileName) async {
+    try {
+      final ref = FirebaseStorage.instance.ref().child('resumes').child(uid).child(fileName);
+      await ref.putData(fileBytes);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> updateResumeInfo(String uid, {required String fileName, required String url}) async {
+    await _firestore.collection('users').doc(uid).set({
+      'resumeFileName': fileName,
+      'resumeUrl': url,
+      'resumeUploadedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 }

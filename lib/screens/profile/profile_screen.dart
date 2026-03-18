@@ -61,7 +61,7 @@ class ProfileScreen extends StatelessWidget {
                     _buildProfileHeader(context, authProvider),
                     const SizedBox(height: 32),
                     _buildSectionTitle(context, 'Resume'),
-                    _buildGlassBox(context, child: _buildResumeSection(context)),
+                    _buildGlassBox(context, child: _buildResumeSection(context, authProvider)),
                     const SizedBox(height: 32),
                     _buildSectionTitle(context, 'Skills'),
                     _buildSkillsSection(context),
@@ -203,7 +203,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResumeSection(BuildContext context) {
+  Widget _buildResumeSection(BuildContext context, AuthProvider auth) {
     return Row(
       children: [
         Container(
@@ -216,12 +216,27 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('My_Resume.pdf', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
-              Text('Uploaded on Mar 12, 2024', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600)),
+              Text(auth.resumeFileName ?? 'No resume uploaded', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
+              Text(
+                auth.resumeUploadedAt != null ? 'Uploaded on ${auth.resumeUploadedAt!.day}/${auth.resumeUploadedAt!.month}/${auth.resumeUploadedAt!.year}' : 'Upload your resume to get started',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600),
+              ),
             ],
           ),
         ),
-        Icon(Icons.file_upload_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        IconButton(
+          icon: Icon(auth.resumeUrl != null ? Icons.cloud_done_rounded : Icons.file_upload_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          onPressed: () async {
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+              type: FileType.custom,
+              allowedExtensions: ['pdf', 'doc', 'docx'],
+              withData: true,
+            );
+            if (result != null && result.files.single.bytes != null) {
+              await auth.uploadResume(result.files.single.bytes, result.files.single.name);
+            }
+          },
+        ),
       ],
     );
   }
