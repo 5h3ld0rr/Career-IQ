@@ -6,6 +6,7 @@ import 'package:careeriq/core/theme.dart';
 import 'package:careeriq/providers/theme_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'ai_tips_screen.dart';
+import '../tracker/application_tracker_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -259,7 +260,7 @@ class ProfileScreen extends StatelessWidget {
     return Column(
       children: [
         _buildMenuTile(context, Icons.psychology_rounded, 'AI Resume Analysis', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()))),
-        _buildMenuTile(context, Icons.history_rounded, 'Application History', () {}),
+        _buildMenuTile(context, Icons.history_rounded, 'Application History', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ApplicationTrackerScreen()))),
         _buildMenuTile(context, Icons.logout_rounded, 'Logout', () {
           auth.logout();
           Navigator.pushReplacementNamed(context, '/login');
