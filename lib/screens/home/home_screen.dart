@@ -10,6 +10,7 @@ import '../details/job_details_screen.dart';
 import '../cv_analysis/cv_upload_screen.dart';
 import '../tracker/application_tracker_screen.dart';
 import '../interview/mock_interview_screen.dart';
+import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -131,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.notifications_none_rounded, color: Theme.of(context).colorScheme.onSurface),
-                  onPressed: () {},
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
                 ),
                 Positioned(
                   right: 12,
