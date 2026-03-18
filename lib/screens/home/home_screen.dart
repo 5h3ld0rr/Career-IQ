@@ -10,6 +10,7 @@ import '../details/job_details_screen.dart';
 import '../cv_analysis/cv_upload_screen.dart';
 import '../tracker/application_tracker_screen.dart';
 import '../interview/mock_interview_screen.dart';
+import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final jobs = Provider.of<JobProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
       body: Stack(
         children: [
           _buildBackgroundDecor(),
@@ -144,10 +144,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: width,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(disableBlur ? 0.9 : 0.6),
+        color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -173,14 +173,30 @@ class _HomeScreenState extends State<HomeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Hello ${auth.userName ?? "User"}!', style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600)),
-              const Text('Find your dream job', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.black)),
+              Text('Hello ${auth.userName ?? "User"}!', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
+              Text('Find your dream job', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900)),
             ],
           ),
           _buildGlassBox(
             borderRadius: 50,
             padding: const EdgeInsets.all(4),
-            child: const CircleAvatar(radius: 20, backgroundColor: Colors.white, child: Icon(Icons.person_rounded, color: Colors.black)),
+            child: Stack(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.notifications_none_rounded, color: Theme.of(context).colorScheme.onSurface),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+                ),
+                Positioned(
+                  right: 12,
+                  top: 12,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -245,11 +261,11 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), shape: BoxShape.circle),
-                child: Icon(icon, color: Colors.black87, size: 24),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface.withOpacity(0.8), shape: BoxShape.circle),
+                child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
               ),
               const SizedBox(height: 12),
-              Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+              Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
             ],
           ),
         ),

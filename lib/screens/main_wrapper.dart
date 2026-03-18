@@ -37,12 +37,12 @@ class _MainWrapperState extends State<MainWrapper> {
       height: 70,
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 30),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.4), // True translucent glass
+        color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
+        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -71,8 +71,9 @@ class _MainWrapperState extends State<MainWrapper> {
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _selectedIndex == index;
-    final activeColor = const Color(0xFF03A9F4);
-    final inactiveColor = Colors.black38;
+    final theme = Theme.of(context);
+    final activeColor = theme.colorScheme.primary;
+    final inactiveColor = theme.colorScheme.onSurface.withOpacity(0.4);
 
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),

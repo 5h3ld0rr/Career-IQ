@@ -15,7 +15,6 @@ class SavedJobsScreen extends StatelessWidget {
     final jobProvider = Provider.of<JobProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
       body: Stack(
         children: [
           _buildBackgroundDecor(),
@@ -29,6 +28,7 @@ class SavedJobsScreen extends StatelessWidget {
                 leading: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: _buildGlassBox(
+                    context,
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
@@ -42,7 +42,7 @@ class SavedJobsScreen extends StatelessWidget {
               SliverPadding(
                 padding: const EdgeInsets.all(24),
                 sliver: jobProvider.savedJobs.isEmpty 
-                  ? SliverFillRemaining(child: _buildEmptyState())
+                  ? SliverFillRemaining(child: _buildEmptyState(context))
                   : SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => Padding(
@@ -75,13 +75,13 @@ class SavedJobsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24, bool disableBlur = false}) {
+  Widget _buildGlassBox(BuildContext context, {required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(disableBlur ? 0.8 : 0.6),
+        color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -98,12 +98,13 @@ class SavedJobsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildGlassBox(
+            context,
             borderRadius: 50,
             padding: const EdgeInsets.all(24),
             child: const Icon(Icons.bookmark_border_rounded, size: 60, color: Colors.black26),
@@ -119,10 +120,11 @@ class SavedJobsScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job))),
       child: _buildGlassBox(
-        disableBlur: true,
+        context,
         child: Row(
           children: [
             _buildGlassBox(
+              context,
               borderRadius: 16,
               padding: const EdgeInsets.all(8),
               disableBlur: true,
@@ -133,14 +135,14 @@ class SavedJobsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(job.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
-                  Text('${job.companyName} • ${job.location}', style: const TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(job.title, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Theme.of(context).colorScheme.onSurface)),
+                  Text('${job.companyName} • ${job.location}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  Text(job.salary, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Color(0xFF03A9F4))),
+                  Text(job.salary, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Theme.of(context).colorScheme.primary)),
                 ],
               ),
             ),
-            const Icon(Icons.bookmark_rounded, color: Color(0xFF03A9F4)),
+            Icon(Icons.bookmark_rounded, color: Theme.of(context).colorScheme.primary),
           ],
         ),
       ),
