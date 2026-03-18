@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ai_provider.dart';
@@ -28,8 +29,7 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
   void _generate() {
     Future.microtask(() {
       Provider.of<AIProvider>(context, listen: false).generateCoverLetter(
-        resumeContent:
-            "I am a Senior Product Designer expert in Figma and UX Research.", // Placeholder resume
+        resumeContent: "I am a Senior Product Designer expert in Figma and UX Research.", 
         jobDescription: widget.jobDescription,
       );
     });
@@ -40,115 +40,164 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
     final aiProvider = Provider.of<AIProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI Cover Letter'), centerTitle: true),
-      body: aiProvider.isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Crafting your perfect cover letter...',
-                    style: Theme.of(context).textTheme.bodyLarge,
+      backgroundColor: const Color(0xFFF2F8FF),
+      body: Stack(
+        children: [
+          _buildBackgroundDecor(),
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                floating: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _buildGlassBox(
+                    borderRadius: 50,
+                    padding: const EdgeInsets.all(4),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
-                ],
+                ),
+                title: const Text('AI Cover Letter'),
               ),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryBlue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.description_rounded,
-                          color: AppTheme.primaryBlue,
-                          size: 32,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Elite AI Write',
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(color: AppTheme.primaryBlue),
-                              ),
-                              const SizedBox(height: 4),
-                              Text('Generated for ${widget.jobTitle}'),
-                            ],
+              SliverPadding(
+                padding: const EdgeInsets.all(24),
+                sliver: aiProvider.isLoading
+                  ? SliverFillRemaining(child: _buildLoadingState())
+                  : SliverList(
+                      delegate: SliverChildListDelegate([
+                        _buildGlassBox(child: _buildHeader()),
+                        const SizedBox(height: 32),
+                        if (aiProvider.coverLetter != null) ...[
+                          _buildGlassBox(
+                            padding: const EdgeInsets.all(32),
+                            child: SelectableText(
+                              aiProvider.coverLetter!,
+                              style: const TextStyle(height: 1.7, fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w600),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  if (aiProvider.coverLetter != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.lightGray),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
+                          const SizedBox(height: 32),
+                          _buildActionRow(context, aiProvider),
+                          const SizedBox(height: 48),
                         ],
-                      ),
-                      child: Text(
-                        aiProvider.coverLetter!,
-                        style: const TextStyle(height: 1.6, fontSize: 15),
-                      ),
+                      ]),
                     ),
-                    const SizedBox(height: 32),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              Clipboard.setData(
-                                ClipboardData(text: aiProvider.coverLetter!),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Copied to clipboard!'),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.copy_rounded),
-                            label: const Text('Copy Text'),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _generate,
-                            icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Regenerate'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ] else ...[
-                    const Center(
-                      child: Text('Something went wrong. Please try again.'),
-                    ),
-                  ],
-                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundDecor() {
+    return Positioned(
+      top: 150,
+      left: -50,
+      child: Container(
+        width: 300,
+        height: 300,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.35), Colors.transparent]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(20),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(color: AppTheme.primaryBlue),
+          const SizedBox(height: 24),
+          const Text('AI is crafting your letter...', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), shape: BoxShape.circle),
+          child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF03A9F4), size: 28),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Professional Cover Letter', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              Text('Optimized for ${widget.jobTitle}', style: const TextStyle(color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionRow(BuildContext context, AIProvider aiProvider) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildGlassBox(
+            padding: EdgeInsets.zero,
+            borderRadius: 20,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: aiProvider.coverLetter!));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied!'), behavior: SnackBarBehavior.floating));
+              },
+              icon: const Icon(Icons.copy_all_rounded, size: 20, color: Color(0xFF03A9F4)),
+              label: const Text('COPY TEXT', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.black)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.6),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
             ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        _buildGlassBox(
+          padding: EdgeInsets.zero,
+          borderRadius: 20,
+          child: IconButton(
+            onPressed: _generate,
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF03A9F4)),
+            padding: const EdgeInsets.all(18),
+          ),
+        ),
+      ],
     );
   }
 }

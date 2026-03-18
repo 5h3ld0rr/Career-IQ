@@ -33,52 +33,34 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   Widget _buildBottomNav() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      height: 65,
+      height: 70,
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 30),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.4), // True translucent glass
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark 
-                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.9)
-                  : Theme.of(context).primaryColor.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem(
-                  0,
-                  Icons.grid_view_rounded,
-                  Icons.grid_view_outlined,
-                  'Home',
-                ),
-                _buildNavItem(
-                  1,
-                  Icons.dashboard_customize_rounded,
-                  Icons.dashboard_customize_outlined,
-                  'Tracker',
-                ),
-                _buildNavItem(
-                  2,
-                  Icons.bookmark_rounded,
-                  Icons.bookmark_border_rounded,
-                  'Saved',
-                ),
-                _buildNavItem(
-                  3,
-                  Icons.person_rounded,
-                  Icons.person_outline_rounded,
-                  'Profile',
-                ),
+                _buildNavItem(0, Icons.grid_view_rounded, 'Home'),
+                _buildNavItem(1, Icons.dashboard_customize_rounded, 'Tracker'),
+                _buildNavItem(2, Icons.bookmark_rounded, 'Saved'),
+                _buildNavItem(3, Icons.person_rounded, 'Profile'),
               ],
             ),
           ),
@@ -87,49 +69,37 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
-  Widget _buildNavItem(
-    int index,
-    IconData activeIcon,
-    IconData inactiveIcon,
-    String label,
-  ) {
+  Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _selectedIndex == index;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeColor = isDark ? Theme.of(context).primaryColor : Colors.white;
-    final inactiveColor = isDark ? Colors.white54 : Colors.white60;
+    final activeColor = const Color(0xFF03A9F4);
+    final inactiveColor = Colors.black38;
 
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.15))
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          color: isSelected ? activeColor.withOpacity(0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
         ),
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isSelected ? activeIcon : inactiveIcon,
+              icon,
               color: isSelected ? activeColor : inactiveColor,
-              size: 20,
+              size: 24,
             ),
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: activeColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
+            if (isSelected) 
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(color: activeColor, shape: BoxShape.circle),
               ),
-            ],
           ],
         ),
       ),

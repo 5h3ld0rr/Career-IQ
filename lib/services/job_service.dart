@@ -68,13 +68,25 @@ class JobService {
 
   Future<List<Job>> fetchJobs({
     String? query,
+    String? category,
     String? jobType,
+    String? workMode,
     String? location,
   }) async {
     Query queryRef = _firestore.collection('jobs');
 
+    if (category != null && category != 'All') {
+      // Assuming jobs have a 'category' field in Firestore
+      queryRef = queryRef.where('category', isEqualTo: category);
+    }
+    
     if (jobType != null && jobType != 'All') {
       queryRef = queryRef.where('job_type', isEqualTo: jobType);
+    }
+
+    if (workMode != null && workMode != 'All') {
+      // 'Remote' vs 'On-site' for example
+       queryRef = queryRef.where('location', isEqualTo: workMode == 'Remote' ? 'Remote' : workMode);
     }
 
     final snapshot = await queryRef.get();

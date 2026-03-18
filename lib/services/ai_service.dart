@@ -1,4 +1,5 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'dart:convert';
 
 class AIService {
   // TODO: Replace with your actual Gemini API Key or load from secure storage
@@ -55,6 +56,76 @@ class AIService {
       return response.text ?? "AI couldn't generate a response at this time.";
     } catch (e) {
       return "Error analyzing resume: $e";
+    }
+  }
+
+  Future<Map<String, dynamic>> analyzeSkillsGap({
+    required String resumeContent,
+    required String jobDescription,
+  }) async {
+    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY') {
+      return {
+        "matchPercentage": 0,
+        "currentSkills": [],
+        "missingSkills": [],
+        "recommendations": ["Please configure your Gemini API Key."]
+      };
+    }
+
+    try {
+      final prompt = """
+      Compare the following resume content with the job description.
+      Provide a JSON response with the following keys:
+      - 'matchPercentage': an integer from 0-100 indicating how well the candidate matches the job.
+      - 'currentSkills': a list of skills from the resume that are relevant to the job.
+      - 'missingSkills': a list of skills mentioned in the job description but missing from the resume.
+      - 'recommendations': a list of 3 actionable steps to bridge the skill gap.
+
+      Resume Content:
+      $resumeContent
+
+      Job Description:
+      $jobDescription
+
+      Return ONLY the JSON.
+      """;
+      
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text ?? "{}";
+      
+      // Basic JSON parsing from response text
+      // In a production app, use a proper JSON decoder with error handling
+      return _parseJsonResponse(text);
+    } catch (e) {
+      return {
+        "matchPercentage": 0,
+        "currentSkills": [],
+        "missingSkills": [],
+        "recommendations": ["Error analyzing skills gap: $e"]
+      };
+    }
+  }
+
+  Map<String, dynamic> _parseJsonResponse(String text) {
+    // Simple extraction if the AI wraps JSON in backticks
+    String jsonStr = text;
+    if (text.contains("```json")) {
+      jsonStr = text.split("```json")[1].split("```")[0];
+    } else if (text.contains("```")) {
+      jsonStr = text.split("```")[1].split("```")[0];
+    }
+    
+    // In a real scenario, use jsonDecode
+    // For now, I'll assume it's valid JSON or return default
+    try {
+      return json.decode(jsonStr.trim()) as Map<String, dynamic>;
+    } catch (_) {
+      return {
+        "matchPercentage": 50,
+        "currentSkills": ["Parsing Error"],
+        "missingSkills": ["Check API structure"],
+        "recommendations": ["Try again later"]
+      };
     }
   }
 

@@ -9,11 +9,13 @@ class AIProvider with ChangeNotifier {
   String? _analysisResult;
 
   String? _coverLetter;
+  Map<String, dynamic>? _skillsGap;
 
   List<String> get currentTips => _currentTips;
   bool get isLoading => _isLoading;
   String? get analysisResult => _analysisResult;
   String? get coverLetter => _coverLetter;
+  Map<String, dynamic>? get skillsGap => _skillsGap;
 
   Future<void> fetchTips(String category) async {
     _isLoading = true;
@@ -38,6 +40,27 @@ class AIProvider with ChangeNotifier {
       _analysisResult = await _aiService.analyzeResume(content);
     } catch (e) {
       _analysisResult = "Analysis failed. Please try again later.";
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> analyzeSkillsGap({
+    required String resumeContent,
+    required String jobDescription,
+  }) async {
+    _isLoading = true;
+    _skillsGap = null;
+    notifyListeners();
+
+    try {
+      _skillsGap = await _aiService.analyzeSkillsGap(
+        resumeContent: resumeContent,
+        jobDescription: jobDescription,
+      );
+    } catch (e) {
+      debugPrint('Error in skills gap analysis: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -12,6 +12,8 @@ class JobProvider with ChangeNotifier {
   String? _error;
   String? _currentQuery;
   String? _currentCategory = 'All';
+  String _selectedJobType = 'All';
+  String _selectedWorkMode = 'All';
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
@@ -20,14 +22,20 @@ class JobProvider with ChangeNotifier {
   String? get error => _error;
   String? get currentQuery => _currentQuery;
   String? get currentCategory => _currentCategory;
+  String get selectedJobType => _selectedJobType;
+  String get selectedWorkMode => _selectedWorkMode;
 
   Future<void> loadJobs({
     String? query,
     String? category,
+    String? jobType,
+    String? workMode,
     String? location,
   }) async {
     _currentQuery = query ?? _currentQuery;
     _currentCategory = category ?? _currentCategory;
+    _selectedJobType = jobType ?? _selectedJobType;
+    _selectedWorkMode = workMode ?? _selectedWorkMode;
 
     _isLoading = true;
     _error = null;
@@ -36,7 +44,9 @@ class JobProvider with ChangeNotifier {
     try {
       _jobs = await _jobService.fetchJobs(
         query: _currentQuery,
-        jobType: _currentCategory,
+        category: _currentCategory,
+        jobType: _selectedJobType == 'All' ? null : _selectedJobType,
+        workMode: _selectedWorkMode == 'All' ? null : _selectedWorkMode,
         location: location,
       );
 

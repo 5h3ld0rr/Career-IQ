@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import 'interview_feedback_screen.dart';
 
 class MockInterviewScreen extends StatefulWidget {
   const MockInterviewScreen({super.key});
@@ -11,7 +13,6 @@ class MockInterviewScreen extends StatefulWidget {
 class _MockInterviewScreenState extends State<MockInterviewScreen> {
   bool _isRecording = false;
   int _currentQuestionIndex = 0;
-  bool _isFinished = false;
   bool _isAnalyzing = false;
 
   final List<String> _questions = [
@@ -22,308 +23,143 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
   ];
 
   void _finishInterview() async {
-    setState(() {
-      _isAnalyzing = true;
-    });
-
-    // Simulate AI Analysis
+    setState(() => _isAnalyzing = true);
     await Future.delayed(const Duration(seconds: 3));
+    setState(() => _isAnalyzing = false);
 
-    setState(() {
-      _isAnalyzing = false;
-      _isFinished = true;
-    });
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => InterviewFeedbackScreen(
+            score: 82.0,
+            insights: [
+              {'icon': Icons.check_circle_outline_rounded, 'title': 'Great Confidence', 'subtitle': 'You maintained steady eye contact.', 'color': Colors.blue},
+              {'icon': Icons.lightbulb_outline_rounded, 'title': 'Technical Depth', 'subtitle': 'Try to include more specific metrics.', 'color': Colors.cyan},
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'Mock Interview AI',
-          style: TextStyle(
-            color: Theme.of(context).textTheme.titleLarge?.color,
-            fontWeight: FontWeight.bold,
+      backgroundColor: const Color(0xFFF2F8FF),
+      body: Stack(
+        children: [
+          _buildBackgroundDecor(),
+          _isAnalyzing ? _buildAnalyzingState() : _buildInterviewBody(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundDecor() {
+    return Positioned(
+      top: -100,
+      left: -50,
+      child: Container(
+        width: 300,
+        height: 300,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: [const Color(0xFF81D4FA).withOpacity(0.35), Colors.transparent]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassBox({required Widget child, EdgeInsets? padding, double borderRadius = 24}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(20),
+            child: child,
           ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).textTheme.bodyLarge?.color),
       ),
-      body: _isAnalyzing
-          ? _buildAnalyzingState()
-          : _isFinished
-              ? _buildResultsView()
-              : Column(
-                  children: [
-                    Expanded(child: _buildVideoPreview()),
-                    _buildInterviewConsole(),
-                  ],
+    );
+  }
+
+  Widget _buildInterviewBody() {
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildGlassBox(
+                  borderRadius: 50,
+                  padding: const EdgeInsets.all(4),
+                  child: IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
                 ),
+                const Text('Mock Interview AI', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                _buildRecordingIndicator(),
+              ],
+            ),
+          ),
+          Expanded(child: _buildVideoPreview()),
+          _buildInterviewConsole(),
+        ],
+      ),
     );
   }
 
   Widget _buildAnalyzingState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(color: AppTheme.primaryBlue),
-          const SizedBox(height: 24),
-          Text(
-            'AI is analyzing your performance...',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-              fontSize: 18,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Evaluating confidence, clarity, and keywords.',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResultsView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildScoreCard(),
-          const SizedBox(height: 32),
-          Text(
-            'Key Insights',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.titleLarge?.color,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildInsightTile(
-            Icons.check_circle_outline_rounded,
-            'Great Confidence',
-            'You maintained steady eye contact and spoke without excessive fillers.',
-            Colors.green,
-          ),
-          _buildInsightTile(
-            Icons.lightbulb_outline_rounded,
-            'Technical Depth',
-            'Try to include more specific metrics (e.g., "improved speed by 20%").',
-            Colors.amber,
-          ),
-          _buildInsightTile(
-            Icons.error_outline_rounded,
-            'Pacing',
-            'You spoke a bit fast during the second question. Try to slow down.',
-            Colors.red,
-          ),
-          const SizedBox(height: 48),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryBlue,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                'Done & Save Session',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScoreCard() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppTheme.primaryBlue, AppTheme.primaryBlue.withOpacity(0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      child: _buildGlassBox(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: AppTheme.primaryBlue),
+            const SizedBox(height: 24),
+            const Text('AI Analysis in Progress...', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            const SizedBox(height: 8),
+            const Text('Evaluating confidence and clarity.', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w600)),
+          ],
         ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Overall Performance',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Strong Match',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Text(
-              '82%',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInsightTile(
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildVideoPreview() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.black,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const Icon(Icons.person, size: 120, color: Colors.white10),
-          Positioned(
-            top: 20,
-            right: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _isRecording ? Colors.red : Colors.grey,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _isRecording ? Icons.circle : Icons.pause_circle_filled,
-                    color: Colors.white,
-                    size: 8,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _isRecording ? 'REC' : 'IDLE',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          const Icon(Icons.person_rounded, size: 100, color: Colors.white12),
           Positioned(
             bottom: 24,
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
-              ),
+            left: 20,
+            right: 20,
+            child: _buildGlassBox(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'QUESTION ${_currentQuestionIndex + 1}',
-                    style: TextStyle(
-                      color: AppTheme.primaryBlue,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
-                  ),
+                  const Text('QUESTION', style: TextStyle(color: Colors.black45, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 2)),
                   const SizedBox(height: 12),
                   Text(
                     _questions[_currentQuestionIndex],
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, height: 1.4, color: Colors.black),
                   ),
                 ],
               ),
@@ -334,57 +170,67 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
     );
   }
 
-  Widget _buildInterviewConsole() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 48),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor, // Navy blue gray
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Column(
+  Widget _buildRecordingIndicator() {
+    return _buildGlassBox(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      borderRadius: 20,
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildConsoleButton(
-                icon: Icons.skip_next_rounded,
-                label: 'Skip',
-                onTap: () {
-                  setState(() {
-                    _currentQuestionIndex =
-                        (_currentQuestionIndex + 1) % _questions.length;
-                  });
-                },
-              ),
-              _buildRecordButton(),
-              _buildConsoleButton(
-                icon: Icons.stop_circle_rounded,
-                label: 'Finish',
-                onTap: _finishInterview,
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: LinearProgressIndicator(
-              value: (_currentQuestionIndex + 1) / _questions.length,
-              backgroundColor: Colors.white10,
-              color: AppTheme.primaryBlue,
-              minHeight: 6,
+          Icon(Icons.circle, color: _isRecording ? Colors.red : Colors.black26, size: 8),
+          const SizedBox(width: 8),
+          Text(_isRecording ? 'LIVE' : 'READY', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInterviewConsole() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+      child: _buildGlassBox(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildConsoleAction(Icons.skip_next_rounded, 'Skip', () {
+                  setState(() => _currentQuestionIndex = (_currentQuestionIndex + 1) % _questions.length);
+                }),
+                _buildRecordButton(),
+                _buildConsoleAction(Icons.check_circle_outline_rounded, 'Finish', _finishInterview),
+              ],
             ),
-          ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('INTERVIEW PROGRESS', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: Colors.black45, letterSpacing: 1)),
+                Text('${_currentQuestionIndex + 1}/${_questions.length}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: (_currentQuestionIndex + 1) / _questions.length,
+              backgroundColor: Colors.white,
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF03A9F4)),
+              minHeight: 6,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConsoleAction(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          _buildGlassBox(padding: const EdgeInsets.all(12), borderRadius: 16, child: Icon(icon, size: 24)),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
         ],
       ),
     );
@@ -393,60 +239,11 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
   Widget _buildRecordButton() {
     return GestureDetector(
       onTap: () => setState(() => _isRecording = !_isRecording),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: _isRecording ? Colors.red : AppTheme.primaryBlue,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: (_isRecording ? Colors.red : AppTheme.primaryBlue)
-                  .withOpacity(0.4),
-              blurRadius: 20,
-              spreadRadius: 5,
-            ),
-          ],
-        ),
-        child: Icon(
-          _isRecording ? Icons.mic_rounded : Icons.mic_none_rounded,
-          color: Colors.white,
-          size: 44,
-        ),
+      child: _buildGlassBox(
+        padding: const EdgeInsets.all(20),
+        borderRadius: 50,
+        child: Icon(_isRecording ? Icons.mic_rounded : Icons.mic_none_rounded, color: _isRecording ? Colors.red : Colors.blueAccent, size: 36),
       ),
     );
   }
-
-  Widget _buildConsoleButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Column(
-      children: [
-        IconButton.filled(
-          onPressed: onTap,
-          icon: Icon(icon, size: 28),
-          style: IconButton.styleFrom(
-            backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.05),
-            foregroundColor: Theme.of(context).primaryColor,
-            padding: const EdgeInsets.all(18),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
 }
-
