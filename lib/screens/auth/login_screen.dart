@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () =>
                               Navigator.pushNamed(context, '/signup'),
                           child: const Text(
-                            'Join Elite',
+                            'Join IQ',
                             style: TextStyle(
                               color: Color(0xFF0288D1),
                               fontWeight: FontWeight.w900,
