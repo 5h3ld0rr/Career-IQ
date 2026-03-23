@@ -61,12 +61,21 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 100,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Icon(
-                  Icons.work_rounded,
-                  size: 60,
-                  color: AppTheme.primaryBlue,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.contain,
+                    // If the image doesn't exist yet, we can catch it or 
+                    // just let it fail gracefully for now while the user adds it.
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.work_rounded,
+                      size: 60,
+                      color: AppTheme.primaryBlue,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
