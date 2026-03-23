@@ -1,14 +1,14 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 
 class AIService {
-  // TODO: Replace with your actual Gemini API Key or load from secure storage
-  static const String _apiKey = 'REPLACE_WITH_YOUR_GEMINI_API_KEY';
+  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
 
   final GenerativeModel _model;
 
   AIService()
-    : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+      : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
 
   static const List<String> _generalTips = [
     "Use strong action verbs list like 'managed', 'developed', 'coordinated'.",

@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/job_provider.dart';
-import '../core/theme.dart';
 
 class JobFilterModal extends StatefulWidget {
   const JobFilterModal({super.key});
