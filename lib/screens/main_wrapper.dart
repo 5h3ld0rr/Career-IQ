@@ -104,13 +104,15 @@ class _MainWrapperState extends State<MainWrapper> {
               size: 24,
             ),
             if (isSelected)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                width: 4,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: activeColor,
-                  shape: BoxShape.circle,
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: activeColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
           ],
