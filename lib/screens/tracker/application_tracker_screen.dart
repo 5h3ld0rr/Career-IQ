@@ -108,19 +108,19 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     return _buildGlassBox(
       context,
       padding: const EdgeInsets.all(40),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.assignment_late_outlined, size: 64, color: Colors.black26),
-          SizedBox(height: 16),
-          Text(
+          Icon(Icons.assignment_late_outlined, size: 64, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
+          const SizedBox(height: 16),
+          const Text(
             'No applications yet',
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             'Your job applications will appear here',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black54, fontSize: 13),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
           ),
         ],
       ),
@@ -218,10 +218,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Recent Application',
                 style: TextStyle(
-                  color: Colors.black54,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -234,16 +234,16 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           ),
         ),
         if (apps.isNotEmpty)
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
+              const Text(
                 'Status',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
               ),
               Text(
                 'Submitted',
-                style: TextStyle(color: Colors.black54, fontSize: 12),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
               ),
             ],
           ),
@@ -273,19 +273,19 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       children: [
         Text(
           count,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 24,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w800,
-            color: Colors.black54,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             letterSpacing: 0.5,
           ),
         ),
@@ -339,8 +339,8 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                                 ),
                                 Text(
                                   job['company_name'],
-                                  style: const TextStyle(
-                                    color: Colors.black54,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -385,7 +385,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         style: const TextStyle(
           fontSize: 9,
           fontWeight: FontWeight.w900,
-          color: Colors.black54,
+          color: Colors.black87,
         ),
       ),
     );

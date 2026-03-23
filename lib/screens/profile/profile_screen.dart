@@ -402,10 +402,12 @@ class ProfileScreen extends StatelessWidget {
           'Reset System Data',
           () async {
             final jobProvider = Provider.of<JobProvider>(context, listen: false);
-            await jobProvider.seedDatabase();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Database seeded with new categories!')),
-            );
+            await jobProvider.seedDatabase(auth.userId);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Database seeded with new categories!')),
+              );
+            }
           },
         ),
         _buildMenuTile(context, Icons.logout_rounded, 'Logout', () {

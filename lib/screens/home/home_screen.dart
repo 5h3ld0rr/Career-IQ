@@ -146,7 +146,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Text(
                     '${job.companyName} • ${job.location}',
-                    style: const TextStyle(color: Colors.black54, fontSize: 12),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant, 
+                      fontSize: 12
+                    ),
                   ),
                 ],
               ),
@@ -165,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : Icons.bookmark_outline_rounded,
                   color: job.isSaved
                       ? Theme.of(context).colorScheme.primary
-                      : Colors.black26,
+                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -313,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onSubmitted: (val) => jobs.loadJobs(query: val),
           decoration: InputDecoration(
             hintText: 'Search for jobs...',
-            prefixIcon: const Icon(Icons.search_rounded, color: Colors.black54),
+            prefixIcon: Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
@@ -336,9 +339,9 @@ class _HomeScreenState extends State<HomeScreen> {
           if (showSeeAll)
             TextButton(
               onPressed: () {},
-              child: const Text(
+              child: Text(
                 'See All',
-                style: TextStyle(color: Colors.black54),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
         ],
@@ -467,13 +470,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           _getCategoryIcon(cat),
                           size: 18,
-                          color: isSelected ? Colors.blueAccent : Colors.black54,
+                          color: isSelected ? Colors.blueAccent : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           cat,
                           style: TextStyle(
-                            color: isSelected ? Colors.black : Colors.black54,
+                            color: isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w900,
                             fontSize: 13,
                           ),
@@ -567,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             : Icons.bookmark_outline_rounded,
                         color: job.isSaved
                             ? Theme.of(context).colorScheme.primary
-                            : Colors.black54,
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -584,7 +587,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Text(
                 job.companyName,
-                style: const TextStyle(color: Colors.black54, fontSize: 13),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant, 
+                  fontSize: 13
+                ),
               ),
               const Spacer(),
               Row(

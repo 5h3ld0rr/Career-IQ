@@ -116,14 +116,20 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  Future<void> seedDatabase() async {
+  Future<void> seedDatabase([String? userId]) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
     try {
-      await _jobService.seedJobs();
+      await _jobService.seedJobs(userId: userId);
       await loadJobs();
+      if (userId != null) {
+        await loadUserApplications(userId);
+        await loadSavedJobs(userId);
+      }
     } catch (e) {
       _error = 'Failed to seed database: $e';
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
