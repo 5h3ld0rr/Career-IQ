@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/job.dart';
 
 class JobService {
@@ -182,12 +185,37 @@ class JobService {
     await batch.commit();
   }
 
-  Future<void> applyForJob(String userId, String jobId) async {
+  Future<String> uploadResume(dynamic file, String userId) async {
+    // We use dynamic for file to support cross-platform (io.File or Uint8List for web)
+    try {
+      final fileName = 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('resumes')
+          .child(userId)
+          .child(fileName);
+
+      if (file is Uint8List) {
+         await ref.putData(file);
+      } else if (file is List<int>) {
+         await ref.putData(Uint8List.fromList(file));
+      } else {
+        await ref.putFile(file as File); // io.File
+      }
+      return await ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('Failed to upload resume: $e');
+    }
+  }
+
+  Future<void> applyForJob(String userId, String jobId, {String? resumeUrl, String? coverLetter}) async {
     await _firestore.collection('applications').add({
       'userId': userId,
       'jobId': jobId,
       'appliedAt': FieldValue.serverTimestamp(),
       'status': 'pending',
+      'resumeUrl': resumeUrl,
+      'coverLetter': coverLetter,
     });
   }
 

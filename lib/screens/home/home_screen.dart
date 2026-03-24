@@ -309,20 +309,134 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSearchArea(BuildContext context, JobProvider jobs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: _buildGlassBox(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: TextField(
-          controller: _searchController,
-          onSubmitted: (val) => jobs.loadJobs(query: val),
-          decoration: InputDecoration(
-            hintText: 'Search for jobs...',
-            prefixIcon: Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildGlassBox(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: TextField(
+                controller: _searchController,
+                onSubmitted: (val) => jobs.loadJobs(query: val),
+                decoration: InputDecoration(
+                  hintText: 'Search for jobs...',
+                  prefixIcon: Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => _showFilterModal(context, jobs),
+            child: _buildGlassBox(
+              padding: const EdgeInsets.all(16),
+              borderRadius: 20,
+              child: Stack(
+                children: [
+                   Icon(Icons.tune_rounded, color: Theme.of(context).colorScheme.primary),
+                   if (jobs.selectedJobType != 'All' || jobs.selectedWorkMode != 'All')
+                     Positioned(
+                       right: 0,
+                       top: 0,
+                       child: Container(
+                         width: 8, height: 8,
+                         decoration: const BoxDecoration(
+                           color: Colors.redAccent, shape: BoxShape.circle
+                         ),
+                       )
+                     )
+                ]
+              )
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  void _showFilterModal(BuildContext context, JobProvider jobs) {
+    String tempJobType = jobs.selectedJobType;
+    String tempWorkMode = jobs.selectedWorkMode;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40, height: 5,
+                      decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Advanced Filters', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 24),
+                  const Text('Job Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children: ['All', 'Full-time', 'Part-time', 'Contract'].map((type) {
+                      final isSelected = tempJobType == type;
+                      return ChoiceChip(
+                        label: Text(type),
+                        selected: isSelected,
+                        onSelected: (val) { if (val) setState(() => tempJobType = type); },
+                        selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Work Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children: ['All', 'Remote', 'On-site', 'Hybrid'].map((mode) {
+                      final isSelected = tempWorkMode == mode;
+                      return ChoiceChip(
+                        label: Text(mode),
+                        selected: isSelected,
+                        onSelected: (val) { if (val) setState(() => tempWorkMode = mode); },
+                        selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 48),
+                  SizedBox(
+                    width: double.infinity, height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        jobs.loadJobs(jobType: tempJobType, workMode: tempWorkMode);
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Text('APPLY FILTERS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          }
+        );
+      }
     );
   }
 
