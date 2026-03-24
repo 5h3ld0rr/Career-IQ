@@ -54,7 +54,7 @@ class AppTheme {
       onSurface: darkText,
       onSurfaceVariant: Colors.black54,
     ),
-    textTheme: GoogleFonts.outfitTextTheme().copyWith(
+    textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme).copyWith(
       displayLarge: GoogleFonts.outfit(
         fontSize: 32,
         fontWeight: FontWeight.bold,
@@ -107,7 +107,7 @@ class AppTheme {
       onSurface: Colors.white,
       onSurfaceVariant: Colors.white70,
     ),
-    textTheme: GoogleFonts.outfitTextTheme().copyWith(
+    textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).copyWith(
       displayLarge: GoogleFonts.outfit(
         fontSize: 32,
         fontWeight: FontWeight.bold,

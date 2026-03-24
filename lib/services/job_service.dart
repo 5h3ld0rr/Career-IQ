@@ -145,11 +145,31 @@ class JobService {
     }).toList();
   }
 
-  /// One-time method to seed some initial data into Firestore
-  Future<void> seedJobs() async {
-    final List<dynamic> data = json.decode(_mockJobsJson);
+  /// Method to reset system data (clears jobs and user data, then seeds)
+  Future<void> seedJobs({String? userId}) async {
     final batch = _firestore.batch();
+    
+    // 1. Delete all current jobs
+    final allJobs = await _firestore.collection('jobs').get();
+    for (var doc in allJobs.docs) {
+      batch.delete(doc.reference);
+    }
 
+    // 2. If userId is provided, delete their applications and saved jobs
+    if (userId != null) {
+      final apps = await _firestore.collection('applications').where('userId', isEqualTo: userId).get();
+      for (var doc in apps.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      final savedJobs = await _firestore.collection('users').doc(userId).collection('saved_jobs').get();
+      for (var doc in savedJobs.docs) {
+        batch.delete(doc.reference);
+      }
+    }
+
+    // 3. Seed fresh jobs
+    final List<dynamic> data = json.decode(_mockJobsJson);
     for (var jobData in data) {
       final jsonMap = jobData as Map<String, dynamic>;
       final docRef = _firestore.collection('jobs').doc(jsonMap['id']);

@@ -62,7 +62,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final isLoading = authProvider.isLoading;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
+      backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
           _buildBackgroundDecor(),
@@ -74,50 +74,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 children: [
                   const SizedBox(height: 40),
                   _buildGlassBox(
+                    context,
                     borderRadius: 50,
                     padding: const EdgeInsets.all(4),
                     child: IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 16,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(height: 40),
-                  const Text(
+                  Text(
                     'Create Account',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Start your journey to find your dream job.',
                     style: TextStyle(
-                      color: Colors.black54,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 40),
                   _buildGlassBox(
+                    context,
                     child: Column(
                       children: [
                         _buildTextField(
+                          context,
                           _nameController,
                           'Full Name',
                           Icons.person_outline_rounded,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
+                          context,
                           _emailController,
                           'Email Address',
                           Icons.email_outlined,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
+                          context,
                           _passwordController,
                           'Password',
                           Icons.lock_outline_rounded,
@@ -130,10 +137,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           'JOIN ELITE',
                         ),
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           'OR',
                           style: TextStyle(
-                            color: Colors.black26,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                             fontWeight: FontWeight.w900,
                             fontSize: 12,
                           ),
@@ -173,22 +180,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildGlassBox({
+  Widget _buildGlassBox(
+    BuildContext context, {
     required Widget child,
     EdgeInsets? padding,
     double borderRadius = 30,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
+        color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.8),
+          color: AppTheme.getGlassBorderColor(context),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2,
+            ),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -208,28 +218,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildTextField(
+    BuildContext context,
     TextEditingController controller,
     String hint,
     IconData icon, {
     bool isPassword = false,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.35),
+        color: isDark 
+            ? Colors.black.withValues(alpha: 0.2) 
+            : Colors.white.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(16),
       ),
       child: TextField(
         controller: controller,
         obscureText: isPassword && _obscurePassword,
-        style: const TextStyle(fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurface,
+        ),
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.black38),
+          hintStyle: TextStyle(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+          prefixIcon: Icon(
+            icon, 
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+          ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.black38,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
