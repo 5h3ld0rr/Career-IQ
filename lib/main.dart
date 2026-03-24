@@ -5,6 +5,8 @@ import 'providers/auth_provider.dart';
 import 'providers/job_provider.dart';
 import 'providers/ai_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/notification_provider.dart';
+
 import 'screens/splash/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
@@ -13,6 +15,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +52,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => JobProvider()),
         ChangeNotifierProvider(create: (_) => AIProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const CareerIQApp(),
     ),
@@ -61,7 +66,17 @@ class CareerIQApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
+    // Initialize notification service once per app startup
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<NotificationProvider>(context, listen: false).initializeService((route) {
+        if (route != null && navigatorKey.currentState != null) {
+          navigatorKey.currentState!.pushNamed(route);
+        }
+      });
+    });
+
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'CareerIQ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
