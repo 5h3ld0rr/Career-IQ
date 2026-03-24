@@ -130,4 +130,14 @@ class AuthService {
       'resumeUploadedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
+
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    await _firestore.collection('users').doc(uid).set(data, SetOptions(merge: true));
+  }
+
+  Future<void> updateSkills(String uid, List<String> skills) async {
+    await _firestore.collection('users').doc(uid).set({
+      'skills': skills,
+    }, SetOptions(merge: true));
+  }
 }
