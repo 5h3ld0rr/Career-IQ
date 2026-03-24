@@ -6,6 +6,9 @@ import 'package:careeriq/models/job.dart';
 import 'package:careeriq/providers/job_provider.dart';
 import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
+import 'package:careeriq/models/chat.dart';
+import 'package:careeriq/providers/chat_provider.dart';
+import 'package:careeriq/screens/chat/chat_view_screen.dart';
 import 'ai_cover_letter_screen.dart';
 import 'apply_job_screen.dart';
 
@@ -351,11 +354,19 @@ class JobDetailsScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.white, width: 1.5),
             ),
-            child: Consumer<AuthProvider>(
-              builder: (context, auth, _) {
-                return _isApplied(context, auth)
-                    ? _buildAppliedState()
-                    : _buildApplyButton(context, auth);
+            child: Consumer2<AuthProvider, ChatProvider>(
+              builder: (context, auth, chat, _) {
+                return Row(
+                  children: [
+                    _buildMessageRecruiterButton(context, auth, chat),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _isApplied(context, auth)
+                          ? _buildAppliedState()
+                          : _buildApplyButton(context, auth),
+                    ),
+                  ],
+                );
               },
             ),
           ),
@@ -427,6 +438,57 @@ class JobDetailsScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageRecruiterButton(BuildContext context, AuthProvider auth, ChatProvider chat) {
+    return GestureDetector(
+      onTap: () async {
+        if (auth.userId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please login to message recruiter')),
+          );
+          return;
+        }
+
+        final roomId = await chat.getOrCreateChatRoom(
+          userId: auth.userId!,
+          recruiterId: 'recruiter_${job.companyName.replaceAll(' ', '_').toLowerCase()}', // Mock recruiter ID
+          jobId: job.id,
+          companyName: job.companyName,
+          companyLogo: job.logoUrl,
+        );
+
+        if (context.mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatViewScreen(
+                chatRoomId: roomId,
+                room: ChatRoom(
+                  id: roomId,
+                  participants: [auth.userId!, 'recruiter_id'],
+                  lastMessage: 'Chat started',
+                  lastMessageTime: DateTime.now(),
+                  companyLogo: job.logoUrl,
+                  companyName: job.companyName,
+                ),
+              ),
+            ),
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          Icons.chat_bubble_outline_rounded,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );

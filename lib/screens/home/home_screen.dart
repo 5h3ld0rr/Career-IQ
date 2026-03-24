@@ -11,6 +11,7 @@ import '../cv_analysis/cv_upload_screen.dart';
 import '../tracker/application_tracker_screen.dart';
 import '../interview/mock_interview_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../jobs/see_all_jobs_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -73,12 +74,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 24),
                           _buildCategoryFilters(jobs),
                           const SizedBox(height: 32),
-                          _buildSectionTitle('Featured Jobs', showSeeAll: true),
+                          _buildSectionTitle(
+                            'Featured Jobs',
+                            showSeeAll: true,
+                            onSeeAll: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SeeAllJobsScreen(
+                                  title: 'Featured Jobs',
+                                  initialJobs: jobs.featuredJobs,
+                                ),
+                              ),
+                            ),
+                          ),
                           _buildFeaturedJobs(jobs),
                           const SizedBox(height: 32),
                           _buildSectionTitle(
                             'Latest Job Listings',
                             showSeeAll: true,
+                            onSeeAll: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SeeAllJobsScreen(
+                                  title: 'Latest Job Listings',
+                                  initialJobs: jobs.jobs,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -440,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, {bool showSeeAll = false}) {
+  Widget _buildSectionTitle(String title, {bool showSeeAll = false, VoidCallback? onSeeAll}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Row(
@@ -452,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           if (showSeeAll)
             TextButton(
-              onPressed: () {},
+              onPressed: onSeeAll,
               child: Text(
                 'See All',
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
