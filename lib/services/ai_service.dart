@@ -146,4 +146,34 @@ class AIService {
       return "Error generating cover letter: $e";
     }
   }
+
+  Future<Map<String, dynamic>> generateInterviewPrep({
+    required String companyName,
+    required String jobDescription,
+  }) async {
+    final prompt = """
+    Generate interview preparation details for a candidate interviewing at $companyName for the following role:
+    
+    Job Description:
+    $jobDescription
+
+    Provide the response in JSON format with these exact keys:
+    - 'companySummary': A brief, 2-3 sentence overview of what the company does (if you know it, or a generic professional guess based on the description).
+    - 'commonQuestions': A list of 5-7 most likely behavioral or technical interview questions for this specific role.
+    - 'preparationTips': A list of 3-5 specific tips for this interview.
+
+    Return ONLY the JSON.
+    """;
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      return _parseJsonResponse(response.text ?? "{}");
+    } catch (e) {
+      return {
+        "companySummary": "Could not fetch company details.",
+        "commonQuestions": [],
+        "preparationTips": ["Error generating prep: $e"]
+      };
+    }
+  }
 }

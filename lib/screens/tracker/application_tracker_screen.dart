@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
+import '../interview/schedule_interview_screen.dart';
 
 class ApplicationTrackerScreen extends StatefulWidget {
   const ApplicationTrackerScreen({super.key});
@@ -362,6 +363,31 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                         ),
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(10),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ScheduleInterviewScreen(application: app),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.calendar_month_rounded, size: 18),
+                          label: const Text(
+                            'SCHEDULE INTERVIEW',
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                          ),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(0.5),
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
                       ),
                     ],
                   ),

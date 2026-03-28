@@ -87,4 +87,23 @@ class AIProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<Map<String, dynamic>> getInterviewPrep({
+    required String companyName,
+    required String jobDescription,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _aiService.generateInterviewPrep(
+        companyName: companyName,
+        jobDescription: jobDescription,
+      );
+      return result;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

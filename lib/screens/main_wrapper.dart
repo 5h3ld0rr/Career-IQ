@@ -4,7 +4,6 @@ import 'home/home_screen.dart';
 import 'saved/saved_jobs_screen.dart';
 import 'profile/profile_screen.dart';
 import 'tracker/application_tracker_screen.dart';
-import 'chat/chat_rooms_screen.dart';
 import '../core/theme.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -20,7 +19,6 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const ApplicationTrackerScreen(),
-    const ChatRoomsScreen(),
     const SavedJobsScreen(),
     const ProfileScreen(),
   ];
@@ -68,9 +66,8 @@ class _MainWrapperState extends State<MainWrapper> {
               children: [
                 _buildNavItem(0, Icons.grid_view_rounded, 'Home'),
                 _buildNavItem(1, Icons.dashboard_customize_rounded, 'Tracker'),
-                _buildNavItem(2, Icons.forum_rounded, 'Chat'),
-                _buildNavItem(3, Icons.bookmark_rounded, 'Saved'),
-                _buildNavItem(4, Icons.person_rounded, 'Profile'),
+                _buildNavItem(2, Icons.bookmark_rounded, 'Saved'),
+                _buildNavItem(3, Icons.person_rounded, 'Profile'),
               ],
             ),
           ),

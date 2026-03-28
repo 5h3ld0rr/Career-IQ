@@ -6,7 +6,6 @@ import 'providers/job_provider.dart';
 import 'providers/ai_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
-import 'providers/chat_provider.dart';
 
 import 'screens/splash/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -54,7 +53,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AIProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
-        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const CareerIQApp(),
     ),

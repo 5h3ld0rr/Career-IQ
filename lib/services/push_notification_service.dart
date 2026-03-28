@@ -2,6 +2,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import '../models/interview.dart';
 
 // Top-level function for background message handling
 @pragma('vm:entry-point')
@@ -45,6 +48,9 @@ class PushNotificationService {
       },
     );
 
+    // Initialize Timezones
+    tz.initializeTimeZones();
+
     // 3. Configure FCM background handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -85,6 +91,41 @@ class PushNotificationService {
       notificationDetails: platformDetails,
       payload: message.data['route'], 
     );
+  }
+
+  Future<void> scheduleInterviewPrep(Interview interview) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'interview_prep_channel',
+      'Interview Prep Notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+    
+    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+
+    final int notificationId = int.tryParse(interview.id) ?? interview.hashCode;
+    final tz.TZDateTime tzScheduledDate = tz.TZDateTime.from(interview.scheduledAt, tz.local)
+        .subtract(const Duration(minutes: 30));
+
+    // Do not schedule if the time is in the past
+    if (tzScheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+      return;
+    }
+
+    await _localNotifications.zonedSchedule(
+      id: notificationId,
+      title: 'Interview Prep: ${interview.companyName}',
+      body: 'Your interview for ${interview.jobTitle} is in 30 minutes! Prepare with Career-IQ.',
+      scheduledDate: tzScheduledDate,
+      notificationDetails: platformDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      payload: '/tracker', 
+    );
+  }
+
+  Future<void> cancelInterviewPrep(int id) async {
+    await _localNotifications.cancel(id: id);
   }
 
   Future<String?> getToken() async {
