@@ -106,9 +106,9 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  Future<void> applyForJob(String userId, String jobId) async {
+  Future<void> applyForJob(String userId, String jobId, {String? resumeUrl, String? coverLetter}) async {
     try {
-      await _jobService.applyForJob(userId, jobId);
+      await _jobService.applyForJob(userId, jobId, resumeUrl: resumeUrl, coverLetter: coverLetter);
       await loadUserApplications(userId); // Reload after application
     } catch (e) {
       debugPrint('Error applying for job: $e');
@@ -116,7 +116,29 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  Future<void> seedDatabase([String? userId]) async {
+  Future<void> submitApplication({
+    required String userId,
+    required String jobId,
+    required dynamic resumeFile,
+    String? coverLetter,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final resumeUrl = await _jobService.uploadResume(resumeFile, userId);
+      await applyForJob(userId, jobId, resumeUrl: resumeUrl, coverLetter: coverLetter);
+    } catch (e) {
+      _error = 'Failed to submit application';
+      debugPrint('Error submitting application: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> seedDatabase([String? userId][String? userId]) async {
     _isLoading = true;
     _error = null;
     notifyListeners();

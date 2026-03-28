@@ -20,17 +20,27 @@ class AICoverLetterScreen extends StatefulWidget {
 }
 
 class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
+  final TextEditingController _skillsController = TextEditingController(
+      text: "Experienced professional with a strong track record of success.");
+
   @override
   void initState() {
     super.initState();
     _generate();
   }
 
+  @override
+  void dispose() {
+    _skillsController.dispose();
+    super.dispose();
+  }
+
   void _generate() {
+    if (_skillsController.text.trim().isEmpty) return;
+    
     Future.microtask(() {
       Provider.of<AIProvider>(context, listen: false).generateCoverLetter(
-        resumeContent:
-            "I am a Senior Product Designer expert in Figma and UX Research.",
+        resumeContent: _skillsController.text.trim(),
         jobDescription: widget.jobDescription,
       );
     });
@@ -75,6 +85,8 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                     : SliverList(
                         delegate: SliverChildListDelegate([
                           _buildGlassBox(child: _buildHeader()),
+                          const SizedBox(height: 16),
+                          _buildGlassBox(child: _buildSkillsInput()),
                           const SizedBox(height: 32),
                           if (aiProvider.coverLetter != null) ...[
                             _buildGlassBox(
@@ -206,6 +218,41 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSkillsInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Your Key Skills & Experience',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _skillsController,
+          maxLines: 3,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          decoration: InputDecoration(
+            hintText: 'E.g., 5 years of experience in Flutter and Node.js...',
+            hintStyle: const TextStyle(color: Colors.black38),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF03A9F4)),
+            ),
+            contentPadding: const EdgeInsets.all(12),
           ),
         ),
       ],

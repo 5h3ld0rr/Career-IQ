@@ -14,6 +14,10 @@ class AuthProvider with ChangeNotifier {
   String? _resumeFileName;
   String? _resumeUrl;
   DateTime? _resumeUploadedAt;
+  List<String> _skills = [];
+  String? _bio;
+  String? _experience;
+  String? _location;
 
   String? get userId => _authService.currentUser?.uid;
   bool get isAuthenticated => _isAuthenticated;
@@ -25,6 +29,10 @@ class AuthProvider with ChangeNotifier {
   String? get resumeFileName => _resumeFileName;
   String? get resumeUrl => _resumeUrl;
   DateTime? get resumeUploadedAt => _resumeUploadedAt;
+  List<String> get skills => _skills;
+  String? get bio => _bio;
+  String? get experience => _experience;
+  String? get location => _location;
 
   Future<void> login(String email, String password) async {
     _isLoading = true;
@@ -47,6 +55,10 @@ class AuthProvider with ChangeNotifier {
         if (profile?['resumeUploadedAt'] != null) {
           _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
         }
+        _skills = List<String>.from(profile?['skills'] ?? []);
+        _bio = profile?['bio'];
+        _experience = profile?['experience'];
+        _location = profile?['location'];
       }
     } catch (e) {
       _error = e.toString();
@@ -69,8 +81,14 @@ class AuthProvider with ChangeNotifier {
       );
       if (user != null) {
         _isAuthenticated = true;
-        _userName = name;
         _userEmail = user.email;
+        final profile = await _authService.getUserProfile(user.uid);
+        _userName = profile?['name'] ?? user.displayName ?? name;
+        _profilePictureUrl = profile?['photoUrl'] ?? user.photoURL;
+        _skills = List<String>.from(profile?['skills'] ?? []);
+        _bio = profile?['bio'];
+        _experience = profile?['experience'];
+        _location = profile?['location'];
       }
     } catch (e) {
       _error = e.toString();
@@ -89,9 +107,19 @@ class AuthProvider with ChangeNotifier {
       final user = await _authService.signInWithGoogle();
       if (user != null) {
         _isAuthenticated = true;
-        _userName = user.displayName;
         _userEmail = user.email;
-        _profilePictureUrl = user.photoURL;
+        final profile = await _authService.getUserProfile(user.uid);
+        _userName = profile?['name'] ?? user.displayName;
+        _profilePictureUrl = profile?['photoUrl'] ?? user.photoURL;
+        _resumeFileName = profile?['resumeFileName'];
+        _resumeUrl = profile?['resumeUrl'];
+        if (profile?['resumeUploadedAt'] != null) {
+          _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
+        }
+        _skills = List<String>.from(profile?['skills'] ?? []);
+        _bio = profile?['bio'];
+        _experience = profile?['experience'];
+        _location = profile?['location'];
       }
     } catch (e) {
       _error = e.toString();
@@ -169,6 +197,53 @@ class AuthProvider with ChangeNotifier {
     _resumeFileName = null;
     _resumeUrl = null;
     _resumeUploadedAt = null;
+    _skills = [];
+    _bio = null;
+    _experience = null;
+    _location = null;
     notifyListeners();
+  }
+
+  Future<void> updateUserDetails({String? bio, String? experience, String? location}) async {
+    final uid = _authService.currentUser?.uid;
+    if (uid == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final data = <String, dynamic>{};
+      if (bio != null) data['bio'] = bio;
+      if (experience != null) data['experience'] = experience;
+      if (location != null) data['location'] = location;
+
+      await _authService.updateUserProfile(uid, data);
+      if (bio != null) _bio = bio;
+      if (experience != null) _experience = experience;
+      if (location != null) _location = location;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateSkills(List<String> newSkills) async {
+    final uid = _authService.currentUser?.uid;
+    if (uid == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _authService.updateSkills(uid, newSkills);
+      _skills = newSkills;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

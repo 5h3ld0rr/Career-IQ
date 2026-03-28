@@ -7,6 +7,7 @@ import 'package:careeriq/providers/job_provider.dart';
 import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
 import 'ai_cover_letter_screen.dart';
+import 'apply_job_screen.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Job job;
@@ -352,9 +353,15 @@ class JobDetailsScreen extends StatelessWidget {
             ),
             child: Consumer<AuthProvider>(
               builder: (context, auth, _) {
-                return _isApplied(context, auth)
-                    ? _buildAppliedState()
-                    : _buildApplyButton(context, auth);
+                return Row(
+                  children: [
+                    Expanded(
+                      child: _isApplied(context, auth)
+                          ? _buildAppliedState()
+                          : _buildApplyButton(context, auth),
+                    ),
+                  ],
+                );
               },
             ),
           ),
@@ -374,7 +381,7 @@ class JobDetailsScreen extends StatelessWidget {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () async {
+        onPressed: () {
           if (auth.userId == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please login to apply')),
@@ -382,17 +389,12 @@ class JobDetailsScreen extends StatelessWidget {
             return;
           }
 
-          try {
-            final jobProvider = Provider.of<JobProvider>(context, listen: false);
-            await jobProvider.applyForJob(auth.userId!, job.id);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Application submitted successfully!')),
-            );
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to apply: $e')),
-            );
-          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ApplyJobScreen(job: job),
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
@@ -435,4 +437,5 @@ class JobDetailsScreen extends StatelessWidget {
       ),
     );
   }
+
 }

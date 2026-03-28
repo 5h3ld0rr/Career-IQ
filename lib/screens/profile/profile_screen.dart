@@ -8,90 +8,108 @@ import 'package:file_picker/file_picker.dart';
 import 'package:careeriq/providers/job_provider.dart';
 import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
+import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      body: Stack(
-        children: [
-          _buildBackgroundDecor(),
-          CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverAppBar(
-                floating: true,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _buildGlassBox(
-                    context,
-                    borderRadius: 50,
-                    padding: const EdgeInsets.all(4),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 16,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ),
-                title: const Text('Profile'),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: _buildGlassBox(
-                      context,
-                      borderRadius: 50,
-                      padding: const EdgeInsets.all(4),
-                      child: IconButton(
-                        icon: Icon(
-                          themeProvider.isDarkMode
-                              ? Icons.light_mode_rounded
-                              : Icons.dark_mode_rounded,
-                          size: 20,
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          return Stack(
+            children: [
+              _buildBackgroundDecor(),
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    floating: true,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: _buildGlassBox(
+                        context,
+                        borderRadius: 50,
+                        padding: const EdgeInsets.all(4),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            size: 16,
+                          ),
+                          onPressed: () => Navigator.pop(context),
                         ),
-                        onPressed: () => themeProvider.toggleTheme(),
                       ),
+                    ),
+                    title: const Text('Profile'),
+                    actions: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 16),
+                        child: _buildGlassBox(
+                          context,
+                          borderRadius: 50,
+                          padding: const EdgeInsets.all(4),
+                          child: IconButton(
+                            icon: Icon(
+                              themeProvider.isDarkMode
+                                  ? Icons.light_mode_rounded
+                                  : Icons.dark_mode_rounded,
+                              size: 20,
+                            ),
+                            onPressed: () => themeProvider.toggleTheme(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.all(24),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        _buildProfileHeader(context, authProvider),
+                        const SizedBox(height: 32),
+                        _buildSectionTitle(context, 'Resume'),
+                        _buildGlassBox(
+                          context,
+                          child: _buildResumeSection(context, authProvider),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSectionTitle(context, 'Skills', onEdit: () => _showEditSkillsDialog(context, authProvider)),
+                        _buildSkillsSection(context, authProvider),
+                        const SizedBox(height: 32),
+                        _buildSectionTitle(context, 'About', onEdit: () => _showEditProfileDialog(context, authProvider)),
+                        _buildGlassBox(
+                          context,
+                          child: Text(
+                            authProvider.bio ?? 'Add a short bio about yourself to stand out to employers.',
+                            style: TextStyle(
+                              color: authProvider.bio != null ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
+                              fontSize: 13,
+                              height: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSectionTitle(context, 'Actions'),
+                        _buildGlassBox(
+                          context,
+                          padding: const EdgeInsets.all(8),
+                          child: _buildActionsMenu(context, authProvider),
+                        ),
+                        const SizedBox(height: 48),
+                      ]),
                     ),
                   ),
                 ],
               ),
-              SliverPadding(
-                padding: const EdgeInsets.all(24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _buildProfileHeader(context, authProvider),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle(context, 'Resume'),
-                    _buildGlassBox(
-                      context,
-                      child: _buildResumeSection(context, authProvider),
-                    ),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle(context, 'Skills'),
-                    _buildSkillsSection(context),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle(context, 'Elite Actions'),
-                    _buildGlassBox(
-                      context,
-                      padding: const EdgeInsets.all(8),
-                      child: _buildActionsMenu(context, authProvider),
-                    ),
-                    const SizedBox(height: 48),
-                  ]),
-                ),
-              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -214,36 +232,87 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              auth.userName ?? 'User Name',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+        const SizedBox(height: 12),
+        Text(
+          auth.userName ?? 'User Name',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        if (auth.experience != null && auth.experience!.isNotEmpty)
+          Text(
+            auth.experience!,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
-            IconButton(
-              icon: const Icon(Icons.edit_rounded, size: 18),
-              onPressed: () => _showEditNameDialog(context, auth),
+          ),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: () => _showEditProfileDialog(context, auth),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.edit_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Edit Profile',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
 
-  void _showEditNameDialog(BuildContext context, AuthProvider auth) {
-    final controller = TextEditingController(text: auth.userName);
+  void _showEditProfileDialog(BuildContext context, AuthProvider auth) {
+    final nameController = TextEditingController(text: auth.userName);
+    final experienceController = TextEditingController(text: auth.experience);
+    final bioController = TextEditingController(text: auth.bio);
+    final locationController = TextEditingController(text: auth.location);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Name'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Enter your name'),
+        title: const Text('Edit Profile'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: experienceController,
+                decoration: const InputDecoration(labelText: 'Current Role / Experience'),
+              ),
+              TextField(
+                controller: locationController,
+                decoration: const InputDecoration(labelText: 'Location'),
+              ),
+              TextField(
+                controller: bioController,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Bio'),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -252,28 +321,125 @@ class ProfileScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                await auth.updateName(controller.text);
-                Navigator.pop(context);
+              if (nameController.text.isNotEmpty) {
+                // Show a brief loading indicator or just update immediately
+                final scaffold = ScaffoldMessenger.of(context);
+                
+                if (nameController.text != auth.userName) {
+                   await auth.updateName(nameController.text);
+                }
+                await auth.updateUserDetails(
+                  bio: bioController.text,
+                  experience: experienceController.text,
+                  location: locationController.text,
+                );
+                
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  scaffold.showSnackBar(
+                    const SnackBar(
+                      content: Text('Profile updated successfully!'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               }
             },
-            child: const Text('Save'),
+            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  void _showEditSkillsDialog(BuildContext context, AuthProvider auth) {
+    final controller = TextEditingController();
+    List<String> tempSkills = List.from(auth.skills);
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Edit Skills'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  labelText: 'Add Skill',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.add_circle_rounded),
+                    onPressed: () {
+                      if (controller.text.isNotEmpty) {
+                        setDialogState(() {
+                          tempSkills.add(controller.text.trim());
+                          controller.clear();
+                        });
+                      }
+                    },
+                  ),
+                ),
+                onSubmitted: (val) {
+                  if (val.isNotEmpty) {
+                    setDialogState(() {
+                      tempSkills.add(val.trim());
+                      controller.clear();
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: tempSkills.map((s) => Chip(
+                  label: Text(s),
+                  onDeleted: () => setDialogState(() => tempSkills.remove(s)),
+                )).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await auth.updateSkills(tempSkills);
+                if (context.mounted) Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title, {VoidCallback? onEdit}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w900,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          if (onEdit != null)
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+              onPressed: onEdit,
+              visualDensity: VisualDensity.compact,
+            ),
+        ],
       ),
     );
   }
@@ -344,34 +510,37 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSkillsSection(BuildContext context) {
-    final List<String> skills = [
-      'UI Design',
-      'UX Research',
-      'Flutter',
-      'Figma',
-      'Prototyping',
-    ];
+  Widget _buildSkillsSection(BuildContext context, AuthProvider auth) {
+    final List<String> skills = auth.skills.isEmpty 
+        ? ['Add Skills'] 
+        : auth.skills;
+    
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: skills
           .map(
-            (s) => _buildGlassBox(
-              context,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              borderRadius: 12,
-              child: Text(
-                s,
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
+            (s) => _buildGlassPill(context, s, isPlaceholder: auth.skills.isEmpty),
           )
           .toList(),
+    );
+  }
+
+  Widget _buildGlassPill(BuildContext context, String text, {bool isPlaceholder = false}) {
+    return _buildGlassBox(
+      context,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      borderRadius: 12,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+          color: isPlaceholder 
+              ? Theme.of(context).colorScheme.onSurfaceVariant 
+              : Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
     );
   }
 
