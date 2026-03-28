@@ -29,10 +29,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToNext() async {
-    await Future.delayed(const Duration(seconds: 3));
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // Check if user is already logged in
+    await authProvider.checkAuthStatus();
+    
+    await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.isAuthenticated) {
       Navigator.pushReplacementNamed(context, '/main');
     } else {

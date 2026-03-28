@@ -34,6 +34,45 @@ class AuthProvider with ChangeNotifier {
   String? get experience => _experience;
   String? get location => _location;
 
+  Future<void> _populateUserData(dynamic user) async {
+    if (user == null) return;
+    
+    _isAuthenticated = true;
+    _userEmail = user.email;
+    _profilePictureUrl = user.photoURL;
+    
+    final profile = await _authService.getUserProfile(user.uid);
+    _userName = profile?['name'] ?? user.displayName ?? _userEmail?.split('@')[0];
+    
+    if (profile?['photoUrl'] != null) {
+      _profilePictureUrl = profile!['photoUrl'];
+    }
+    
+    _resumeFileName = profile?['resumeFileName'];
+    _resumeUrl = profile?['resumeUrl'];
+    
+    if (profile?['resumeUploadedAt'] != null) {
+      _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
+    }
+    
+    _skills = List<String>.from(profile?['skills'] ?? []);
+    _bio = profile?['bio'];
+    _experience = profile?['experience'];
+    _location = profile?['location'];
+  }
+
+  Future<void> checkAuthStatus() async {
+    final user = _authService.currentUser;
+    if (user != null) {
+      try {
+        await _populateUserData(user);
+      } catch (e) {
+        debugPrint('Error checking auth status: $e');
+      }
+      notifyListeners();
+    }
+  }
+
   Future<void> login(String email, String password) async {
     _isLoading = true;
     _error = null;
@@ -42,23 +81,7 @@ class AuthProvider with ChangeNotifier {
     try {
       final user = await _authService.signInWithEmail(email, password);
       if (user != null) {
-        _isAuthenticated = true;
-        _userEmail = user.email;
-        _profilePictureUrl = user.photoURL;
-        final profile = await _authService.getUserProfile(user.uid);
-        _userName = profile?['name'] ?? user.displayName ?? email.split('@')[0];
-        if (profile?['photoUrl'] != null) {
-          _profilePictureUrl = profile!['photoUrl'];
-        }
-        _resumeFileName = profile?['resumeFileName'];
-        _resumeUrl = profile?['resumeUrl'];
-        if (profile?['resumeUploadedAt'] != null) {
-          _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
-        }
-        _skills = List<String>.from(profile?['skills'] ?? []);
-        _bio = profile?['bio'];
-        _experience = profile?['experience'];
-        _location = profile?['location'];
+        await _populateUserData(user);
       }
     } catch (e) {
       _error = e.toString();
@@ -80,15 +103,7 @@ class AuthProvider with ChangeNotifier {
         displayName: name,
       );
       if (user != null) {
-        _isAuthenticated = true;
-        _userEmail = user.email;
-        final profile = await _authService.getUserProfile(user.uid);
-        _userName = profile?['name'] ?? user.displayName ?? name;
-        _profilePictureUrl = profile?['photoUrl'] ?? user.photoURL;
-        _skills = List<String>.from(profile?['skills'] ?? []);
-        _bio = profile?['bio'];
-        _experience = profile?['experience'];
-        _location = profile?['location'];
+        await _populateUserData(user);
       }
     } catch (e) {
       _error = e.toString();
@@ -106,20 +121,7 @@ class AuthProvider with ChangeNotifier {
     try {
       final user = await _authService.signInWithGoogle();
       if (user != null) {
-        _isAuthenticated = true;
-        _userEmail = user.email;
-        final profile = await _authService.getUserProfile(user.uid);
-        _userName = profile?['name'] ?? user.displayName;
-        _profilePictureUrl = profile?['photoUrl'] ?? user.photoURL;
-        _resumeFileName = profile?['resumeFileName'];
-        _resumeUrl = profile?['resumeUrl'];
-        if (profile?['resumeUploadedAt'] != null) {
-          _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
-        }
-        _skills = List<String>.from(profile?['skills'] ?? []);
-        _bio = profile?['bio'];
-        _experience = profile?['experience'];
-        _location = profile?['location'];
+        await _populateUserData(user);
       }
     } catch (e) {
       _error = e.toString();
