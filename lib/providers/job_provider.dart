@@ -106,9 +106,19 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  Future<void> applyForJob(String userId, String jobId, {String? resumeUrl, String? coverLetter}) async {
+  Future<void> applyForJob(
+    String userId,
+    String jobId, {
+    String? resumeUrl,
+    String? coverLetter,
+  }) async {
     try {
-      await _jobService.applyForJob(userId, jobId, resumeUrl: resumeUrl, coverLetter: coverLetter);
+      await _jobService.applyForJob(
+        userId,
+        jobId,
+        resumeUrl: resumeUrl,
+        coverLetter: coverLetter,
+      );
       await loadUserApplications(userId); // Reload after application
     } catch (e) {
       debugPrint('Error applying for job: $e');
@@ -127,7 +137,12 @@ class JobProvider with ChangeNotifier {
     notifyListeners();
     try {
       final resumeUrl = await _jobService.uploadResume(resumeFile, userId);
-      await applyForJob(userId, jobId, resumeUrl: resumeUrl, coverLetter: coverLetter);
+      await applyForJob(
+        userId,
+        jobId,
+        resumeUrl: resumeUrl,
+        coverLetter: coverLetter,
+      );
     } catch (e) {
       _error = 'Failed to submit application';
       debugPrint('Error submitting application: $e');
@@ -138,7 +153,7 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  Future<void> seedDatabase([String? userId][String? userId]) async {
+  Future<void> seedDatabase([String? userId]) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -189,8 +204,12 @@ class JobProvider with ChangeNotifier {
         await _jobService.saveJob(userId, job.id);
       }
       // Sync other lists that might contain this job
-      for (var j in _jobs) { if (j.id == job.id) j.isSaved = job.isSaved; }
-      for (var j in _featuredJobs) { if (j.id == job.id) j.isSaved = job.isSaved; }
+      for (var j in _jobs) {
+        if (j.id == job.id) j.isSaved = job.isSaved;
+      }
+      for (var j in _featuredJobs) {
+        if (j.id == job.id) j.isSaved = job.isSaved;
+      }
       notifyListeners();
     } catch (e) {
       // Revert on error

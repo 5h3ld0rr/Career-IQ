@@ -48,9 +48,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login to apply')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please login to apply')));
       return;
     }
 
@@ -59,7 +59,8 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
       await jobProvider.submitApplication(
         userId: auth.userId!,
         jobId: widget.job.id,
-        resumeFile: _selectedResume!, // File upload is handled in Provider/Service
+        resumeFile:
+            _selectedResume!, // File upload is handled in Provider/Service
         coverLetter: _coverLetterController.text.trim(),
       );
 
@@ -70,9 +71,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
       Navigator.pop(context); // Go back to job details
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to apply: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to apply: $e')));
     }
   }
 
@@ -156,7 +157,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
           shape: BoxShape.circle,
           gradient: RadialGradient(
             colors: [
-              const Color(0xFF81D4FA).withOpacity(0.3),
+              const Color(0xFF81D4FA).withValues(alpha: 0.3),
               Colors.transparent,
             ],
           ),
@@ -169,19 +170,19 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
     required Widget child,
     EdgeInsets? padding,
     double borderRadius = 24,
-    double? borderOpacity
+    double? borderOpacity,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: Colors.white.withOpacity(borderOpacity ?? 0.8),
+          color: Colors.white.withValues(alpha: borderOpacity ?? 0.8),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -226,14 +227,21 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
               children: [
                 Text(
                   widget.job.title,
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   widget.job.companyName,
-                  style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600, fontSize: 13),
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -255,25 +263,37 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
           child: Column(
             children: [
               Icon(
-                _selectedResume != null ? Icons.description_rounded : Icons.upload_file_rounded,
+                _selectedResume != null
+                    ? Icons.description_rounded
+                    : Icons.upload_file_rounded,
                 size: 48,
-                color: _selectedResume != null ? const Color(0xFF03A9F4) : Colors.black38,
+                color: _selectedResume != null
+                    ? const Color(0xFF03A9F4)
+                    : Colors.black38,
               ),
               const SizedBox(height: 16),
               Text(
-                _selectedResume != null ? _resumeName! : 'Tap to upload or pick a file',
+                _selectedResume != null
+                    ? _resumeName!
+                    : 'Tap to upload or pick a file',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 14,
-                  color: _selectedResume != null ? Colors.black87 : Colors.black54,
+                  color: _selectedResume != null
+                      ? Colors.black87
+                      : Colors.black54,
                 ),
               ),
               if (_selectedResume == null) ...[
                 const SizedBox(height: 8),
                 const Text(
                   'PDF, DOC, or DOCX (Max 5MB)',
-                  style: TextStyle(color: Colors.black38, fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: Colors.black38,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ] else ...[
                 const SizedBox(height: 16),
@@ -283,10 +303,13 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                   label: const Text('Change File'),
                   style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFF03A9F4),
-                    textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                    ),
                   ),
-                )
-              ]
+                ),
+              ],
             ],
           ),
         ),
@@ -304,7 +327,11 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         decoration: const InputDecoration(
           hintText: 'Write why you are a good fit for this role...',
-          hintStyle: TextStyle(color: Colors.black38, fontSize: 14, fontWeight: FontWeight.w500),
+          hintStyle: TextStyle(
+            color: Colors.black38,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
           border: InputBorder.none,
         ),
       ),
@@ -322,7 +349,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.white, width: 1.5),
             ),
@@ -338,17 +365,25 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: isSubmitting
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                              strokeWidth: 2,
+                            ),
                           )
                         : const Text(
                             'SUBMIT APPLICATION',
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                            ),
                           ),
                   ),
                 );

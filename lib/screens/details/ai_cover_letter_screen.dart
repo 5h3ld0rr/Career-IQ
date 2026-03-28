@@ -21,7 +21,8 @@ class AICoverLetterScreen extends StatefulWidget {
 
 class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
   final TextEditingController _skillsController = TextEditingController(
-      text: "Experienced professional with a strong track record of success.");
+    text: "Experienced professional with a strong track record of success.",
+  );
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
 
   void _generate() {
     if (_skillsController.text.trim().isEmpty) return;
-    
+
     Future.microtask(() {
       Provider.of<AIProvider>(context, listen: false).generateCoverLetter(
         resumeContent: _skillsController.text.trim(),
@@ -242,11 +243,11 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
             hintStyle: const TextStyle(color: Colors.black38),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+              borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+              borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

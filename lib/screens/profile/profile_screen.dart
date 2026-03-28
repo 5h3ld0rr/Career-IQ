@@ -78,16 +78,31 @@ class ProfileScreen extends StatelessWidget {
                           child: _buildResumeSection(context, authProvider),
                         ),
                         const SizedBox(height: 32),
-                        _buildSectionTitle(context, 'Skills', onEdit: () => _showEditSkillsDialog(context, authProvider)),
+                        _buildSectionTitle(
+                          context,
+                          'Skills',
+                          onEdit: () =>
+                              _showEditSkillsDialog(context, authProvider),
+                        ),
                         _buildSkillsSection(context, authProvider),
                         const SizedBox(height: 32),
-                        _buildSectionTitle(context, 'About', onEdit: () => _showEditProfileDialog(context, authProvider)),
+                        _buildSectionTitle(
+                          context,
+                          'About',
+                          onEdit: () =>
+                              _showEditProfileDialog(context, authProvider),
+                        ),
                         _buildGlassBox(
                           context,
                           child: Text(
-                            authProvider.bio ?? 'Add a short bio about yourself to stand out to employers.',
+                            authProvider.bio ??
+                                'Add a short bio about yourself to stand out to employers.',
                             style: TextStyle(
-                              color: authProvider.bio != null ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: authProvider.bio != null
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                               fontSize: 13,
                               height: 1.5,
                               fontWeight: FontWeight.w500,
@@ -255,14 +270,24 @@ class ProfileScreen extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
+              border: Border.all(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.edit_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.edit_rounded,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Edit Profile',
@@ -300,7 +325,9 @@ class ProfileScreen extends StatelessWidget {
               ),
               TextField(
                 controller: experienceController,
-                decoration: const InputDecoration(labelText: 'Current Role / Experience'),
+                decoration: const InputDecoration(
+                  labelText: 'Current Role / Experience',
+                ),
               ),
               TextField(
                 controller: locationController,
@@ -324,16 +351,16 @@ class ProfileScreen extends StatelessWidget {
               if (nameController.text.isNotEmpty) {
                 // Show a brief loading indicator or just update immediately
                 final scaffold = ScaffoldMessenger.of(context);
-                
+
                 if (nameController.text != auth.userName) {
-                   await auth.updateName(nameController.text);
+                  await auth.updateName(nameController.text);
                 }
                 await auth.updateUserDetails(
                   bio: bioController.text,
                   experience: experienceController.text,
                   location: locationController.text,
                 );
-                
+
                 if (context.mounted) {
                   Navigator.pop(context);
                   scaffold.showSnackBar(
@@ -346,7 +373,10 @@ class ProfileScreen extends StatelessWidget {
                 }
               }
             },
-            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Save',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -394,10 +424,15 @@ class ProfileScreen extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: tempSkills.map((s) => Chip(
-                  label: Text(s),
-                  onDeleted: () => setDialogState(() => tempSkills.remove(s)),
-                )).toList(),
+                children: tempSkills
+                    .map(
+                      (s) => Chip(
+                        label: Text(s),
+                        onDeleted: () =>
+                            setDialogState(() => tempSkills.remove(s)),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ),
@@ -419,7 +454,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, {VoidCallback? onEdit}) {
+  Widget _buildSectionTitle(
+    BuildContext context,
+    String title, {
+    VoidCallback? onEdit,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
       child: Row(
@@ -511,22 +550,27 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildSkillsSection(BuildContext context, AuthProvider auth) {
-    final List<String> skills = auth.skills.isEmpty 
-        ? ['Add Skills'] 
+    final List<String> skills = auth.skills.isEmpty
+        ? ['Add Skills']
         : auth.skills;
-    
+
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: skills
           .map(
-            (s) => _buildGlassPill(context, s, isPlaceholder: auth.skills.isEmpty),
+            (s) =>
+                _buildGlassPill(context, s, isPlaceholder: auth.skills.isEmpty),
           )
           .toList(),
     );
   }
 
-  Widget _buildGlassPill(BuildContext context, String text, {bool isPlaceholder = false}) {
+  Widget _buildGlassPill(
+    BuildContext context,
+    String text, {
+    bool isPlaceholder = false,
+  }) {
     return _buildGlassBox(
       context,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -536,8 +580,8 @@ class ProfileScreen extends StatelessWidget {
         style: TextStyle(
           fontWeight: FontWeight.w800,
           fontSize: 12,
-          color: isPlaceholder 
-              ? Theme.of(context).colorScheme.onSurfaceVariant 
+          color: isPlaceholder
+              ? Theme.of(context).colorScheme.onSurfaceVariant
               : Theme.of(context).colorScheme.onSurface,
         ),
       ),
@@ -570,11 +614,16 @@ class ProfileScreen extends StatelessWidget {
           Icons.refresh_rounded,
           'Reset System Data',
           () async {
-            final jobProvider = Provider.of<JobProvider>(context, listen: false);
+            final jobProvider = Provider.of<JobProvider>(
+              context,
+              listen: false,
+            );
             await jobProvider.seedDatabase(auth.userId);
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Database seeded with new categories!')),
+                const SnackBar(
+                  content: Text('Database seeded with new categories!'),
+                ),
               );
             }
           },

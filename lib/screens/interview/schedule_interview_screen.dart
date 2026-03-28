@@ -14,7 +14,8 @@ class ScheduleInterviewScreen extends StatefulWidget {
   const ScheduleInterviewScreen({super.key, required this.application});
 
   @override
-  State<ScheduleInterviewScreen> createState() => _ScheduleInterviewScreenState();
+  State<ScheduleInterviewScreen> createState() =>
+      _ScheduleInterviewScreenState();
 }
 
 class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
@@ -92,22 +93,33 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
 
       final interview = Interview(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        jobId: widget.application['job_id'] ?? (widget.application['job'] is Map ? (widget.application['job']['id'] ?? '') : ''),
+        jobId:
+            widget.application['job_id'] ??
+            (widget.application['job'] is Map
+                ? (widget.application['job']['id'] ?? '')
+                : ''),
         jobTitle: widget.application['job']['title'],
         companyName: widget.application['job']['company_name'],
         scheduledAt: scheduledAt,
         companySummary: _prepDetails!['companySummary'] ?? '',
-        commonQuestions: List<String>.from(_prepDetails!['commonQuestions'] ?? []),
+        commonQuestions: List<String>.from(
+          _prepDetails!['commonQuestions'] ?? [],
+        ),
       );
 
       // 1. Sync with Google Calendar
       final calendarEventId = await CalendarService.syncInterview(interview);
-      final finalInterview = interview.copyWith(calendarEventId: calendarEventId);
+      final finalInterview = interview.copyWith(
+        calendarEventId: calendarEventId,
+      );
 
       // 2. Schedule Prep Notification (30 mins before)
-      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+      final notificationProvider = Provider.of<NotificationProvider>(
+        context,
+        listen: false,
+      );
       final pushService = notificationProvider.pushService;
-      
+
       if (pushService != null) {
         await pushService.scheduleInterviewPrep(finalInterview);
       }
@@ -123,9 +135,9 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Scheduling failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Scheduling failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSyncing = false);
@@ -139,7 +151,10 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Smart Scheduler', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: const Text(
+          'Smart Scheduler',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
       ),
       body: Stack(
         children: [
@@ -187,18 +202,25 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
                     width: double.infinity,
                     height: 60,
                     child: ElevatedButton(
-                      onPressed: _isSyncing || _isGeneratingDetails ? null : _scheduleInterview,
+                      onPressed: _isSyncing || _isGeneratingDetails
+                          ? null
+                          : _scheduleInterview,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         elevation: 0,
                       ),
                       child: _isSyncing
                           ? const CircularProgressIndicator(color: Colors.black)
                           : const Text(
                               'SYNC TO CALENDAR',
-                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
                             ),
                     ),
                   ),
@@ -220,7 +242,10 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('Gemini is researching the company...', style: TextStyle(fontSize: 12)),
+            Text(
+              'Gemini is researching the company...',
+              style: TextStyle(fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -238,9 +263,16 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.business_rounded, size: 20, color: Colors.blueAccent),
+                  Icon(
+                    Icons.business_rounded,
+                    size: 20,
+                    color: Colors.blueAccent,
+                  ),
                   SizedBox(width: 8),
-                  Text('Company Summary', style: TextStyle(fontWeight: FontWeight.w900)),
+                  Text(
+                    'Company Summary',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -260,24 +292,41 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.help_outline_rounded, size: 20, color: Colors.orangeAccent),
+                  Icon(
+                    Icons.help_outline_rounded,
+                    size: 20,
+                    color: Colors.orangeAccent,
+                  ),
                   SizedBox(width: 8),
-                  Text('Key Questions', style: TextStyle(fontWeight: FontWeight.w900)),
+                  Text(
+                    'Key Questions',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
               ...(List<String>.from(_prepDetails!['commonQuestions'] ?? []))
                   .take(3)
-                  .map((q) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Expanded(child: Text(q, style: const TextStyle(fontSize: 13))),
-                          ],
-                        ),
-                      )),
+                  .map(
+                    (q) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '• ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Expanded(
+                            child: Text(
+                              q,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
             ],
           ),
         ),
@@ -285,7 +334,12 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String label, String value, {required VoidCallback onTap}) {
+  Widget _buildInfoTile(
+    IconData icon,
+    String label,
+    String value, {
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Row(
@@ -293,7 +347,7 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: Colors.white, size: 24),
@@ -306,19 +360,27 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   value,
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
+          const Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.white24,
+            size: 16,
+          ),
         ],
       ),
     );
@@ -335,7 +397,7 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
           shape: BoxShape.circle,
           gradient: RadialGradient(
             colors: [
-              Colors.blueAccent.withOpacity(0.2),
+              Colors.blueAccent.withValues(alpha: 0.2),
               Colors.transparent,
             ],
           ),

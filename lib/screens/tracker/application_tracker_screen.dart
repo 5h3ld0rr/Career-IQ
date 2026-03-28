@@ -10,7 +10,8 @@ class ApplicationTrackerScreen extends StatefulWidget {
   const ApplicationTrackerScreen({super.key});
 
   @override
-  State<ApplicationTrackerScreen> createState() => _ApplicationTrackerScreenState();
+  State<ApplicationTrackerScreen> createState() =>
+      _ApplicationTrackerScreenState();
 }
 
 class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
@@ -20,7 +21,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.userId != null) {
-        Provider.of<JobProvider>(context, listen: false).loadUserApplications(auth.userId!);
+        Provider.of<JobProvider>(
+          context,
+          listen: false,
+        ).loadUserApplications(auth.userId!);
       }
     });
   }
@@ -34,7 +38,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           Consumer<JobProvider>(
             builder: (context, jobProvider, child) {
               final apps = jobProvider.userApplications;
-              
+
               return CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
@@ -63,7 +67,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                     padding: const EdgeInsets.all(24),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        _buildGlassBox(context, child: _buildQuickActions(context, apps)),
+                        _buildGlassBox(
+                          context,
+                          child: _buildQuickActions(context, apps),
+                        ),
                         const SizedBox(height: 32),
                         _buildStatsRow(context, apps),
                         const SizedBox(height: 32),
@@ -111,7 +118,13 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       padding: const EdgeInsets.all(40),
       child: Column(
         children: [
-          Icon(Icons.assignment_late_outlined, size: 64, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
+          Icon(
+            Icons.assignment_late_outlined,
+            size: 64,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.3),
+          ),
           const SizedBox(height: 16),
           const Text(
             'No applications yet',
@@ -121,7 +134,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           Text(
             'Your job applications will appear here',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -181,7 +197,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             ? Padding(
                 padding: padding ?? const EdgeInsets.all(20),
                 child: child,
-               )
+              )
             : BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Padding(
@@ -193,11 +209,14 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, List<Map<String, dynamic>> apps) {
+  Widget _buildQuickActions(
+    BuildContext context,
+    List<Map<String, dynamic>> apps,
+  ) {
     // Show most recent application or some default info
     String nextCompany = 'None';
     if (apps.isNotEmpty) {
-       nextCompany = apps.first['job']['company_name'];
+      nextCompany = apps.first['job']['company_name'];
     }
 
     return Row(
@@ -229,7 +248,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
               ),
               Text(
                 nextCompany,
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
               ),
             ],
           ),
@@ -244,7 +266,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
               ),
               Text(
                 'Submitted',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -294,108 +319,119 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     );
   }
 
-  Widget _buildApplicationList(BuildContext context, List<Map<String, dynamic>> apps) {
+  Widget _buildApplicationList(
+    BuildContext context,
+    List<Map<String, dynamic>> apps,
+  ) {
     return Column(
-      children: apps
-          .map(
-            (app) {
-              final job = app['job'];
-              final status = app['status'] as String;
-              double progress = status == 'pending' ? 0.3 : (status == 'accepted' ? 1.0 : 0.5);
+      children: apps.map((app) {
+        final job = app['job'];
+        final status = app['status'] as String;
+        double progress = status == 'pending'
+            ? 0.3
+            : (status == 'accepted' ? 1.0 : 0.5);
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _buildGlassBox(
-                  context,
-                  disableBlur: true,
-                  child: Column(
-                    children: [
-                      Row(
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildGlassBox(
+            context,
+            disableBlur: true,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    _buildGlassBox(
+                      context,
+                      borderRadius: 12,
+                      padding: const EdgeInsets.all(8),
+                      disableBlur: true,
+                      child: Text(
+                        job['company_name'].toString().substring(0, 1),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildGlassBox(
-                            context,
-                            borderRadius: 12,
-                            padding: const EdgeInsets.all(8),
-                            disableBlur: true,
-                            child: Text(
-                              job['company_name'].toString().substring(0, 1),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 20,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
+                          Text(
+                            job['title'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  job['title'],
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Text(
-                                  job['company_name'],
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            job['company_name'],
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          _buildStatusPill(status),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: Colors.white,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          status == 'accepted'
-                              ? Colors.greenAccent
-                              : (status == 'rejected' ? Colors.redAccent : Colors.blueAccent),
+                    ),
+                    _buildStatusPill(status),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.white,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    status == 'accepted'
+                        ? Colors.greenAccent
+                        : (status == 'rejected'
+                              ? Colors.redAccent
+                              : Colors.blueAccent),
+                  ),
+                  minHeight: 6,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ScheduleInterviewScreen(application: app),
                         ),
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(10),
+                      );
+                    },
+                    icon: const Icon(Icons.calendar_month_rounded, size: 18),
+                    label: const Text(
+                      'SCHEDULE INTERVIEW',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ScheduleInterviewScreen(application: app),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.calendar_month_rounded, size: 18),
-                          label: const Text(
-                            'SCHEDULE INTERVIEW',
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-                          ),
-                          style: TextButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.5),
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
+                    ),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.5),
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-              );
-            },
-          )
-          .toList(),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
