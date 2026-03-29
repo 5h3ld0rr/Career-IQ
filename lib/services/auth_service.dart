@@ -48,7 +48,7 @@ class AuthService {
     if (googleUser == null) return null;
 
     final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
+        googleUser.authentication;
     
     final AuthCredential credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
@@ -78,6 +78,14 @@ class AuthService {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
+  }
+
+  Future<void> sendEmailVerification() async {
+    await _auth.currentUser?.sendEmailVerification();
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<Map<String, dynamic>?> getUserProfile(String uid) async {

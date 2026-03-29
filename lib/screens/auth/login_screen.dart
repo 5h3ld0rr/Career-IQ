@@ -17,37 +17,20 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
+
   void _handleLogin() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.login(_emailController.text, _passwordController.text);
-    if (authProvider.isAuthenticated) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/main');
-    } else if (authProvider.error != null) {
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error!),
-            backgroundColor: AppTheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+    if (authProvider.isAuthenticated && mounted) {
+      Navigator.pushReplacementNamed(context, '/main');
     }
   }
 
   void _handleGoogleLogin() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.googleLogin();
-    if (authProvider.isAuthenticated) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/main');
-    } else if (authProvider.error != null) {
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error!),
-            backgroundColor: AppTheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+    if (authProvider.isAuthenticated && mounted) {
+      Navigator.pushReplacementNamed(context, '/main');
     }
   }
 
@@ -60,7 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
-          _buildBackgroundDecor(),
+          _buildBaseLayer(context),
+          ..._buildBackgroundDecor(),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -118,7 +102,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                final email = _emailController.text.trim();
+                                if (email.isEmpty) {
+                                  Provider.of<AuthProvider>(context, listen: false)
+                                      .showNotification("Enter your email to reset password", isError: true);
+                                } else {
+                                  Provider.of<AuthProvider>(context, listen: false).resetPassword(email);
+                                }
+                              },
                               child: const Text(
                                 'Forgot?',
                                 style: TextStyle(
@@ -177,24 +169,62 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: -100,
-      right: -100,
-      child: Container(
-        width: 400,
-        height: 400,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              const Color(0xFF81D4FA).withValues(alpha: 0.3),
-              Colors.transparent,
-            ],
-          ),
+  Widget _buildBaseLayer(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Theme.of(context).brightness == Brightness.light
+                ? const Color(0xFFE1F5FE)
+                : const Color(0xFF1E293B),
+            AppTheme.getScaffoldColor(context),
+          ],
         ),
       ),
     );
+  }
+
+  List<Widget> _buildBackgroundDecor() {
+    return [
+      Positioned(
+        top: -150,
+        right: -100,
+        child: Container(
+          width: 500,
+          height: 500,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                const Color(0xFF81D4FA).withValues(alpha: 0.25),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        bottom: -200,
+        left: -150,
+        child: Container(
+          width: 600,
+          height: 600,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                const Color(0xFF03A9F4).withValues(alpha: 0.15),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _buildGlassBox(
@@ -245,12 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = theme.brightness == Brightness.dark;
     
     return Container(
-      decoration: BoxDecoration(
-        color: isDark 
-            ? Colors.black.withValues(alpha: 0.2) 
-            : Colors.white.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      margin: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
         obscureText: isPassword && _obscurePassword,
@@ -259,26 +284,46 @@ class _LoginScreenState extends State<LoginScreen> {
           color: theme.colorScheme.onSurface,
         ),
         decoration: InputDecoration(
+          filled: true,
+          fillColor: isDark 
+              ? Colors.black.withValues(alpha: 0.2) 
+              : Colors.white.withValues(alpha: 0.35),
           hintText: hint,
           hintStyle: TextStyle(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            fontWeight: FontWeight.w500,
           ),
           prefixIcon: Icon(
             icon, 
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            size: 22,
           ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    size: 20,
                   ),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
                 )
               : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 18),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(
+              color: Color(0xFF03A9F4),
+              width: 2,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         ),
       ),
     );

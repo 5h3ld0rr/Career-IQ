@@ -16,43 +16,60 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
 
   void _handleSignUp() async {
+    if (_nameController.text.isEmpty || 
+        _emailController.text.isEmpty || 
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      Provider.of<AuthProvider>(context, listen: false)
+          .showNotification("Please fill all fields", isError: true);
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      Provider.of<AuthProvider>(context, listen: false)
+          .showNotification("Passwords do not match", isError: true);
+      return;
+    }
+
+    final password = _passwordController.text;
+    
+    // Complex validation: 8+ chars, 1 lower, 1 upper, 1 digit, 1 special
+    bool hasMinLength = password.length >= 8;
+    bool hasUppercase = password.contains(RegExp(r'[A-Z]'));
+    bool hasLowercase = password.contains(RegExp(r'[a-z]'));
+    bool hasDigits = password.contains(RegExp(r'[0-9]'));
+    bool hasSpecialCharacters = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+
+    if (!hasMinLength || !hasUppercase || !hasLowercase || !hasDigits || !hasSpecialCharacters) {
+      Provider.of<AuthProvider>(context, listen: false).showNotification(
+        "Password needs: 8+ chars, uppercase, lowercase, number, and special character", 
+        isError: true
+      );
+      return;
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.signUp(
+    final success = await authProvider.signUp(
       _nameController.text,
       _emailController.text,
       _passwordController.text,
     );
-    if (authProvider.isAuthenticated) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/main');
-    } else if (authProvider.error != null) {
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error!),
-            backgroundColor: AppTheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+    
+    if (success && mounted) {
+      // Return to login screen
+      Navigator.pop(context);
     }
   }
 
   void _handleGoogleLogin() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.googleLogin();
-    if (authProvider.isAuthenticated) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/main');
-    } else if (authProvider.error != null) {
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error!),
-            backgroundColor: AppTheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+    if (authProvider.isAuthenticated && mounted) {
+      Navigator.pushReplacementNamed(context, '/main');
     }
   }
 
@@ -65,7 +82,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
-          _buildBackgroundDecor(),
+          _buildBaseLayer(context),
+          ..._buildBackgroundDecor(),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -115,14 +133,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           'Full Name',
                           Icons.person_outline_rounded,
                         ),
-                        const SizedBox(height: 16),
                         _buildTextField(
                           context,
                           _emailController,
                           'Email Address',
                           Icons.email_outlined,
                         ),
-                        const SizedBox(height: 16),
                         _buildTextField(
                           context,
                           _passwordController,
@@ -130,7 +146,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           Icons.lock_outline_rounded,
                           isPassword: true,
                         ),
-                        const SizedBox(height: 32),
+                        _buildTextField(
+                          context,
+                          _confirmPasswordController,
+                          'Confirm Password',
+                          Icons.lock_reset_rounded,
+                          isPassword: true,
+                        ),
+                        const SizedBox(height: 16),
                         _buildPrimaryButton(
                           isLoading,
                           _handleSignUp,
@@ -160,24 +183,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildBackgroundDecor() {
-    return Positioned(
-      bottom: -100,
-      left: -100,
-      child: Container(
-        width: 400,
-        height: 400,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              const Color(0xFF81D4FA).withValues(alpha: 0.3),
-              Colors.transparent,
-            ],
-          ),
+  Widget _buildBaseLayer(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Theme.of(context).brightness == Brightness.light
+                ? const Color(0xFFE1F5FE)
+                : const Color(0xFF1E293B),
+            AppTheme.getScaffoldColor(context),
+          ],
         ),
       ),
     );
+  }
+
+  List<Widget> _buildBackgroundDecor() {
+    return [
+      Positioned(
+        top: -150,
+        right: -100,
+        child: Container(
+          width: 500,
+          height: 500,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                const Color(0xFF81D4FA).withValues(alpha: 0.25),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        bottom: -200,
+        left: -150,
+        child: Container(
+          width: 600,
+          height: 600,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                const Color(0xFF03A9F4).withValues(alpha: 0.15),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _buildGlassBox(
@@ -228,12 +289,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      decoration: BoxDecoration(
-        color: isDark 
-            ? Colors.black.withValues(alpha: 0.2) 
-            : Colors.white.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      margin: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
         obscureText: isPassword && _obscurePassword,
@@ -242,26 +298,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
           color: theme.colorScheme.onSurface,
         ),
         decoration: InputDecoration(
+          filled: true,
+          fillColor: isDark 
+              ? Colors.black.withValues(alpha: 0.2) 
+              : Colors.white.withValues(alpha: 0.35),
           hintText: hint,
           hintStyle: TextStyle(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            fontWeight: FontWeight.w500,
           ),
           prefixIcon: Icon(
             icon, 
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            size: 22,
           ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    size: 20,
                   ),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
                 )
               : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 18),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(
+              color: Color(0xFF03A9F4),
+              width: 2,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         ),
       ),
     );

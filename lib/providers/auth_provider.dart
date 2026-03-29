@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:careeriq/services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:careeriq/widgets/app_snackbar.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -33,6 +34,10 @@ class AuthProvider with ChangeNotifier {
   String? get bio => _bio;
   String? get experience => _experience;
   String? get location => _location;
+
+  void showNotification(String message, {bool isError = false}) {
+    AppSnackBar.show(message, isError: isError);
+  }
 
   Future<void> _populateUserData(dynamic user) async {
     if (user == null) return;
@@ -85,13 +90,14 @@ class AuthProvider with ChangeNotifier {
       }
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> signUp(String name, String email, String password) async {
+  Future<bool> signUp(String name, String email, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -103,10 +109,34 @@ class AuthProvider with ChangeNotifier {
         displayName: name,
       );
       if (user != null) {
-        await _populateUserData(user);
+        // Send verification and log out immediately
+        await _authService.sendEmailVerification();
+        await logout();
+        showNotification("Account created! Please check your email to verify.");
+        return true;
       }
+      return false;
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> resetPassword(String email) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      showNotification("Password reset link sent to $email");
+    } catch (e) {
+      _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -125,6 +155,7 @@ class AuthProvider with ChangeNotifier {
       }
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -138,8 +169,10 @@ class AuthProvider with ChangeNotifier {
     try {
       await _authService.updateProfile(name: newName);
       _userName = newName;
+      showNotification("Profile name updated!");
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -157,10 +190,12 @@ class AuthProvider with ChangeNotifier {
         if (url != null) {
           await _authService.updateProfile(photoUrl: url);
           _profilePictureUrl = url;
+          showNotification("Profile picture updated!");
         }
       }
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -180,10 +215,12 @@ class AuthProvider with ChangeNotifier {
           _resumeFileName = fileName;
           _resumeUrl = url;
           _resumeUploadedAt = DateTime.now();
+          showNotification("Resume uploaded successfully!");
         }
       }
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -223,8 +260,10 @@ class AuthProvider with ChangeNotifier {
       if (bio != null) _bio = bio;
       if (experience != null) _experience = experience;
       if (location != null) _location = location;
+      showNotification("Profile updated successfully!");
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -241,8 +280,10 @@ class AuthProvider with ChangeNotifier {
     try {
       await _authService.updateSkills(uid, newSkills);
       _skills = newSkills;
+      showNotification("Skills updated successfully!");
     } catch (e) {
       _error = e.toString();
+      showNotification(_error!, isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
