@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/job.dart';
 import '../services/job_service.dart';
+import '../services/ai_service.dart';
 
 class JobProvider with ChangeNotifier {
   final JobService _jobService = JobService();
+  final AIService _aiService = AIService();
 
   List<Job> _jobs = [];
   List<Job> _featuredJobs = [];
@@ -221,6 +223,51 @@ class JobProvider with ChangeNotifier {
       }
       debugPrint('Error toggling save job: $e');
       notifyListeners();
+    }
+  }
+
+  Future<void> calculateMatchScores(String userProfile) async {
+    if (userProfile.isEmpty || (_jobs.isEmpty && _featuredJobs.isEmpty)) return;
+
+    // Use a Set to track processed IDs to avoid redundant calls for duplicates
+    final processedIds = <String>{};
+    
+    // Combine lists, but focus on top 5 latest and top 3 featured
+    final targetJobs = [
+      ..._jobs.take(5),
+      ..._featuredJobs.take(3),
+    ];
+
+    for (var job in targetJobs) {
+      if (processedIds.contains(job.id) || job.matchScore != null) continue;
+      
+      job.isAnalyzing = true;
+      notifyListeners();
+
+      try {
+        final result = await _aiService.analyzeSkillsGap(
+          resumeContent: userProfile,
+          jobDescription: "${job.title} at ${job.companyName}\n${job.description}\nRequirements: ${job.requirements.join(', ')}",
+        );
+        
+        final score = result['matchPercentage'] ?? 0;
+        job.matchScore = score;
+        processedIds.add(job.id);
+        
+        // Sync score with other lists where this job ID might exist
+        for (var lJob in _jobs) {
+          if (lJob.id == job.id) lJob.matchScore = score;
+        }
+        for (var fJob in _featuredJobs) {
+          if (fJob.id == job.id) fJob.matchScore = score;
+        }
+      } catch (e) {
+        debugPrint('Error calculating score for ${job.id}: $e');
+        job.matchScore = 0;
+      } finally {
+        job.isAnalyzing = false;
+        notifyListeners();
+      }
     }
   }
 }

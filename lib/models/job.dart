@@ -12,6 +12,8 @@ class Job {
   final DateTime postedAt;
   final String applyUrl;
   bool isSaved;
+  int? matchScore;
+  bool isAnalyzing;
 
   Job({
     required this.id,
@@ -27,6 +29,8 @@ class Job {
     required this.postedAt,
     required this.applyUrl,
     this.isSaved = false,
+    this.matchScore,
+    this.isAnalyzing = false,
   });
 
   factory Job.fromJson(Map<String, dynamic> json) {
@@ -45,6 +49,7 @@ class Job {
           ? DateTime.parse(json['posted_at']) 
           : (json['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: json['apply_url'] ?? '',
+      matchScore: json['match_score'],
     );
   }
 
@@ -64,6 +69,7 @@ class Job {
           ? DateTime.parse(data['posted_at']) 
           : (data['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: data['apply_url'] ?? '',
+      matchScore: data['match_score'],
     );
   }
 

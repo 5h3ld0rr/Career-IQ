@@ -37,8 +37,18 @@ class _HomeScreenState extends State<HomeScreen> {
     Future.microtask(() {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
-      jobProvider.loadJobs();
-      jobProvider.loadFeaturedJobs();
+      jobProvider.loadJobs().then((_) {
+        final profileStr = "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
+        if (auth.skills.isNotEmpty || auth.bio != null) {
+          jobProvider.calculateMatchScores(profileStr);
+        }
+      });
+      jobProvider.loadFeaturedJobs().then((_) {
+        final profileStr = "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
+        if (auth.skills.isNotEmpty || auth.bio != null) {
+          jobProvider.calculateMatchScores(profileStr);
+        }
+      });
       if (auth.userId != null) {
         jobProvider.loadSavedJobs(auth.userId!);
       }
@@ -180,6 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            if (job.isAnalyzing)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else if (job.matchScore != null)
+              _buildMatchScoreCircle(job.matchScore!),
             Consumer<AuthProvider>(
               builder: (context, auth, _) => IconButton(
                 onPressed: () {
@@ -197,8 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: job.isSaved
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.3),
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -725,6 +743,37 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Widget _buildMatchScoreCircle(int score) {
+    Color color = score > 80
+        ? Colors.green
+        : score > 50
+            ? Colors.orange
+            : Colors.red;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.auto_awesome_rounded, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            '$score%',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w900,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFeaturedJobs(JobProvider jobs) {
     return SizedBox(
       height: 200,
@@ -776,25 +825,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  Consumer<AuthProvider>(
-                    builder: (context, auth, _) => GestureDetector(
-                      onTap: () {
-                        if (auth.userId != null) {
-                          Provider.of<JobProvider>(
-                            context,
-                            listen: false,
-                          ).toggleSaveJob(auth.userId!, job);
-                        }
-                      },
-                      child: Icon(
-                        job.isSaved
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_outline_rounded,
-                        color: job.isSaved
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                  Row(
+                    children: [
+                      if (job.isAnalyzing)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else if (job.matchScore != null)
+                        _buildMatchScoreCircle(job.matchScore!),
+                      const SizedBox(width: 8),
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) => GestureDetector(
+                          onTap: () {
+                            if (auth.userId != null) {
+                              Provider.of<JobProvider>(
+                                context,
+                                listen: false,
+                              ).toggleSaveJob(auth.userId!, job);
+                            }
+                          },
+                          child: Icon(
+                            job.isSaved
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_outline_rounded,
+                            color: job.isSaved
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
