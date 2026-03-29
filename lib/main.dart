@@ -11,6 +11,8 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/main_wrapper.dart';
+import 'screens/salary_roi/salary_roi_screen.dart';
+import 'providers/salary_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -53,6 +55,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AIProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => SalaryProvider()),
       ],
       child: const CareerIQApp(),
     ),
@@ -88,6 +91,7 @@ class CareerIQApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/main': (context) => const MainWrapper(),
+        '/salary_roi': (context) => const SalaryROIScreen(),
       },
     );
   }

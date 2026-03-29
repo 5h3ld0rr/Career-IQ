@@ -1,6 +1,7 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
+import '../models/salary_insight.dart';
 
 class AIService {
   static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
@@ -39,7 +40,6 @@ class AIService {
   };
 
   Future<List<String>> getTipsForCategory(String category) async {
-    // We can still return these quickly, or even use Gemini to generate custom tips
     final categoryTips = _skillTips[category] ?? [];
     return [..._generalTips, ...categoryTips]..shuffle();
   }
@@ -91,11 +91,7 @@ class AIService {
       """;
       
       final response = await _model.generateContent([Content.text(prompt)]);
-      final text = response.text ?? "{}";
-      
-      // Basic JSON parsing from response text
-      // In a production app, use a proper JSON decoder with error handling
-      return _parseJsonResponse(text);
+      return _parseJsonResponse(response.text ?? "{}");
     } catch (e) {
       return {
         "matchPercentage": 0,
@@ -106,26 +102,39 @@ class AIService {
     }
   }
 
-  Map<String, dynamic> _parseJsonResponse(String text) {
-    // Simple extraction if the AI wraps JSON in backticks
-    String jsonStr = text;
-    if (text.contains("```json")) {
-      jsonStr = text.split("```json")[1].split("```")[0];
-    } else if (text.contains("```")) {
-      jsonStr = text.split("```")[1].split("```")[0];
+  Future<List<SalaryInsight>> getSalaryInsights({
+    required List<String> userSkills,
+    required List<String> targetJobTitles,
+  }) async {
+    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY') {
+      return [];
     }
-    
-    // In a real scenario, use jsonDecode
-    // For now, I'll assume it's valid JSON or return default
+
     try {
-      return json.decode(jsonStr.trim()) as Map<String, dynamic>;
-    } catch (_) {
-      return {
-        "matchPercentage": 50,
-        "currentSkills": ["Parsing Error"],
-        "missingSkills": ["Check API structure"],
-        "recommendations": ["Try again later"]
-      };
+      final prompt = """
+      Act as a specialized Job Market Analyst. 
+      Analyze the following user skills and target job titles to provide 3-5 high-impact salary insights for someone looking to grow their career.
+      For each insight, provide:
+      - 'skillName': The name of a high-value skill (could be one they have or one they SHOULD add).
+      - 'currentMarketValue': Estimated annual salary increase in USD for having this skill.
+      - 'potentialIncreasePercentage': Percentage growth in salary if this skill is mastered.
+      - 'trendData': A list of 6 monthly data points (representing growth trend over last 6 months, normalized 0-100).
+      - 'aiRecommendation': A 1-sentence strategic advice on why this skill is valuable.
+
+      User Skills: ${userSkills.join(', ')}
+      Target Titles: ${targetJobTitles.join(', ')}
+
+      Return the response as a JSON list of objects with these keys. 
+      Return ONLY the JSON list.
+      """;
+
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final List<dynamic> jsonList = _parseJsonListResponse(response.text ?? "[]");
+      
+      return jsonList.map((e) => SalaryInsight.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      print("Error in getSalaryInsights: $e");
+      return [];
     }
   }
 
@@ -174,6 +183,36 @@ class AIService {
         "commonQuestions": [],
         "preparationTips": ["Error generating prep: $e"]
       };
+    }
+  }
+
+  Map<String, dynamic> _parseJsonResponse(String text) {
+    String jsonStr = text;
+    if (text.contains("```json")) {
+      jsonStr = text.split("```json")[1].split("```")[0];
+    } else if (text.contains("```")) {
+      jsonStr = text.split("```")[1].split("```")[0];
+    }
+    
+    try {
+      return json.decode(jsonStr.trim()) as Map<String, dynamic>;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  List<dynamic> _parseJsonListResponse(String text) {
+    String jsonStr = text;
+    if (text.contains("```json")) {
+      jsonStr = text.split("```json")[1].split("```")[0];
+    } else if (text.contains("```")) {
+      jsonStr = text.split("```")[1].split("```")[0];
+    }
+    
+    try {
+      return json.decode(jsonStr.trim()) as List<dynamic>;
+    } catch (_) {
+      return [];
     }
   }
 }

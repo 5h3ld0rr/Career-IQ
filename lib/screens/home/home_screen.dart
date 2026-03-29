@@ -12,6 +12,7 @@ import '../tracker/application_tracker_screen.dart';
 import '../interview/mock_interview_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../jobs/see_all_jobs_screen.dart';
+import '../salary_roi/salary_roi_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -565,6 +566,12 @@ class _HomeScreenState extends State<HomeScreen> {
             'Tracker',
             Icons.dashboard_customize_rounded,
             const ApplicationTrackerScreen(),
+          ),
+          _buildActionItem(
+            context,
+            'Salary ROI',
+            Icons.analytics_rounded,
+            const SalaryROIScreen(),
           ),
           _buildActionItem(
             context,

@@ -15,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+
 
     return Scaffold(
       body: Consumer<AuthProvider>(
@@ -46,25 +46,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     title: const Text('Profile'),
-                    actions: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16),
-                        child: _buildGlassBox(
-                          context,
-                          borderRadius: 50,
-                          padding: const EdgeInsets.all(4),
-                          child: IconButton(
-                            icon: Icon(
-                              themeProvider.isDarkMode
-                                  ? Icons.light_mode_rounded
-                                  : Icons.dark_mode_rounded,
-                              size: 20,
-                            ),
-                            onPressed: () => themeProvider.toggleTheme(),
-                          ),
-                        ),
-                      ),
-                    ],
+                    actions: const [],
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.all(24),
@@ -589,8 +571,42 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildActionsMenu(BuildContext context, AuthProvider auth) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Column(
       children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          leading: Icon(
+            themeProvider.isDarkMode
+                ? Icons.dark_mode_rounded
+                : Icons.light_mode_rounded,
+            color: Theme.of(context).colorScheme.primary,
+            size: 22,
+          ),
+          title: Text(
+            'Dark Mode',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          trailing: Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: themeProvider.isDarkMode,
+              onChanged: (val) => themeProvider.toggleTheme(),
+              activeColor: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+        Divider(
+          height: 1,
+          thickness: 0.5,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+          indent: 50,
+        ),
+
         _buildMenuTile(
           context,
           Icons.psychology_rounded,
