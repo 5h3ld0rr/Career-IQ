@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'cloudinary_service.dart';
 import '../models/job.dart';
 
 class JobService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final CloudinaryService _cloudinary = CloudinaryService();
 
   static const String _mockJobsJson = '''
   [
@@ -195,26 +196,18 @@ class JobService {
     await batch.commit();
   }
 
-  Future<String> uploadResume(dynamic file, String userId) async {
-    // We use dynamic for file to support cross-platform (io.File or Uint8List for web)
+  Future<String> uploadResume(dynamic file, String userId, {String? fileName}) async {
     try {
-      final fileName = 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('resumes')
-          .child(userId)
-          .child(fileName);
-
-      if (file is Uint8List) {
-        await ref.putData(file);
-      } else if (file is List<int>) {
-        await ref.putData(Uint8List.fromList(file));
-      } else {
-        await ref.putFile(file as File); // io.File
-      }
-      return await ref.getDownloadURL();
+      final url = await _cloudinary.uploadFile(
+        file: file,
+        folder: 'CareerIQ/CV',
+        fileName: fileName ?? 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        isImage: false,
+      );
+      if (url == null) throw Exception('Upload returned empty URL');
+      return url;
     } catch (e) {
-      throw Exception('Failed to upload resume: $e');
+      throw Exception('Failed to upload resume to Cloudinary: $e');
     }
   }
 

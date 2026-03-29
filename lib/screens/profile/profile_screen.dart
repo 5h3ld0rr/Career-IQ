@@ -248,24 +248,41 @@ class ProfileScreen extends StatelessWidget {
                 context,
                 borderRadius: 100,
                 padding: const EdgeInsets.all(4),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  backgroundImage: auth.profilePictureUrl != null
-                      ? NetworkImage(auth.profilePictureUrl!)
-                      : null,
-                  child: auth.profilePictureUrl == null
-                      ? Text(
-                          auth.userName?.substring(0, 1).toUpperCase() ?? 'U',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      : null,
-                ),
+                child: auth.isLoading && auth.profilePictureUrl == null
+                    ? const CircularProgressIndicator(strokeWidth: 2)
+                    : CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        backgroundImage: auth.profilePictureUrl != null
+                            ? NetworkImage(auth.profilePictureUrl!)
+                            : null,
+                        child: auth.profilePictureUrl == null
+                            ? Text(
+                                auth.userName?.substring(0, 1).toUpperCase() ?? 'U',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w900,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              )
+                            : null,
+                      ),
               ),
+              if (auth.isLoading && auth.profilePictureUrl != null)
+                Positioned.fill(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.black26,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 bottom: 0,
                 right: 0,
@@ -522,68 +539,112 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildResumeSection(BuildContext context, AuthProvider auth) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(
-            Icons.description_rounded,
-            color: Theme.of(context).colorScheme.primary,
-            size: 24,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                auth.resumeFileName ?? 'No resume uploaded',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 13,
-                  color: Theme.of(context).colorScheme.onSurface,
+    return _buildGlassBox(
+      context,
+      padding: const EdgeInsets.all(16),
+      child: auth.isLoading
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(strokeWidth: 3),
+                    SizedBox(height: 12),
+                    Text(
+                      "Uploading to Cloud...",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                auth.resumeUploadedAt != null
-                    ? 'Uploaded on ${auth.resumeUploadedAt!.day}/${auth.resumeUploadedAt!.month}/${auth.resumeUploadedAt!.year}'
-                    : 'Upload your resume to get started',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+            )
+          : Row(
+              children: [
+                _buildIconBox(
+                  context,
+                  auth.resumeUrl != null
+                      ? Icons.article_rounded
+                      : Icons.upload_file_rounded,
+                  auth.resumeUrl != null
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
-              ),
-            ],
-          ),
-        ),
-        IconButton(
-          icon: Icon(
-            auth.resumeUrl != null
-                ? Icons.cloud_done_rounded
-                : Icons.file_upload_outlined,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          onPressed: () async {
-            FilePickerResult? result = await FilePicker.platform.pickFiles(
-              type: FileType.custom,
-              allowedExtensions: ['pdf', 'doc', 'docx'],
-              withData: true,
-            );
-            if (result != null && result.files.single.bytes != null) {
-              await auth.uploadResume(
-                result.files.single.bytes,
-                result.files.single.name,
-              );
-            }
-          },
-        ),
-      ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        auth.resumeFileName ?? "Upload Professional CV",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        auth.resumeUploadedAt != null
+                            ? "Last updated: ${auth.resumeUploadedAt!.toString().split(' ')[0]}"
+                            : "Supported: PDF, DOC, DOCX",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      FilePickerResult? result = await FilePicker.platform.pickFiles(
+                        type: FileType.custom,
+                        allowedExtensions: ['pdf', 'doc', 'docx'],
+                        withData: true,
+                      );
+                      if (result != null && result.files.single.bytes != null) {
+                        await auth.uploadResume(
+                          result.files.single.bytes,
+                          result.files.single.name,
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        auth.resumeUrl != null
+                            ? Icons.edit_document
+                            : Icons.cloud_upload_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildIconBox(BuildContext context, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: color, size: 20),
     );
   }
 

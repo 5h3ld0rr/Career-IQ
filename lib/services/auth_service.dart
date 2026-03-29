@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'cloudinary_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -109,39 +109,41 @@ class AuthService {
     }
   }
 
+  final CloudinaryService _cloudinary = CloudinaryService();
+
   Future<String?> uploadProfilePicture(
     String uid,
-    dynamic fileBytes,
+    dynamic file,
     String fileName,
   ) async {
     try {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('profiles')
-          .child(uid)
-          .child(fileName);
-      await ref.putData(fileBytes);
-      return await ref.getDownloadURL();
+      // Prioritize Cloudinary as requested
+      return await _cloudinary.uploadFile(
+        file: file,
+        folder: 'CareerIQ/Profile-Pictures',
+        fileName: fileName,
+        isImage: true,
+      );
     } catch (e) {
-      return null;
+      // Fallback or rethrow for configuration visibility
+      rethrow;
     }
   }
 
   Future<String?> uploadResume(
     String uid,
-    dynamic fileBytes,
+    dynamic file,
     String fileName,
   ) async {
     try {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('resumes')
-          .child(uid)
-          .child(fileName);
-      await ref.putData(fileBytes);
-      return await ref.getDownloadURL();
+      return await _cloudinary.uploadFile(
+        file: file,
+        folder: 'CareerIQ/CV',
+        fileName: fileName,
+        isImage: false,
+      );
     } catch (e) {
-      return null;
+      rethrow;
     }
   }
 
