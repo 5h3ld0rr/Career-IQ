@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../providers/salary_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
+import '../../core/theme.dart';
 
 class SalaryROIScreen extends StatefulWidget {
   const SalaryROIScreen({super.key});
@@ -41,34 +42,37 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
   @override
   Widget build(BuildContext context) {
     final salaryProvider = context.watch<SalaryProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = isDark ? Colors.white : AppTheme.darkText;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Premium Dark Navy
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 16),
+              icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor, size: 16),
               onPressed: () => Navigator.pop(context),
               padding: EdgeInsets.zero,
             ),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Salary ROI Analyst',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.blueAccent),
+            icon: Icon(Icons.refresh, color: isDark ? Colors.blueAccent : AppTheme.primaryBlue),
             onPressed: _refreshInsights,
           ),
         ],
@@ -78,29 +82,29 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeaderCard(salaryProvider),
+            _buildHeaderCard(salaryProvider, isDark),
             const SizedBox(height: 30),
-            _buildMarketTrendSection(salaryProvider),
+            _buildMarketTrendSection(salaryProvider, isDark),
             const SizedBox(height: 30),
-            const Text(
+            Text(
               'High-Impact Skills',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: textColor,
               ),
             ),
             const SizedBox(height: 15),
-            _buildSkillsGrid(salaryProvider),
+            _buildSkillsGrid(salaryProvider, isDark),
             const SizedBox(height: 30),
-            _buildRecommendationSection(salaryProvider),
+            _buildRecommendationSection(salaryProvider, isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeaderCard(SalaryProvider provider) {
+  Widget _buildHeaderCard(SalaryProvider provider, bool isDark) {
     if (provider.isLoading) {
       return _buildShimmerHeader();
     }
@@ -111,26 +115,34 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)], // Blue to Purple
+        gradient: LinearGradient(
+          colors: isDark 
+            ? [AppTheme.primaryBlue, AppTheme.darkBlue]
+            : [AppTheme.primaryBlue, AppTheme.accentBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-            blurRadius: 20,
+            color: AppTheme.primaryBlue.withValues(alpha: isDark ? 0.2 : 0.3),
+            blurRadius: 30,
             offset: const Offset(0, 10),
+            spreadRadius: -5,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Potential Earnings Growth',
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -142,31 +154,36 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Based on your current skill set vs market demand.',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 14,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMarketTrendSection(SalaryProvider provider) {
+  Widget _buildMarketTrendSection(SalaryProvider provider, bool isDark) {
     if (provider.isLoading) {
       return _buildShimmerChart();
     }
 
     if (provider.insights.isEmpty) return const SizedBox.shrink();
 
+    final textColor = isDark ? Colors.white : AppTheme.darkText;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Value Trends',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: textColor,
           ),
         ),
         const SizedBox(height: 20),
@@ -174,8 +191,15 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
           height: 250,
           padding: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: isDark ? [] : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              )
+            ],
           ),
           child: LineChart(
             LineChartData(
@@ -205,7 +229,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
     );
   }
 
-  Widget _buildSkillsGrid(SalaryProvider provider) {
+  Widget _buildSkillsGrid(SalaryProvider provider, bool isDark) {
     if (provider.isLoading) {
       return _buildShimmerGrid();
     }
@@ -226,14 +250,17 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
         
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.primaryBlue.withValues(alpha: 0.1),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.1),
-                blurRadius: 10,
-                spreadRadius: 1,
+                color: isDark ? color.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                blurRadius: 15,
+                spreadRadius: 0,
               ),
             ],
           ),
@@ -244,8 +271,8 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
               children: [
                 Text(
                   insight.skillName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : AppTheme.darkText,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -270,16 +297,16 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
     );
   }
 
-  Widget _buildRecommendationSection(SalaryProvider provider) {
+  Widget _buildRecommendationSection(SalaryProvider provider, bool isDark) {
     if (provider.isLoading || provider.insights.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : AppTheme.lightBlue.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: isDark ? Colors.white10 : AppTheme.primaryBlue.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +318,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
               Text(
                 'AI Analysis',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppTheme.primaryBlue,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -301,7 +328,11 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
           const SizedBox(height: 15),
           Text(
             provider.insights.first.aiRecommendation,
-            style: const TextStyle(color: Colors.white70, fontSize: 16, height: 1.5),
+            style: TextStyle(
+              color: isDark ? Colors.white70 : AppTheme.darkText.withValues(alpha: 0.8),
+              fontSize: 16,
+              height: 1.5,
+            ),
           ),
         ],
       ),
