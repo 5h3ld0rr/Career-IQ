@@ -5,6 +5,7 @@ import 'home/home_screen.dart';
 import 'saved/saved_jobs_screen.dart';
 import 'profile/profile_screen.dart';
 import 'tracker/application_tracker_screen.dart';
+import 'career_tools/career_tools_screen.dart';
 import '../core/theme.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -20,6 +21,7 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const ApplicationTrackerScreen(),
+    const CareerToolsScreen(),
     const SavedJobsScreen(),
     const ProfileScreen(),
   ];
@@ -39,7 +41,7 @@ class _MainWrapperState extends State<MainWrapper> {
 
     return Container(
       height: 70,
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 30),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 25),
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(35),
@@ -63,19 +65,19 @@ class _MainWrapperState extends State<MainWrapper> {
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final navWidth = constraints.maxWidth - 20;
-              final itemWidth = navWidth / 4;
+              final navWidth = constraints.maxWidth - 8;
+              final itemWidth = navWidth / 5;
 
               return Stack(
                 children: [
-                  // Organic Sliding Background Indicator
+                   // Organic Sliding Background Indicator
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 600),
                     curve: Curves.easeOutBack,
-                    left: 10 + (_selectedIndex * itemWidth) - 6,
-                    top: 11, // (70 - 48) / 2 to center vertically
+                    left: 4 + (_selectedIndex * itemWidth) - 2,
+                    top: 11,
                     child: Container(
-                      width: itemWidth + 12,
+                      width: itemWidth + 4,
                       height: 48,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -99,18 +101,19 @@ class _MainWrapperState extends State<MainWrapper> {
                   ),
                   // Navigation Items
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Row(
                       children: [
-                        _buildNavItem(0, Icons.explore_rounded, 'Explore'),
+                        _buildNavItem(0, Icons.explore_rounded, 'Home'),
                         _buildNavItem(
                           1,
                           Icons.assignment_turned_in_rounded,
                           'Tracker',
                         ),
-                        _buildNavItem(2, Icons.bookmark_rounded, 'Saved'),
+                        _buildNavItem(2, Icons.psychology_rounded, 'AI'),
+                        _buildNavItem(3, Icons.bookmark_rounded, 'Saved'),
                         _buildNavItem(
-                          3,
+                          4,
                           Icons.account_circle_rounded,
                           'Profile',
                         ),
@@ -158,7 +161,7 @@ class _MainWrapperState extends State<MainWrapper> {
                   child: Icon(
                     icon,
                     color: isSelected ? activeColor : inactiveColor,
-                    size: 26,
+                    size: 24,
                   ),
                 ),
               ),
@@ -177,14 +180,14 @@ class _MainWrapperState extends State<MainWrapper> {
                     );
                   },
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.only(left: 6),
                     child: Text(
                       label,
                       style: TextStyle(
                         color: activeColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.1,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.2,
                       ),
                       maxLines: 1,
                     ),

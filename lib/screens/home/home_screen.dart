@@ -7,12 +7,9 @@ import 'package:careeriq/providers/job_provider.dart';
 import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
 import '../details/job_details_screen.dart';
-import '../cv_analysis/cv_upload_screen.dart';
-import '../interview/mock_interview_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../jobs/see_all_jobs_screen.dart';
 import 'package:careeriq/providers/notification_provider.dart';
-import '../salary_roi/salary_roi_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -81,9 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           _buildHeader(auth, context),
                           const SizedBox(height: 24),
                           _buildSearchArea(context, jobs),
-                          const SizedBox(height: 24),
-                          _buildSectionTitle('AI Career Tools'),
-                          _buildQuickActions(context),
                           const SizedBox(height: 24),
                           _buildCategoryFilters(jobs),
                           const SizedBox(height: 32),
@@ -572,79 +566,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          _buildActionItem(
-            context,
-            'CV Analysis',
-            Icons.document_scanner_rounded,
-            const CVUploadScreen(),
-          ),
-          _buildActionItem(
-            context,
-            'Salary ROI',
-            Icons.analytics_rounded,
-            const SalaryROIScreen(),
-          ),
-          _buildActionItem(
-            context,
-            'Mock Interview',
-            Icons.mic_rounded,
-            const MockInterviewScreen(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionItem(
-    BuildContext context,
-    String label,
-    IconData icon,
-    Widget screen,
-  ) {
-    return GestureDetector(
-      onTap: () =>
-          Navigator.push(context, MaterialPageRoute(builder: (_) => screen)),
-      child: Padding(
-        padding: const EdgeInsets.only(right: 16),
-        child: _buildGlassBox(
-          width: 140,
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surface.withValues(alpha: 0.8),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildCategoryFilters(JobProvider jobs) {
     return Column(
