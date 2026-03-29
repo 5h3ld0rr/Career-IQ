@@ -4,7 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'dart:developer' as dev;
 import 'dart:typed_data';
-import '../../core/theme.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ai_provider.dart';
 import '../../providers/auth_provider.dart';
