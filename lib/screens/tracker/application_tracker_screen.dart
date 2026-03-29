@@ -15,9 +15,15 @@ class ApplicationTrackerScreen extends StatefulWidget {
 }
 
 class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
+  bool _isSeeding = false;
+
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.userId != null) {
@@ -27,6 +33,42 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         ).loadUserApplications(auth.userId!);
       }
     });
+  }
+
+  Future<void> _seedMockData() async {
+    setState(() => _isSeeding = true);
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final jobProvider = Provider.of<JobProvider>(context, listen: false);
+      
+      if (auth.userId != null) {
+        // We use the existing seedDatabase which now seeds jobs and clears apps
+        // But we want to add some mock applications too
+        await jobProvider.seedDatabase(auth.userId!);
+        
+        // After seeding jobs, let's apply for a couple of them to show data
+        if (jobProvider.jobs.isNotEmpty) {
+          final topJobs = jobProvider.jobs.take(3).toList();
+          for (var job in topJobs) {
+             await jobProvider.applyForJob(auth.userId!, job.id);
+          }
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Mock data seeded successfully!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to seed data: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSeeding = false);
+    }
   }
 
   @override
@@ -45,11 +87,20 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   SliverAppBar(
                     backgroundColor: Colors.transparent,
                     elevation: 0,
-                    title: const Text('Application Tracker'),
+                    title: const Text(
+                      'Application Tracker',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
                     centerTitle: true,
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.refresh_rounded),
+                        onPressed: _loadData,
+                      ),
+                    ],
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         _buildGlassBox(
@@ -68,8 +119,13 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        if (jobProvider.isLoading)
-                          const Center(child: CircularProgressIndicator())
+                        if (jobProvider.isLoading || _isSeeding)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(40.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
                         else if (apps.isEmpty)
                           _buildEmptyState(context)
                         else
@@ -84,44 +140,77 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Colors.white, width: 1.5),
-        ),
-        child: const Icon(Icons.add_rounded, color: Colors.black, size: 28),
-      ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
     return _buildGlassBox(
       context,
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(32),
       child: Column(
         children: [
-          Icon(
-            Icons.assignment_late_outlined,
-            size: 64,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.3),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.assignment_late_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           const Text(
             'No applications yet',
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
-            'Your job applications will appear here',
+            'Your job applications will appear here once you apply.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _seedMockData,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'SEED MOCK DATA',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () {
+              // Navigate to Jobs search (index 0 in MainWrapper)
+              // This depends on how MainWrapper is structured, but we can use a workaround
+              // or just tell the user to go to the Search tab.
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Navigate to the Search tab to find jobs!')),
+              );
+            },
+            child: const Text(
+              'DISCOVER JOBS',
+              style: TextStyle(fontWeight: FontWeight.w900),
             ),
           ),
         ],
@@ -198,10 +287,11 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     BuildContext context,
     List<Map<String, dynamic>> apps,
   ) {
-    // Show most recent application or some default info
     String nextCompany = 'None';
+    String status = 'N/A';
     if (apps.isNotEmpty) {
       nextCompany = apps.first['job']['company_name'];
+      status = apps.first['status'] ?? 'Submitted';
     }
 
     return Row(
@@ -227,7 +317,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                 'Recent Application',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -236,6 +326,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
+                  letterSpacing: -0.5,
                 ),
               ),
             ],
@@ -249,11 +340,19 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                 'Status',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
               ),
-              Text(
-                'Submitted',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 12,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                   color: Colors.blueAccent.withValues(alpha: 0.1),
+                   borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  status.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.blueAccent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
@@ -269,38 +368,46 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     int rejected = apps.where((a) => a['status'] == 'rejected').length;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatItem('Total', total.toString()),
-        _buildStatItem('Pending', pending.toString()),
-        _buildStatItem('Hired', accepted.toString()),
-        _buildStatItem('Rejected', rejected.toString()),
+        Expanded(child: _buildStatItem('Total', total.toString(), Colors.blueAccent)),
+        const SizedBox(width: 12),
+        Expanded(child: _buildStatItem('Pending', pending.toString(), Colors.orangeAccent)),
+        const SizedBox(width: 12),
+        Expanded(child: _buildStatItem('Hired', accepted.toString(), Colors.greenAccent)),
+        const SizedBox(width: 12),
+        Expanded(child: _buildStatItem('Rejected', rejected.toString(), Colors.redAccent)),
       ],
     );
   }
 
-  Widget _buildStatItem(String label, String count) {
-    return Column(
-      children: [
-        Text(
-          count,
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 24,
-            color: Theme.of(context).colorScheme.onSurface,
+  Widget _buildStatItem(String label, String count, Color color) {
+    return _buildGlassBox(
+      context,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      borderRadius: 20,
+      disableBlur: true,
+      child: Column(
+        children: [
+          Text(
+            count,
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 22,
+              color: color,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            letterSpacing: 0.5,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              letterSpacing: 0.5,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -313,8 +420,8 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         final job = app['job'];
         final status = app['status'] as String;
         double progress = status == 'pending'
-            ? 0.3
-            : (status == 'accepted' ? 1.0 : 0.5);
+            ? 0.4
+            : (status == 'accepted' ? 1.0 : 0.6);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
@@ -325,17 +432,22 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
               children: [
                 Row(
                   children: [
-                    _buildGlassBox(
-                      context,
-                      borderRadius: 12,
-                      padding: const EdgeInsets.all(8),
-                      disableBlur: true,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
                       child: Text(
-                        job['company_name'].toString().substring(0, 1),
-                        style: TextStyle(
+                        job['company_name'] != null && job['company_name'].toString().isNotEmpty
+                            ? job['company_name'].toString().substring(0, 1)
+                            : '?',
+                        style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 20,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -354,9 +466,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                           Text(
                             job['company_name'],
                             style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -368,18 +478,40 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.white,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    status == 'accepted'
-                        ? Colors.greenAccent
-                        : (status == 'rejected'
-                              ? Colors.redAccent
-                              : Colors.blueAccent),
-                  ),
-                  minHeight: 6,
-                  borderRadius: BorderRadius.circular(10),
+                Stack(
+                  children: [
+                    Container(
+                      height: 6,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    FractionallySizedBox(
+                      widthFactor: progress,
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              status == 'accepted'
+                                  ? Colors.greenAccent
+                                  : (status == 'rejected'
+                                      ? Colors.redAccent
+                                      : Colors.blueAccent),
+                              status == 'accepted'
+                                  ? Colors.green
+                                  : (status == 'rejected'
+                                      ? Colors.red
+                                      : Colors.lightBlueAccent),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -421,18 +553,22 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
   }
 
   Widget _buildStatusPill(String status) {
+    Color color = Colors.blueAccent;
+    if (status == 'accepted') color = Colors.green;
+    if (status == 'rejected') color = Colors.red;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         status.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 9,
           fontWeight: FontWeight.w900,
-          color: Colors.black87,
+          color: color,
         ),
       ),
     );

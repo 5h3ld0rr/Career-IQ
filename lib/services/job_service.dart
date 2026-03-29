@@ -228,10 +228,10 @@ class JobService {
   Future<List<Map<String, dynamic>>> fetchUserApplications(
     String userId,
   ) async {
+    // Remove orderBy to avoid requiring a composite index in Firestore
     final snapshot = await _firestore
         .collection('applications')
         .where('userId', isEqualTo: userId)
-        .orderBy('appliedAt', descending: true)
         .get();
 
     List<Map<String, dynamic>> applications = [];
@@ -242,16 +242,28 @@ class JobService {
 
       // Fetch job details for each application
       final jobDoc = await _firestore.collection('jobs').doc(jobId).get();
-      if (jobDoc.exists) {
-        final jobData = jobDoc.data()!;
-        applications.add({
-          'id': doc.id,
-          'status': appData['status'],
-          'appliedAt': appData['appliedAt'],
-          'job': {'id': jobDoc.id, ...jobData},
-        });
-      }
+      
+      // We include the application even if the job doc is missing (though it shouldn't be)
+      final jobMap = jobDoc.exists 
+          ? {'id': jobDoc.id, ...jobDoc.data()!}
+          : {'id': jobId, 'title': 'Unknown Position', 'company_name': 'Unknown Company'};
+
+      applications.add({
+        'id': doc.id,
+        'status': appData['status'] ?? 'pending',
+        'appliedAt': appData['appliedAt'],
+        'job': jobMap,
+      });
     }
+
+    // Sort in-memory instead of Firestore
+    applications.sort((a, b) {
+      final aTime = a['appliedAt'] as Timestamp?;
+      final bTime = b['appliedAt'] as Timestamp?;
+      if (aTime == null || bTime == null) return 0;
+      return bTime.compareTo(aTime); // Latest first
+    });
+
     return applications;
   }
 

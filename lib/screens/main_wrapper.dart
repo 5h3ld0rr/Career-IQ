@@ -37,164 +37,123 @@ class _MainWrapperState extends State<MainWrapper> {
 
   Widget _buildBottomNav() {
     final theme = Theme.of(context);
-    final activeColor = theme.colorScheme.primary;
-
     return Container(
-      height: 70,
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 25),
+      height: 85,
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 20),
       decoration: BoxDecoration(
-        color: AppTheme.getGlassColor(context).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(35),
+        color: AppTheme.getGlassColor(context).withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(32),
         border: Border.all(
           color: AppTheme.getGlassBorderColor(context),
-          width: 0.8,
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-              alpha: theme.brightness == Brightness.light ? 0.08 : 0.4,
+              alpha: theme.brightness == Brightness.light ? 0.05 : 0.4,
             ),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+            blurRadius: 25,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(35),
+        borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final navWidth = constraints.maxWidth - 8;
-              final itemWidth = navWidth / 5;
-
-              return Stack(
-                children: [
-                   // Organic Sliding Background Indicator
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOutBack,
-                    left: 4 + (_selectedIndex * itemWidth) - 2,
-                    top: 11,
-                    child: Container(
-                      width: itemWidth + 4,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            activeColor.withValues(alpha: 0.1),
-                            activeColor.withValues(alpha: 0.05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: activeColor.withValues(alpha: 0.1),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Navigation Items
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Row(
-                      children: [
-                        _buildNavItem(0, Icons.explore_rounded, 'Home'),
-                        _buildNavItem(
-                          1,
-                          Icons.assignment_turned_in_rounded,
-                          'Tracker',
-                        ),
-                        _buildNavItem(2, Icons.psychology_rounded, 'AI'),
-                        _buildNavItem(3, Icons.bookmark_rounded, 'Saved'),
-                        _buildNavItem(
-                          4,
-                          Icons.account_circle_rounded,
-                          'Profile',
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
+                _buildNavItem(1, Icons.assignment_outlined, Icons.assignment_rounded, 'Tracker'),
+                _buildNavItem(2, Icons.widgets_outlined, Icons.widgets_rounded, ''),
+                _buildNavItem(3, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved'),
+                _buildNavItem(4, Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(int index, IconData outlineIcon, IconData filledIcon, String label) {
     bool isSelected = _selectedIndex == index;
+    bool isAIHub = index == 2;
     final theme = Theme.of(context);
-    final activeColor = theme.colorScheme.primary;
+    final activeColor = isAIHub ? const Color(0xFF00B0FF) : theme.colorScheme.primary;
     final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);
 
     return Expanded(
       child: GestureDetector(
         onTap: () {
           if (!isSelected) {
-            HapticFeedback.lightImpact();
+            HapticFeedback.mediumImpact();
             setState(() => _selectedIndex = index);
           }
         },
         behavior: HitTestBehavior.opaque,
-        child: Container(
-          height: 70,
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedPadding(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOutBack,
-                padding: EdgeInsets.only(bottom: isSelected ? 4 : 0),
-                child: AnimatedScale(
-                  scale: isSelected ? 1.15 : 1.0,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeOutBack,
-                  child: Icon(
-                    icon,
-                    color: isSelected ? activeColor : inactiveColor,
-                    size: 24,
-                  ),
-                ),
-              ),
-              if (isSelected)
-                TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 400),
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  curve: Curves.easeOut,
-                  builder: (context, value, child) {
-                    return Opacity(
-                      opacity: value,
-                      child: Transform.translate(
-                        offset: Offset(8 * (1 - value), 0),
-                        child: child,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                if (isAIHub)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
+                    width: isSelected ? 52 : 44,
+                    height: isSelected ? 52 : 44,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF00B0FF).withValues(alpha: isSelected ? 0.35 : 0.12),
+                          const Color(0xFF00E5FF).withValues(alpha: isSelected ? 0.2 : 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        color: activeColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.2,
-                      ),
-                      maxLines: 1,
+                      shape: BoxShape.circle,
+                      boxShadow: isSelected ? [
+                        BoxShadow(
+                          color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                          blurRadius: 15,
+                        )
+                      ] : null,
                     ),
                   ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) => ScaleTransition(
+                    scale: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  ),
+                  child: Icon(
+                    isSelected ? filledIcon : outlineIcon,
+                    key: ValueKey(isSelected),
+                    color: isSelected ? activeColor : inactiveColor,
+                    size: isAIHub ? 30 : 26,
+                  ),
                 ),
+              ],
+            ),
+            if (label.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 300),
+                style: TextStyle(
+                  color: isSelected ? activeColor : inactiveColor,
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                  letterSpacing: -0.2,
+                ),
+                child: Text(label),
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
