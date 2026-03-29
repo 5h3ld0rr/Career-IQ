@@ -225,6 +225,8 @@ class AuthProvider with ChangeNotifier {
           _resumeUrl = url;
           _resumeUploadedAt = DateTime.now();
           showNotification("Resume uploaded successfully!");
+        } else {
+          showNotification("Upload failed. Please check your connection.", isError: true);
         }
       }
     } catch (e) {

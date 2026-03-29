@@ -21,12 +21,18 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
             children: [
               const CircularProgressIndicator(color: AppTheme.primaryBlue),
               const SizedBox(height: 24),
-              Text(
-                'Analyzing your skills gap...',
-                style: const TextStyle(
+              const Text(
+                'Deep Scan in progress...',
+                style: TextStyle(
                   color: AppTheme.mediumSlate,
                   fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'AI is comparing your skills with industry standards',
+                style: TextStyle(color: Colors.black45, fontSize: 13),
               ),
             ],
           ),
@@ -37,8 +43,29 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     if (gapData == null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF2F8FF),
-        appBar: AppBar(title: const Text('Skills Gap Analysis')),
-        body: const Center(child: Text('No analysis data available.')),
+        appBar: AppBar(
+          title: const Text('Skills Analysis'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.analytics_outlined, size: 80, color: Colors.blue.withValues(alpha: 0.2)),
+              const SizedBox(height: 24),
+              const Text(
+                'Starting analysis...',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'We are processing your CV data.',
+                style: TextStyle(color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
       );
     }
 

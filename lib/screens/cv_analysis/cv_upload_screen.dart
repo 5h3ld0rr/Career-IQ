@@ -1,6 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'dart:developer' as dev;
+import 'dart:typed_data';
+import '../../core/theme.dart';
+import 'package:provider/provider.dart';
+import '../../providers/ai_provider.dart';
+import '../../providers/auth_provider.dart';
+import 'skills_gap_analysis_screen.dart';
 
 class CVUploadScreen extends StatefulWidget {
   const CVUploadScreen({super.key});
@@ -12,22 +20,21 @@ class CVUploadScreen extends StatefulWidget {
 class _CVUploadScreenState extends State<CVUploadScreen> {
   bool _isUploading = false;
   String? _fileName;
+  Uint8List? _fileBytes;
   bool _isAnalyzed = false;
   String _analysisStep = '';
   double _analysisProgress = 0.0;
-
-  final List<Map<String, dynamic>> _mockSkills = [
-    {'skill': 'Flutter', 'match': 88, 'icon': Icons.code_rounded},
-    {'skill': 'Dart', 'match': 85, 'icon': Icons.offline_bolt_rounded},
-    {'skill': 'UI/UX Design', 'match': 92, 'icon': Icons.palette_rounded},
-  ];
 
   Future<void> _startAnalysis() async {
     setState(() {
       _isUploading = true;
       _isAnalyzed = false;
+      _analysisProgress = 0.0;
     });
 
+    final aiProvider = Provider.of<AIProvider>(context, listen: false);
+
+    // Simulate different steps of analysis
     final steps = [
       'Extracting text...',
       'Identifying experience...',
@@ -39,27 +46,67 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
       for (int i = 0; i < steps.length; i++) {
         setState(() {
           _analysisStep = steps[i];
-          _analysisProgress = (i + 1) / steps.length;
+          _analysisProgress = (i + 0.5) / steps.length;
         });
-        await Future.delayed(const Duration(milliseconds: 800));
+        await Future.delayed(const Duration(milliseconds: 600));
       }
 
+      // 1. REAL PDF TEXT EXTRACTION
+      String resumeText = '';
+      if (_fileBytes != null) {
+        resumeText = await _extractTextFromPdf(_fileBytes!);
+      }
+
+      // 2. FALLBACK/ENHANCEMENT
+      if (resumeText.trim().isEmpty) {
+        resumeText = "User uploaded a file named $_fileName. Analyze this contexto if possible.";
+      }
+      
+      // 3. AI ANALYSIS
+      await aiProvider.extractSkills(resumeText);
+      
+      // 4. PREPARE GAP ANALYSIS FOR NEXT SCREEN (INDUSTRY STANDARDS)
+      // This will ensure the Skills Gap screen isn't empty
+      await aiProvider.analyzeGeneralMarketGap(resumeText);
+
       setState(() {
+        _analysisStep = 'Analysis complete!';
+        _analysisProgress = 1.0;
         _isUploading = false;
         _isAnalyzed = true;
       });
     } catch (e) {
-      setState(() => _isUploading = false);
+      setState(() {
+        _isUploading = false;
+        _analysisStep = 'Analysis failed.';
+      });
     }
   }
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: true,
     );
     if (result != null) {
-      setState(() => _fileName = result.files.single.name);
+      setState(() {
+        _fileName = result.files.single.name;
+        _fileBytes = result.files.single.bytes;
+      });
       _startAnalysis();
+    }
+  }
+
+  Future<String> _extractTextFromPdf(Uint8List bytes) async {
+    try {
+      final PdfDocument document = PdfDocument(inputBytes: bytes);
+      final String text = PdfTextExtractor(document).extractText();
+      document.dispose();
+      return text;
+    } catch (e) {
+      debugPrint('Error extracting PDF text: $e');
+      return '';
     }
   }
 
@@ -113,23 +160,6 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                     ),
                   ),
                   title: const Text('Elite Hire'),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: const Icon(
-                          Icons.person_outline_rounded,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
                 SliverPadding(
                   padding: const EdgeInsets.all(24),
@@ -164,7 +194,45 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                       if (_isAnalyzed) ...[
                         _buildGlassContainer(child: _buildSkillsMatchSection()),
                         const SizedBox(height: 32),
-                        _buildGlassButton('Continue with Profile'),
+                        _buildGlassButton(
+                          _isUploading ? 'Saving...' : 'Continue with Profile',
+                          () async {
+                            if (_isUploading) return;
+                            
+                            setState(() => _isUploading = true);
+                            
+                            try {
+                              final auth = Provider.of<AuthProvider>(context, listen: false);
+                              final ai = Provider.of<AIProvider>(context, listen: false);
+                              
+                              // 1. Save Resume to Storage & Firestore
+                              if (_fileBytes != null && _fileName != null) {
+                                await auth.uploadResume(_fileBytes!, _fileName!);
+                              }
+                              
+                              // 2. Save Extracted Skills to Firestore
+                              if (ai.extractedSkills.isNotEmpty) {
+                                final List<String> skillNames = ai.extractedSkills
+                                    .map((s) => s['skill'].toString())
+                                    .toList();
+                                await auth.updateSkills(skillNames);
+                              }
+
+                              if (mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const SkillsGapAnalysisScreen(),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              dev.log("Error saving profile: $e");
+                            } finally {
+                              if (mounted) setState(() => _isUploading = false);
+                            }
+                          },
+                        ),
                       ],
                     ]),
                   ),
@@ -303,25 +371,52 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
   }
 
   Widget _buildSkillsMatchSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Extracted Skills Match:',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        const SizedBox(height: 20),
-        ..._mockSkills.map(
-          (skill) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _buildSkillRow(skill),
-          ),
-        ),
-      ],
+    return Consumer<AIProvider>(
+      builder: (context, aiProvider, _) {
+        final skills = aiProvider.extractedSkills;
+        
+        if (skills.isEmpty) {
+          return const Center(child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Text('Analysis complete, but no clear skills were identified.'),
+          ));
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Extracted Skills Match:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 20),
+            ...skills.map((skill) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildSkillRow(skill),
+            )),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildSkillRow(Map<String, dynamic> skill) {
+    // Map AI skill names to some icons
+    IconData icon = Icons.auto_awesome_rounded;
+    final skillName = (skill['skill'] as String).toLowerCase();
+    
+    if (skillName.contains('flutter') || skillName.contains('dart')) {
+      icon = Icons.code_rounded;
+    } else if (skillName.contains('design') || skillName.contains('ui') || skillName.contains('ux')) {
+      icon = Icons.palette_rounded;
+    } else if (skillName.contains('management') || skillName.contains('business')) {
+      icon = Icons.business_center_rounded;
+    } else if (skillName.contains('marketing')) {
+      icon = Icons.ads_click_rounded;
+    } else if (skillName.contains('react') || skillName.contains('js') || skillName.contains('frontend')) {
+      icon = Icons.web_rounded;
+    }
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -337,7 +432,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
               color: Colors.white.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(skill['icon'], size: 20, color: Colors.black87),
+            child: Icon(icon, size: 20, color: Colors.black87),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -355,7 +450,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                       ),
                     ),
                     Text(
-                      '${skill['match']}% Match',
+                      '${skill['match'] ?? 0}% Match',
                       style: const TextStyle(
                         color: Colors.black54,
                         fontSize: 12,
@@ -368,11 +463,11 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
-                    value: skill['match'] / 100.0,
+                    value: (skill['match'] ?? 0) / 100.0,
                     minHeight: 8,
                     backgroundColor: Colors.white,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      skill['match'] > 90
+                      (skill['match'] ?? 0) > 90
                           ? const Color(0xFF039BE5)
                           : const Color(0xFF81D4FA),
                     ),
@@ -386,29 +481,32 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
     );
   }
 
-  Widget _buildGlassButton(String text) {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: Colors.black87,
+  Widget _buildGlassButton(String text, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.black87,
+            ),
           ),
         ),
       ),

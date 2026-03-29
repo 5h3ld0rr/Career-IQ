@@ -10,7 +10,7 @@ class AIService {
   final GenerativeModel _model;
 
   AIService()
-    : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+      : _model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey);
 
   static const List<String> _generalTips = [
     "Use strong action verbs list like 'managed', 'developed', 'coordinated'.",
@@ -57,6 +57,31 @@ class AIService {
       return response.text ?? "AI couldn't generate a response at this time.";
     } catch (e) {
       return "Error analyzing resume: $e";
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> extractSkillsFromResume(String content) async {
+    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY' || content.isEmpty) {
+      return [];
+    }
+
+    try {
+      final prompt = """
+      Extract the top 3-5 professional skills from this resume. 
+      For each skill, provide a 'skill' name and a 'match' percentage (0-100) indicating how prominently it's mentioned.
+      Return the response as a JSON list of objects with keys 'skill' (String) and 'match' (int).
+      Resume Content:
+      $content
+      
+      Return ONLY the JSON.
+      """;
+      
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final list = _parseJsonListResponse(response.text ?? "[]");
+      return list.map((e) => e as Map<String, dynamic>).toList();
+    } catch (e) {
+      debugPrint("Error extracting skills: $e");
+      return [];
     }
   }
 

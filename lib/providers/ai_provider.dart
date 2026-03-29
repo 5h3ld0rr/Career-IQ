@@ -10,12 +10,47 @@ class AIProvider with ChangeNotifier {
 
   String? _coverLetter;
   Map<String, dynamic>? _skillsGap;
+  List<Map<String, dynamic>> _extractedSkills = [];
 
   List<String> get currentTips => _currentTips;
   bool get isLoading => _isLoading;
   String? get analysisResult => _analysisResult;
   String? get coverLetter => _coverLetter;
   Map<String, dynamic>? get skillsGap => _skillsGap;
+  List<Map<String, dynamic>> get extractedSkills => _extractedSkills;
+
+  Future<void> extractSkills(String content) async {
+    _isLoading = true;
+    _extractedSkills = [];
+    notifyListeners();
+
+    try {
+      _extractedSkills = await _aiService.extractSkillsFromResume(content);
+    } catch (e) {
+      debugPrint('Error extracting skills: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> analyzeGeneralMarketGap(String resumeContent) async {
+    _isLoading = true;
+    _skillsGap = null;
+    notifyListeners();
+
+    try {
+      _skillsGap = await _aiService.analyzeSkillsGap(
+        resumeContent: resumeContent,
+        jobDescription: "General Industry Standards for high-growth tech and business roles 2026",
+      );
+    } catch (e) {
+      debugPrint('Error in general market analysis: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> fetchTips(String category) async {
     _isLoading = true;
