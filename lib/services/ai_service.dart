@@ -10,7 +10,7 @@ class AIService {
   final GenerativeModel _model;
 
   AIService()
-      : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+      : _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: _apiKey);
 
   static const List<String> _generalTips = [
     "Use strong action verbs list like 'managed', 'developed', 'coordinated'.",
