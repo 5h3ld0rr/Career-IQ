@@ -50,20 +50,6 @@ class CareerToolsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                              )
-                            ],
-                          ),
-                          child: Icon(Icons.auto_awesome, color: theme.colorScheme.primary, size: 20),
-                        ),
                       ],
                     ),
                   ),
