@@ -245,12 +245,11 @@ class JobProvider with ChangeNotifier {
       notifyListeners();
 
       try {
-        final result = await _aiService.analyzeSkillsGap(
+        final score = await _aiService.calculateJobMatchScore(
           resumeContent: userProfile,
           jobDescription: "${job.title} at ${job.companyName}\n${job.description}\nRequirements: ${job.requirements.join(', ')}",
         );
         
-        final score = result['matchPercentage'] ?? 0;
         job.matchScore = score;
         processedIds.add(job.id);
         

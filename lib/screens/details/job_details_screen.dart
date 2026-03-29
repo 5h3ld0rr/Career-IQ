@@ -5,10 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:careeriq/models/job.dart';
 import 'package:careeriq/providers/job_provider.dart';
 import 'package:careeriq/providers/auth_provider.dart';
-import 'package:careeriq/core/theme.dart';
+import 'package:careeriq/screens/interview/mock_interview_screen.dart';
 import 'ai_cover_letter_screen.dart';
 import 'apply_job_screen.dart';
-import '../interview/mock_interview_screen.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Job job;

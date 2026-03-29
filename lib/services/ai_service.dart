@@ -10,7 +10,7 @@ class AIService {
   final GenerativeModel _model;
 
   AIService()
-      : _model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey);
+      : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
 
   static const List<String> _generalTips = [
     "Use strong action verbs list like 'managed', 'developed', 'coordinated'.",
@@ -136,6 +136,32 @@ class AIService {
     } catch (e) {
       print("Error in getSalaryInsights: $e");
       return [];
+    }
+  }
+
+  Future<int> calculateJobMatchScore({
+    required String resumeContent,
+    required String jobDescription,
+  }) async {
+    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY' || resumeContent.isEmpty) {
+      return 0;
+    }
+
+    try {
+      final prompt = """
+      Analyze the match between this resume and the job description.
+      Resume: $resumeContent
+      Job Description: $jobDescription
+      
+      Return ONLY a single integer between 0 and 100 representing the percentage match score.
+      """;
+      
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final scoreText = response.text?.replaceAll(RegExp(r'[^0-9]'), '') ?? '0';
+      return int.tryParse(scoreText) ?? 0;
+    } catch (e) {
+      debugPrint("Error calculating match score: $e");
+      return 0;
     }
   }
 
