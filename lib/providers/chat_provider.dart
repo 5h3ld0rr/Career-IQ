@@ -5,7 +5,7 @@ import 'package:careeriq/services/chat_service.dart';
 class ChatProvider extends ChangeNotifier {
   final ChatService _chatService = ChatService();
   String? _currentChatRoomId;
-  List<ChatMessage> _messages = [];
+  final List<ChatMessage> _messages = [];
 
   String? get currentChatRoomId => _currentChatRoomId;
   List<ChatMessage> get messages => _messages;
@@ -18,7 +18,11 @@ class ChatProvider extends ChangeNotifier {
     return _chatService.getMessages(chatRoomId);
   }
 
-  Future<void> sendMessage(String chatRoomId, String senderId, String content) async {
+  Future<void> sendMessage(
+    String chatRoomId,
+    String senderId,
+    String content,
+  ) async {
     final message = ChatMessage(
       id: '', // Will be set by Firestore
       senderId: senderId,

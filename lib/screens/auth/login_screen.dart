@@ -17,7 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
-
   void _handleLogin() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.login(_emailController.text, _passwordController.text);
@@ -105,10 +104,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: () {
                                 final email = _emailController.text.trim();
                                 if (email.isEmpty) {
-                                  Provider.of<AuthProvider>(context, listen: false)
-                                      .showNotification("Enter your email to reset password", isError: true);
+                                  Provider.of<AuthProvider>(
+                                    context,
+                                    listen: false,
+                                  ).showNotification(
+                                    "Enter your email to reset password",
+                                    isError: true,
+                                  );
                                 } else {
-                                  Provider.of<AuthProvider>(context, listen: false).resetPassword(email);
+                                  Provider.of<AuthProvider>(
+                                    context,
+                                    listen: false,
+                                  ).resetPassword(email);
                                 }
                               },
                               child: const Text(
@@ -126,7 +133,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             'OR',
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.3),
                               fontWeight: FontWeight.w900,
                               fontSize: 12,
                             ),
@@ -244,7 +253,9 @@ class _LoginScreenState extends State<LoginScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-              alpha: Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2,
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.04
+                  : 0.2,
             ),
             blurRadius: 30,
             offset: const Offset(0, 10),
@@ -273,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: TextField(
@@ -285,8 +296,8 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         decoration: InputDecoration(
           filled: true,
-          fillColor: isDark 
-              ? Colors.black.withValues(alpha: 0.2) 
+          fillColor: isDark
+              ? Colors.black.withValues(alpha: 0.2)
               : Colors.white.withValues(alpha: 0.35),
           hintText: hint,
           hintStyle: TextStyle(
@@ -294,14 +305,16 @@ class _LoginScreenState extends State<LoginScreen> {
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Icon(
-            icon, 
+            icon,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
             size: 22,
           ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                    _obscurePassword
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     size: 20,
                   ),
@@ -318,12 +331,12 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFF03A9F4),
-              width: 2,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF03A9F4), width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 20,
+            horizontal: 20,
+          ),
         ),
       ),
     );

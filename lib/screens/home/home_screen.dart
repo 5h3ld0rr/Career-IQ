@@ -8,10 +8,10 @@ import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
 import '../details/job_details_screen.dart';
 import '../cv_analysis/cv_upload_screen.dart';
-import '../tracker/application_tracker_screen.dart';
 import '../interview/mock_interview_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../jobs/see_all_jobs_screen.dart';
+import 'package:careeriq/providers/notification_provider.dart';
 import '../salary_roi/salary_roi_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -38,13 +38,15 @@ class _HomeScreenState extends State<HomeScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
       jobProvider.loadJobs().then((_) {
-        final profileStr = "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
+        final profileStr =
+            "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
         if (auth.skills.isNotEmpty || auth.bio != null) {
           jobProvider.calculateMatchScores(profileStr);
         }
       });
       jobProvider.loadFeaturedJobs().then((_) {
-        final profileStr = "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
+        final profileStr =
+            "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
         if (auth.skills.isNotEmpty || auth.bio != null) {
           jobProvider.calculateMatchScores(profileStr);
         }
@@ -129,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }, childCount: jobs.jobs.length),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
             ),
@@ -215,8 +217,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: job.isSaved
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.3),
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -316,37 +318,40 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          _buildGlassBox(
-            borderRadius: 50,
-            padding: const EdgeInsets.all(4),
-            child: Stack(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.notifications_none_rounded,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationsScreen(),
+          Consumer<NotificationProvider>(
+            builder: (context, notificationProvider, _) => _buildGlassBox(
+              borderRadius: 50,
+              padding: const EdgeInsets.all(4),
+              child: Stack(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.notifications_none_rounded,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                  if (notificationProvider.unreadCount > 0)
+                    Positioned(
+                      right: 12,
+                      top: 12,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -570,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildQuickActions(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         children: [
           _buildActionItem(
@@ -578,12 +583,6 @@ class _HomeScreenState extends State<HomeScreen> {
             'CV Analysis',
             Icons.document_scanner_rounded,
             const CVUploadScreen(),
-          ),
-          _buildActionItem(
-            context,
-            'Tracker',
-            Icons.dashboard_customize_rounded,
-            const ApplicationTrackerScreen(),
           ),
           _buildActionItem(
             context,
@@ -652,10 +651,9 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle('Explore Categories'),
-        const SizedBox(height: 8),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Row(
             children: _categories.map((cat) {
               final isSelected = jobs.currentCategory == cat;
@@ -747,8 +745,8 @@ class _HomeScreenState extends State<HomeScreen> {
     Color color = score > 80
         ? Colors.green
         : score > 50
-            ? Colors.orange
-            : Colors.red;
+        ? Colors.orange
+        : Colors.red;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -781,7 +779,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               itemCount: jobs.featuredJobs.length,
               itemBuilder: (context, i) =>
                   _buildFeaturedCard(jobs.featuredJobs[i], context),
@@ -852,7 +850,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : Icons.bookmark_outline_rounded,
                             color: job.isSaved
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),

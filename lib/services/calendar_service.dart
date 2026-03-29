@@ -35,7 +35,8 @@ class CalendarService {
       final event = calendar.Event(
         summary: 'Interview Prep: ${interview.jobTitle}',
         status: 'confirmed',
-        description: 'Career-IQ Interview Preparation\n\n'
+        description:
+            'Career-IQ Interview Preparation\n\n'
             'Company: ${interview.companyName}\n'
             'Summary: ${interview.companySummary}\n'
             'Key Questions to Prepare:\n- ${interview.commonQuestions.join("\n- ")}',
@@ -49,9 +50,7 @@ class CalendarService {
         ),
         reminders: calendar.EventReminders(
           useDefault: false,
-          overrides: [
-            calendar.EventReminder(method: 'popup', minutes: 30),
-          ],
+          overrides: [calendar.EventReminder(method: 'popup', minutes: 30)],
         ),
       );
 

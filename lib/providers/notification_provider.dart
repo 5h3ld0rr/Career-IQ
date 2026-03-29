@@ -37,20 +37,25 @@ class NotificationProvider with ChangeNotifier {
         .collection('notifications')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .listen((snapshot) {
-      _notifications = snapshot.docs.map((doc) => NotificationModel.fromMap(doc.id, doc.data())).toList();
-      _isLoading = false;
-      notifyListeners();
-    }, onError: (e) {
-      debugPrint("Error loading notifications: \$e");
-      _isLoading = false;
-      notifyListeners();
-    });
+        .listen(
+          (snapshot) {
+            _notifications = snapshot.docs
+                .map((doc) => NotificationModel.fromMap(doc.id, doc.data()))
+                .toList();
+            _isLoading = false;
+            notifyListeners();
+          },
+          onError: (e) {
+            debugPrint("Error loading notifications: \$e");
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
   }
 
   Future<void> markAsRead(String notificationId) async {
     if (_userId == null) return;
-    
+
     // Optimistic UI update
     final index = _notifications.indexWhere((n) => n.id == notificationId);
     if (index != -1 && !_notifications[index].isRead) {
@@ -77,8 +82,11 @@ class NotificationProvider with ChangeNotifier {
     if (_userId == null) return;
 
     final batch = _firestore.batch();
-    final col = _firestore.collection('users').doc(_userId).collection('notifications');
-    
+    final col = _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('notifications');
+
     for (var notif in _notifications.where((n) => !n.isRead)) {
       notif = NotificationModel(
         id: notif.id,

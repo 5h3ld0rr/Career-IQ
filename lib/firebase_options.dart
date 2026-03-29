@@ -34,19 +34,19 @@ class DefaultFirebaseOptions {
   }
 
   static FirebaseOptions get android => FirebaseOptions(
-        apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '',
-        appId: dotenv.env['FIREBASE_ANDROID_APP_ID'] ?? '',
-        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
-        projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
-        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
-      );
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_ANDROID_APP_ID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+  );
 
   static FirebaseOptions get ios => FirebaseOptions(
-        apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
-        appId: dotenv.env['FIREBASE_IOS_APP_ID'] ?? '',
-        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
-        projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
-        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
-        iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? 'com.example.careeriq',
-      );
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_IOS_APP_ID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? 'com.example.careeriq',
+  );
 }

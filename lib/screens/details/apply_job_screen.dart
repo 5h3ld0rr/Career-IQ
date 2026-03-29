@@ -217,7 +217,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
             padding: const EdgeInsets.all(8),
             child: Image.network(
               widget.job.logoUrl,
-              errorBuilder: (_, __, ___) => const Icon(Icons.business),
+              errorBuilder: (_, _, _) => const Icon(Icons.business),
             ),
           ),
           const SizedBox(width: 16),

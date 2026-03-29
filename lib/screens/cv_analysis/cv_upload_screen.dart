@@ -1,11 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:developer' as dev;
-import '../../core/theme.dart';
-import 'package:provider/provider.dart';
-import '../../providers/ai_provider.dart';
-import 'skills_gap_analysis_screen.dart';
 
 class CVUploadScreen extends StatefulWidget {
   const CVUploadScreen({super.key});
@@ -316,14 +311,12 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: 20),
-        ..._mockSkills
-            .map(
-              (skill) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _buildSkillRow(skill),
-              ),
-            )
-            .toList(),
+        ..._mockSkills.map(
+          (skill) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildSkillRow(skill),
+          ),
+        ),
       ],
     );
   }

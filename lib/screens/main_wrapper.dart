@@ -65,7 +65,7 @@ class _MainWrapperState extends State<MainWrapper> {
             builder: (context, constraints) {
               final navWidth = constraints.maxWidth - 20;
               final itemWidth = navWidth / 4;
-              
+
               return Stack(
                 children: [
                   // Organic Sliding Background Indicator
@@ -80,7 +80,7 @@ class _MainWrapperState extends State<MainWrapper> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            activeColor.withValues(alpha: 0.2),
+                            activeColor.withValues(alpha: 0.1),
                             activeColor.withValues(alpha: 0.05),
                           ],
                           begin: Alignment.topLeft,
@@ -103,9 +103,17 @@ class _MainWrapperState extends State<MainWrapper> {
                     child: Row(
                       children: [
                         _buildNavItem(0, Icons.explore_rounded, 'Explore'),
-                        _buildNavItem(1, Icons.assignment_turned_in_rounded, 'Tracker'),
+                        _buildNavItem(
+                          1,
+                          Icons.assignment_turned_in_rounded,
+                          'Tracker',
+                        ),
                         _buildNavItem(2, Icons.bookmark_rounded, 'Saved'),
-                        _buildNavItem(3, Icons.account_circle_rounded, 'Profile'),
+                        _buildNavItem(
+                          3,
+                          Icons.account_circle_rounded,
+                          'Profile',
+                        ),
                       ],
                     ),
                   ),

@@ -70,7 +70,8 @@ class ChatRoom {
       id: id,
       participants: List<String>.from(map['participants'] ?? []),
       lastMessage: map['lastMessage'] ?? '',
-      lastMessageTime: (map['lastMessageTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      lastMessageTime:
+          (map['lastMessageTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
       jobId: map['jobId'],
       companyName: map['companyName'],
       companyLogo: map['companyLogo'],

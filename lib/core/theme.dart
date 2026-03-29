@@ -54,23 +54,24 @@ class AppTheme {
       onSurface: darkText,
       onSurfaceVariant: Colors.black54,
     ),
-    textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme).copyWith(
-      displayLarge: GoogleFonts.outfit(
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        color: darkText,
-      ),
-      displayMedium: GoogleFonts.outfit(
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
-        color: darkText,
-      ),
-      titleLarge: GoogleFonts.outfit(
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        color: darkText,
-      ),
-    ),
+    textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme)
+        .copyWith(
+          displayLarge: GoogleFonts.outfit(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: darkText,
+          ),
+          displayMedium: GoogleFonts.outfit(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: darkText,
+          ),
+          titleLarge: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: darkText,
+          ),
+        ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,

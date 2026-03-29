@@ -10,7 +10,11 @@ class ChatViewScreen extends StatefulWidget {
   final String chatRoomId;
   final ChatRoom room;
 
-  const ChatViewScreen({super.key, required this.chatRoomId, required this.room});
+  const ChatViewScreen({
+    super.key,
+    required this.chatRoomId,
+    required this.room,
+  });
 
   @override
   State<ChatViewScreen> createState() => _ChatViewScreenState();
@@ -81,8 +85,10 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
             children: [
               Expanded(
                 child: StreamBuilder<List<ChatMessage>>(
-                  stream: Provider.of<ChatProvider>(context, listen: false)
-                      .getMessages(widget.chatRoomId),
+                  stream: Provider.of<ChatProvider>(
+                    context,
+                    listen: false,
+                  ).getMessages(widget.chatRoomId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -95,7 +101,10 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
                     return ListView.builder(
                       controller: _scrollController,
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 100),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 100,
+                      ),
                       reverse: true,
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
@@ -122,7 +131,10 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
         children: [
           const Text(
             'Start of conversation',
-            style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black26),
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Colors.black26,
+            ),
           ),
           const SizedBox(height: 12),
           _buildGlassBox(
@@ -157,7 +169,9 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         decoration: BoxDecoration(
           color: isMe
               ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
@@ -168,7 +182,10 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
             bottomLeft: Radius.circular(isMe ? 20 : 0),
             bottomRight: Radius.circular(isMe ? 0 : 20),
           ),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.8),
+            width: 1.5,
+          ),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -206,7 +223,7 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
                           size: 10,
                           color: msg.isRead ? Colors.blue : Colors.black26,
                         ),
-                      ]
+                      ],
                     ],
                   ),
                 ],
@@ -250,7 +267,11 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
                     ),
                   ),
                 ),
-                _buildInputIconButton(Icons.send_rounded, _sendMessage, color: Theme.of(context).primaryColor),
+                _buildInputIconButton(
+                  Icons.send_rounded,
+                  _sendMessage,
+                  color: Theme.of(context).primaryColor,
+                ),
               ],
             ),
           ),
@@ -259,13 +280,19 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
     );
   }
 
-  Widget _buildInputIconButton(IconData icon, VoidCallback onTap, {Color? color}) {
+  Widget _buildInputIconButton(
+    IconData icon,
+    VoidCallback onTap, {
+    Color? color,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color?.withValues(alpha: 0.1) ?? Colors.black.withValues(alpha: 0.05),
+          color:
+              color?.withValues(alpha: 0.1) ??
+              Colors.black.withValues(alpha: 0.05),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: color ?? Colors.black54, size: 20),

@@ -7,7 +7,7 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   User? get currentUser => _auth.currentUser;
 
   Future<User?> signInWithEmail(String email, String password) async {
@@ -44,12 +44,10 @@ class AuthService {
   }
 
   Future<User?> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
-    if (googleUser == null) return null;
+    final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-    final GoogleSignInAuthentication googleAuth =
-        googleUser.authentication;
-    
+    final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
     final AuthCredential credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
     );
@@ -111,9 +109,17 @@ class AuthService {
     }
   }
 
-  Future<String?> uploadProfilePicture(String uid, dynamic fileBytes, String fileName) async {
+  Future<String?> uploadProfilePicture(
+    String uid,
+    dynamic fileBytes,
+    String fileName,
+  ) async {
     try {
-      final ref = FirebaseStorage.instance.ref().child('profiles').child(uid).child(fileName);
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('profiles')
+          .child(uid)
+          .child(fileName);
       await ref.putData(fileBytes);
       return await ref.getDownloadURL();
     } catch (e) {
@@ -121,9 +127,17 @@ class AuthService {
     }
   }
 
-  Future<String?> uploadResume(String uid, dynamic fileBytes, String fileName) async {
+  Future<String?> uploadResume(
+    String uid,
+    dynamic fileBytes,
+    String fileName,
+  ) async {
     try {
-      final ref = FirebaseStorage.instance.ref().child('resumes').child(uid).child(fileName);
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('resumes')
+          .child(uid)
+          .child(fileName);
       await ref.putData(fileBytes);
       return await ref.getDownloadURL();
     } catch (e) {
@@ -131,7 +145,11 @@ class AuthService {
     }
   }
 
-  Future<void> updateResumeInfo(String uid, {required String fileName, required String url}) async {
+  Future<void> updateResumeInfo(
+    String uid, {
+    required String fileName,
+    required String url,
+  }) async {
     await _firestore.collection('users').doc(uid).set({
       'resumeFileName': fileName,
       'resumeUrl': url,
@@ -140,7 +158,10 @@ class AuthService {
   }
 
   Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
-    await _firestore.collection('users').doc(uid).set(data, SetOptions(merge: true));
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .set(data, SetOptions(merge: true));
   }
 
   Future<void> updateSkills(String uid, List<String> skills) async {

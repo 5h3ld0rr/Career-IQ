@@ -15,8 +15,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class PushNotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
   // A callback triggered when a notification is clicked
   final Function(String? payload)? onNotificationClick;
 
@@ -32,8 +33,10 @@ class PushNotificationService {
     debugPrint('User granted permission: ${settings.authorizationStatus}');
 
     // 2. Initialize Local Notifications
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings();
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -74,39 +77,47 @@ class PushNotificationService {
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'high_importance_channel',
-      'High Importance Notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        );
+
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
     );
-    
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
 
     await _localNotifications.show(
       id: message.hashCode,
       title: message.notification?.title ?? 'New Notification',
       body: message.notification?.body,
       notificationDetails: platformDetails,
-      payload: message.data['route'], 
+      payload: message.data['route'],
     );
   }
 
   Future<void> scheduleInterviewPrep(Interview interview) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'interview_prep_channel',
-      'Interview Prep Notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'interview_prep_channel',
+          'Interview Prep Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        );
+
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
     );
-    
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
 
     final int notificationId = int.tryParse(interview.id) ?? interview.hashCode;
-    final tz.TZDateTime tzScheduledDate = tz.TZDateTime.from(interview.scheduledAt, tz.local)
-        .subtract(const Duration(minutes: 30));
+    final tz.TZDateTime tzScheduledDate = tz.TZDateTime.from(
+      interview.scheduledAt,
+      tz.local,
+    ).subtract(const Duration(minutes: 30));
 
     // Do not schedule if the time is in the past
     if (tzScheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
@@ -116,11 +127,12 @@ class PushNotificationService {
     await _localNotifications.zonedSchedule(
       id: notificationId,
       title: 'Interview Prep: ${interview.companyName}',
-      body: 'Your interview for ${interview.jobTitle} is in 30 minutes! Prepare with Career-IQ.',
+      body:
+          'Your interview for ${interview.jobTitle} is in 30 minutes! Prepare with Career-IQ.',
       scheduledDate: tzScheduledDate,
       notificationDetails: platformDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: '/tracker', 
+      payload: '/tracker',
     );
   }
 
@@ -133,17 +145,25 @@ class PushNotificationService {
   }
 
   // Method to simulate receiving a notification, useful for testing manually
-  Future<void> simulateNotification(String title, String body, String type, String userId) async {
+  Future<void> simulateNotification(
+    String title,
+    String body,
+    String type,
+    String userId,
+  ) async {
     // Show Local
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'high_importance_channel',
-      'High Importance Notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        );
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
     );
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
-    
+
     await _localNotifications.show(
       id: 0,
       title: title,
@@ -157,11 +177,11 @@ class PushNotificationService {
         .doc(userId)
         .collection('notifications')
         .add({
-      'title': title,
-      'body': body,
-      'type': type,
-      'isRead': false,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+          'title': title,
+          'body': body,
+          'type': type,
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
   }
 }

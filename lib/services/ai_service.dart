@@ -10,7 +10,7 @@ class AIService {
   final GenerativeModel _model;
 
   AIService()
-      : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+    : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
 
   static const List<String> _generalTips = [
     "Use strong action verbs list like 'managed', 'developed', 'coordinated'.",
@@ -69,12 +69,13 @@ class AIService {
         "matchPercentage": 0,
         "currentSkills": [],
         "missingSkills": [],
-        "recommendations": ["Please configure your Gemini API Key."]
+        "recommendations": ["Please configure your Gemini API Key."],
       };
     }
 
     try {
-      final prompt = """
+      final prompt =
+          """
       Compare the following resume content with the job description.
       Provide a JSON response with the following keys:
       - 'matchPercentage': an integer from 0-100 indicating how well the candidate matches the job.
@@ -90,7 +91,7 @@ class AIService {
 
       Return ONLY the JSON.
       """;
-      
+
       final response = await _model.generateContent([Content.text(prompt)]);
       return _parseJsonResponse(response.text ?? "{}");
     } catch (e) {
@@ -98,7 +99,7 @@ class AIService {
         "matchPercentage": 0,
         "currentSkills": [],
         "missingSkills": [],
-        "recommendations": ["Error analyzing skills gap: $e"]
+        "recommendations": ["Error analyzing skills gap: $e"],
       };
     }
   }
@@ -112,7 +113,8 @@ class AIService {
     }
 
     try {
-      final prompt = """
+      final prompt =
+          """
       Act as a specialized Job Market Analyst. 
       Analyze the following user skills and target job titles to provide 3-5 high-impact salary insights for someone looking to grow their career.
       For each insight, provide:
@@ -130,9 +132,13 @@ class AIService {
       """;
 
       final response = await _model.generateContent([Content.text(prompt)]);
-      final List<dynamic> jsonList = _parseJsonListResponse(response.text ?? "[]");
-      
-      return jsonList.map((e) => SalaryInsight.fromJson(e as Map<String, dynamic>)).toList();
+      final List<dynamic> jsonList = _parseJsonListResponse(
+        response.text ?? "[]",
+      );
+
+      return jsonList
+          .map((e) => SalaryInsight.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       print("Error in getSalaryInsights: $e");
       return [];
@@ -143,19 +149,21 @@ class AIService {
     required String resumeContent,
     required String jobDescription,
   }) async {
-    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY' || resumeContent.isEmpty) {
+    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY' ||
+        resumeContent.isEmpty) {
       return 0;
     }
 
     try {
-      final prompt = """
+      final prompt =
+          """
       Analyze the match between this resume and the job description.
       Resume: $resumeContent
       Job Description: $jobDescription
       
       Return ONLY a single integer between 0 and 100 representing the percentage match score.
       """;
-      
+
       final response = await _model.generateContent([Content.text(prompt)]);
       final scoreText = response.text?.replaceAll(RegExp(r'[^0-9]'), '') ?? '0';
       return int.tryParse(scoreText) ?? 0;
@@ -187,7 +195,8 @@ class AIService {
     required String companyName,
     required String jobDescription,
   }) async {
-    final prompt = """
+    final prompt =
+        """
     Generate interview preparation details for a candidate interviewing at $companyName for the following role:
     
     Job Description:
@@ -208,7 +217,7 @@ class AIService {
       return {
         "companySummary": "Could not fetch company details.",
         "commonQuestions": [],
-        "preparationTips": ["Error generating prep: $e"]
+        "preparationTips": ["Error generating prep: $e"],
       };
     }
   }
@@ -217,12 +226,13 @@ class AIService {
     required String role,
     required String experienceLevel,
   }) async {
-    final prompt = """
+    final prompt =
+        """
     Generate exactly 5 targeted interview questions for a $experienceLevel $role role. 
     Mix technical/role-specific questions with behavioral ones.
     Return only a JSON list of strings.
     """;
-    
+
     try {
       final response = await _model.generateContent([Content.text(prompt)]);
       final list = _parseJsonListResponse(response.text ?? "[]");
@@ -234,7 +244,7 @@ class AIService {
         "How do you handle disagreements within a technical team?",
         "What is your approach to learning new technologies?",
         "Where do you see yourself in the next 3 to 5 years?",
-        "Why do you want for this role?"
+        "Why do you want for this role?",
       ];
     }
   }
@@ -242,9 +252,12 @@ class AIService {
   Future<Map<String, dynamic>> analyzeInterviewSession({
     required List<Map<String, String>> conversation,
   }) async {
-    final conversationStr = conversation.map((e) => "Q: ${e['question']}\nA: ${e['answer']}").join("\n\n");
-    
-    final prompt = """
+    final conversationStr = conversation
+        .map((e) => "Q: ${e['question']}\nA: ${e['answer']}")
+        .join("\n\n");
+
+    final prompt =
+        """
     As an expert interviewer and career coach, analyze the following interview conversation. 
     
     $conversationStr
@@ -256,7 +269,7 @@ class AIService {
     
     Return ONLY the JSON.
     """;
-    
+
     try {
       final response = await _model.generateContent([Content.text(prompt)]);
       return _parseJsonResponse(response.text ?? "{}");
@@ -265,8 +278,13 @@ class AIService {
       return {
         'score': 0.0,
         'insights': [
-          {'icon': 'warning', 'title': 'Analysis Error', 'subtitle': 'Could not analyze session due to an error.', 'color': 'red'}
-        ]
+          {
+            'icon': 'warning',
+            'title': 'Analysis Error',
+            'subtitle': 'Could not analyze session due to an error.',
+            'color': 'red',
+          },
+        ],
       };
     }
   }
@@ -278,7 +296,7 @@ class AIService {
     } else if (text.contains("```")) {
       jsonStr = text.split("```")[1].split("```")[0];
     }
-    
+
     try {
       return json.decode(jsonStr.trim()) as Map<String, dynamic>;
     } catch (_) {
@@ -293,7 +311,7 @@ class AIService {
     } else if (text.contains("```")) {
       jsonStr = text.split("```")[1].split("```")[0];
     }
-    
+
     try {
       return json.decode(jsonStr.trim()) as List<dynamic>;
     } catch (_) {

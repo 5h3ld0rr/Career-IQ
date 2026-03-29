@@ -17,14 +17,14 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
   final _aiService = AIService();
   final _roleController = TextEditingController();
   final _answerController = TextEditingController();
-  
+
   bool _isRecording = false;
   int _currentQuestionIndex = 0;
   bool _isAnalyzing = false;
   bool _isSettingUp = true;
   bool _isLoadingQuestions = false;
   String _selectedLevel = 'Junior';
-  
+
   List<String> _questions = [];
   final List<Map<String, String>> _responses = [];
 
@@ -41,7 +41,7 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
 
   void _generateQuestions() async {
     if (_roleController.text.isEmpty) return;
-    
+
     setState(() {
       _isLoadingQuestions = true;
     });
@@ -65,11 +65,11 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
     // Save current answer
     _responses.add({
       'question': _questions[_currentQuestionIndex],
-      'answer': _answerController.text.isNotEmpty 
-          ? _answerController.text 
+      'answer': _answerController.text.isNotEmpty
+          ? _answerController.text
           : "The candidate practiced speaking this answer.",
     });
-    
+
     _answerController.clear();
 
     if (_currentQuestionIndex < _questions.length - 1) {
@@ -83,19 +83,21 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
 
   void _finishInterview() async {
     setState(() => _isAnalyzing = true);
-    
+
     try {
       final analysis = await _aiService.analyzeInterviewSession(
         conversation: _responses,
       );
-      
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => InterviewFeedbackScreen(
               score: (analysis['score'] as num?)?.toDouble() ?? 0.0,
-              insights: List<Map<String, dynamic>>.from(analysis['insights'] ?? []),
+              insights: List<Map<String, dynamic>>.from(
+                analysis['insights'] ?? [],
+              ),
             ),
           ),
         );
@@ -112,11 +114,11 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
       body: Stack(
         children: [
           _buildBackgroundDecor(),
-          if (_isSettingUp) 
+          if (_isSettingUp)
             _buildSetupView()
-          else if (_isAnalyzing) 
-            _buildAnalyzingState() 
-          else 
+          else if (_isAnalyzing)
+            _buildAnalyzingState()
+          else
             _buildInterviewBody(),
         ],
       ),
@@ -145,7 +147,10 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
             ),
             const Text(
               'Tell AI what role you are preparing for.',
-              style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.black54,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 48),
             _buildGlassBox(
@@ -165,7 +170,11 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Experience Level',
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.black45),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        color: Colors.black45,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -176,12 +185,19 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                       return GestureDetector(
                         onTap: () => setState(() => _selectedLevel = level),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppTheme.primaryBlue : Colors.transparent,
+                            color: isSelected
+                                ? AppTheme.primaryBlue
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? AppTheme.primaryBlue : Colors.black12,
+                              color: isSelected
+                                  ? AppTheme.primaryBlue
+                                  : Colors.black12,
                             ),
                           ),
                           child: Text(
@@ -207,11 +223,19 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                 onPressed: _isLoadingQuestions ? null : _generateQuestions,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryBlue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
-                child: _isLoadingQuestions 
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('START AI INTERVIEW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: _isLoadingQuestions
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'START AI INTERVIEW',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -293,7 +317,11 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                 ),
                 Text(
                   _roleController.text.toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    letterSpacing: 1,
+                  ),
                 ),
                 _buildRecordingIndicator(),
               ],
@@ -364,7 +392,9 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _questions.isNotEmpty ? _questions[_currentQuestionIndex] : "Loading questions...",
+                    _questions.isNotEmpty
+                        ? _questions[_currentQuestionIndex]
+                        : "Loading questions...",
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
@@ -411,7 +441,7 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
         child: Column(
           children: [
             if (_isRecording) ...[
-               TextField(
+              TextField(
                 controller: _answerController,
                 maxLines: 3,
                 decoration: const InputDecoration(
@@ -431,10 +461,12 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                 }),
                 _buildRecordButton(),
                 _buildConsoleAction(
-                  _currentQuestionIndex == _questions.length - 1 
-                      ? Icons.check_circle_outline_rounded 
+                  _currentQuestionIndex == _questions.length - 1
+                      ? Icons.check_circle_outline_rounded
                       : Icons.arrow_forward_rounded,
-                  _currentQuestionIndex == _questions.length - 1 ? 'Finish' : 'Next',
+                  _currentQuestionIndex == _questions.length - 1
+                      ? 'Finish'
+                      : 'Next',
                   _nextQuestion,
                 ),
               ],
@@ -463,7 +495,9 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: _questions.isNotEmpty ? (_currentQuestionIndex + 1) / _questions.length : 0,
+              value: _questions.isNotEmpty
+                  ? (_currentQuestionIndex + 1) / _questions.length
+                  : 0,
               backgroundColor: Colors.white,
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFF03A9F4),

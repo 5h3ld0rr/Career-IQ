@@ -45,8 +45,8 @@ class Job {
       responsibilities: List<String>.from(json['responsibilities'] ?? []),
       requirements: List<String>.from(json['requirements'] ?? []),
       jobType: json['job_type'] ?? 'Full-time',
-      postedAt: json['posted_at'] is String 
-          ? DateTime.parse(json['posted_at']) 
+      postedAt: json['posted_at'] is String
+          ? DateTime.parse(json['posted_at'])
           : (json['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: json['apply_url'] ?? '',
       matchScore: json['match_score'],
@@ -65,8 +65,8 @@ class Job {
       responsibilities: List<String>.from(data['responsibilities'] ?? []),
       requirements: List<String>.from(data['requirements'] ?? []),
       jobType: data['job_type'] ?? 'Full-time',
-      postedAt: data['posted_at'] is String 
-          ? DateTime.parse(data['posted_at']) 
+      postedAt: data['posted_at'] is String
+          ? DateTime.parse(data['posted_at'])
           : (data['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: data['apply_url'] ?? '',
       matchScore: data['match_score'],

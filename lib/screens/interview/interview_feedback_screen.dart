@@ -60,16 +60,14 @@ class InterviewFeedbackScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...insights
-                        .map(
-                          (insight) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _buildGlassBox(
-                              child: _buildInsightCard(context, insight),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                    ...insights.map(
+                      (insight) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildGlassBox(
+                          child: _buildInsightCard(context, insight),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 32),
                     _buildActionButtons(context),
                     const SizedBox(height: 48),
@@ -203,7 +201,11 @@ class InterviewFeedbackScreen extends StatelessWidget {
       children: [
         _buildMetricItem('Clarity', 85, Colors.blueAccent),
         _buildMetricItem('Confidence', (score * 0.9).toInt(), Colors.cyan),
-        _buildMetricItem('Technical', (score * 1.1).clamp(0, 100).toInt(), Colors.lightBlue),
+        _buildMetricItem(
+          'Technical',
+          (score * 1.1).clamp(0, 100).toInt(),
+          Colors.lightBlue,
+        ),
       ],
     );
   }

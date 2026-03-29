@@ -8,15 +8,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:careeriq/providers/job_provider.dart';
 import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
-import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
@@ -100,7 +97,7 @@ class ProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(8),
                           child: _buildActionsMenu(context, authProvider),
                         ),
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 120),
                       ]),
                     ),
                   ),
@@ -157,7 +154,9 @@ class ProfileScreen extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
-                  color: percentage == 100 ? Colors.green : AppTheme.primaryBlue,
+                  color: percentage == 100
+                      ? Colors.green
+                      : AppTheme.primaryBlue,
                 ),
               ),
             ],
@@ -167,7 +166,8 @@ class ProfileScreen extends StatelessWidget {
             value: percentage / 100,
             backgroundColor: Theme.of(context).colorScheme.surface,
             valueColor: AlwaysStoppedAnimation<Color>(
-                percentage == 100 ? Colors.green : AppTheme.primaryBlue),
+              percentage == 100 ? Colors.green : AppTheme.primaryBlue,
+            ),
             minHeight: 8,
             borderRadius: BorderRadius.circular(10),
           ),
@@ -652,14 +652,16 @@ class ProfileScreen extends StatelessWidget {
             child: Switch(
               value: themeProvider.isDarkMode,
               onChanged: (val) => themeProvider.toggleTheme(),
-              activeColor: Theme.of(context).colorScheme.primary,
+              activeThumbColor: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
         Divider(
           height: 1,
           thickness: 0.5,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.05),
           indent: 50,
         ),
 

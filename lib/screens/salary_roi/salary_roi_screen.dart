@@ -26,7 +26,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
   void _refreshInsights() {
     final authProvider = context.read<AuthProvider>();
     final jobProvider = context.read<JobProvider>();
-    
+
     // Get unique job titles from tracked jobs if available
     final targetTitles = jobProvider.jobs.map((j) => j.title).toSet().toList();
     if (targetTitles.isEmpty) {
@@ -53,12 +53,20 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+              border: Border.all(
+                color: isDark ? Colors.white10 : Colors.black12,
+              ),
             ),
             child: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor, size: 16),
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: textColor,
+                size: 16,
+              ),
               onPressed: () => Navigator.pop(context),
               padding: EdgeInsets.zero,
             ),
@@ -72,7 +80,10 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: isDark ? Colors.blueAccent : AppTheme.primaryBlue),
+            icon: Icon(
+              Icons.refresh,
+              color: isDark ? Colors.blueAccent : AppTheme.primaryBlue,
+            ),
             onPressed: _refreshInsights,
           ),
         ],
@@ -109,16 +120,19 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
       return _buildShimmerHeader();
     }
 
-    final totalGrowth = provider.insights.fold(0.0, (sum, item) => sum + item.potentialIncreasePercentage);
-    
+    final totalGrowth = provider.insights.fold(
+      0.0,
+      (sum, item) => sum + item.potentialIncreasePercentage,
+    );
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isDark 
-            ? [AppTheme.primaryBlue, AppTheme.darkBlue]
-            : [AppTheme.primaryBlue, AppTheme.accentBlue],
+          colors: isDark
+              ? [AppTheme.primaryBlue, AppTheme.darkBlue]
+              : [AppTheme.primaryBlue, AppTheme.accentBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -193,13 +207,15 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: isDark ? [] : [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              )
-            ],
+            boxShadow: isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
           ),
           child: LineChart(
             LineChartData(
@@ -218,7 +234,9 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: _getGlowColor(provider.insights.indexOf(insight)).withValues(alpha: 0.1),
+                    color: _getGlowColor(
+                      provider.insights.indexOf(insight),
+                    ).withValues(alpha: 0.1),
                   ),
                 );
               }).toList(),
@@ -247,18 +265,22 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
       itemBuilder: (context, index) {
         final insight = provider.insights[index];
         final color = _getGlowColor(index);
-        
+
         return Container(
           decoration: BoxDecoration(
             color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.primaryBlue.withValues(alpha: 0.1),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : AppTheme.primaryBlue.withValues(alpha: 0.1),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: isDark ? color.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                color: isDark
+                    ? color.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05),
                 blurRadius: 15,
                 spreadRadius: 0,
               ),
@@ -298,15 +320,22 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
   }
 
   Widget _buildRecommendationSection(SalaryProvider provider, bool isDark) {
-    if (provider.isLoading || provider.insights.isEmpty) return const SizedBox.shrink();
+    if (provider.isLoading || provider.insights.isEmpty)
+      return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : AppTheme.lightBlue.withValues(alpha: 0.5),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : AppTheme.lightBlue.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.white10 : AppTheme.primaryBlue.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: isDark
+              ? Colors.white10
+              : AppTheme.primaryBlue.withValues(alpha: 0.1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +358,9 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
           Text(
             provider.insights.first.aiRecommendation,
             style: TextStyle(
-              color: isDark ? Colors.white70 : AppTheme.darkText.withValues(alpha: 0.8),
+              color: isDark
+                  ? Colors.white70
+                  : AppTheme.darkText.withValues(alpha: 0.8),
               fontSize: 16,
               height: 1.5,
             ),
@@ -394,16 +425,19 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
       crossAxisSpacing: 15,
       mainAxisSpacing: 15,
       childAspectRatio: 1.5,
-      children: List.generate(4, (index) => Shimmer.fromColors(
-        baseColor: Colors.white12,
-        highlightColor: Colors.white24,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white12,
-            borderRadius: BorderRadius.circular(20),
+      children: List.generate(
+        4,
+        (index) => Shimmer.fromColors(
+          baseColor: Colors.white12,
+          highlightColor: Colors.white24,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white12,
+              borderRadius: BorderRadius.circular(20),
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }

@@ -45,21 +45,6 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   SliverAppBar(
                     backgroundColor: Colors.transparent,
                     elevation: 0,
-                    leading: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _buildGlassBox(
-                        context,
-                        borderRadius: 50,
-                        padding: const EdgeInsets.all(4),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            size: 16,
-                          ),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
-                    ),
                     title: const Text('Application Tracker'),
                     centerTitle: true,
                   ),

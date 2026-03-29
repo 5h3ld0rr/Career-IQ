@@ -17,8 +17,11 @@ class SalaryInsight {
     return SalaryInsight(
       skillName: json['skillName'] ?? '',
       currentMarketValue: (json['currentMarketValue'] ?? 0.0).toDouble(),
-      potentialIncreasePercentage: (json['potentialIncreasePercentage'] ?? 0.0).toDouble(),
-      trendData: (json['trendData'] as List? ?? []).map<double>((e) => (e ?? 0.0).toDouble()).toList(),
+      potentialIncreasePercentage: (json['potentialIncreasePercentage'] ?? 0.0)
+          .toDouble(),
+      trendData: (json['trendData'] as List? ?? [])
+          .map<double>((e) => (e ?? 0.0).toDouble())
+          .toList(),
       aiRecommendation: json['aiRecommendation'] ?? '',
     );
   }

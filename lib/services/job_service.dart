@@ -86,14 +86,17 @@ class JobService {
       // Assuming jobs have a 'category' field in Firestore
       queryRef = queryRef.where('category', isEqualTo: category);
     }
-    
+
     if (jobType != null && jobType != 'All') {
       queryRef = queryRef.where('job_type', isEqualTo: jobType);
     }
 
     if (workMode != null && workMode != 'All') {
       // 'Remote' vs 'On-site' for example
-       queryRef = queryRef.where('location', isEqualTo: workMode == 'Remote' ? 'Remote' : workMode);
+      queryRef = queryRef.where(
+        'location',
+        isEqualTo: workMode == 'Remote' ? 'Remote' : workMode,
+      );
     }
 
     final snapshot = await queryRef.get();
@@ -132,11 +135,11 @@ class JobService {
 
   Future<List<Job>> fetchFeaturedJobs({String? category}) async {
     Query query = _firestore.collection('jobs');
-    
+
     if (category != null && category != 'All') {
       query = query.where('category', isEqualTo: category);
     }
-    
+
     final snapshot = await query.limit(5).get();
 
     return snapshot.docs.map((doc) {
@@ -151,7 +154,7 @@ class JobService {
   /// Method to reset system data (clears jobs and user data, then seeds)
   Future<void> seedJobs({String? userId}) async {
     final batch = _firestore.batch();
-    
+
     // 1. Delete all current jobs
     final allJobs = await _firestore.collection('jobs').get();
     for (var doc in allJobs.docs) {
@@ -160,12 +163,19 @@ class JobService {
 
     // 2. If userId is provided, delete their applications and saved jobs
     if (userId != null) {
-      final apps = await _firestore.collection('applications').where('userId', isEqualTo: userId).get();
+      final apps = await _firestore
+          .collection('applications')
+          .where('userId', isEqualTo: userId)
+          .get();
       for (var doc in apps.docs) {
         batch.delete(doc.reference);
       }
-      
-      final savedJobs = await _firestore.collection('users').doc(userId).collection('saved_jobs').get();
+
+      final savedJobs = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('saved_jobs')
+          .get();
       for (var doc in savedJobs.docs) {
         batch.delete(doc.reference);
       }
@@ -196,9 +206,9 @@ class JobService {
           .child(fileName);
 
       if (file is Uint8List) {
-         await ref.putData(file);
+        await ref.putData(file);
       } else if (file is List<int>) {
-         await ref.putData(Uint8List.fromList(file));
+        await ref.putData(Uint8List.fromList(file));
       } else {
         await ref.putFile(file as File); // io.File
       }
@@ -208,7 +218,12 @@ class JobService {
     }
   }
 
-  Future<void> applyForJob(String userId, String jobId, {String? resumeUrl, String? coverLetter}) async {
+  Future<void> applyForJob(
+    String userId,
+    String jobId, {
+    String? resumeUrl,
+    String? coverLetter,
+  }) async {
     await _firestore.collection('applications').add({
       'userId': userId,
       'jobId': jobId,
@@ -219,7 +234,9 @@ class JobService {
     });
   }
 
-  Future<List<Map<String, dynamic>>> fetchUserApplications(String userId) async {
+  Future<List<Map<String, dynamic>>> fetchUserApplications(
+    String userId,
+  ) async {
     final snapshot = await _firestore
         .collection('applications')
         .where('userId', isEqualTo: userId)
@@ -227,11 +244,11 @@ class JobService {
         .get();
 
     List<Map<String, dynamic>> applications = [];
-    
+
     for (var doc in snapshot.docs) {
       final appData = doc.data();
       final jobId = appData['jobId'];
-      
+
       // Fetch job details for each application
       final jobDoc = await _firestore.collection('jobs').doc(jobId).get();
       if (jobDoc.exists) {
@@ -240,10 +257,7 @@ class JobService {
           'id': doc.id,
           'status': appData['status'],
           'appliedAt': appData['appliedAt'],
-          'job': {
-            'id': jobDoc.id,
-            ...jobData,
-          },
+          'job': {'id': jobDoc.id, ...jobData},
         });
       }
     }
@@ -256,9 +270,7 @@ class JobService {
         .doc(userId)
         .collection('saved_jobs')
         .doc(jobId)
-        .set({
-      'savedAt': FieldValue.serverTimestamp(),
-    });
+        .set({'savedAt': FieldValue.serverTimestamp()});
   }
 
   Future<void> unsaveJob(String userId, String jobId) async {

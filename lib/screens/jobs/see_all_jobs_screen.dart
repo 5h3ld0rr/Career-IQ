@@ -38,9 +38,11 @@ class _SeeAllJobsScreenState extends State<SeeAllJobsScreen> {
         _filteredJobs = widget.initialJobs;
       } else {
         _filteredJobs = widget.initialJobs
-            .where((job) =>
-                job.title.toLowerCase().contains(query.toLowerCase()) ||
-                job.companyName.toLowerCase().contains(query.toLowerCase()))
+            .where(
+              (job) =>
+                  job.title.toLowerCase().contains(query.toLowerCase()) ||
+                  job.companyName.toLowerCase().contains(query.toLowerCase()),
+            )
             .toList();
       }
     });
@@ -139,7 +141,9 @@ class _SeeAllJobsScreenState extends State<SeeAllJobsScreen> {
                   errorWidget: (context, url, error) => Icon(
                     Icons.business_rounded,
                     size: 28,
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -207,8 +211,10 @@ class _SeeAllJobsScreenState extends State<SeeAllJobsScreen> {
                     builder: (context, auth, _) => IconButton(
                       onPressed: () {
                         if (auth.userId != null) {
-                          Provider.of<JobProvider>(context, listen: false)
-                              .toggleSaveJob(auth.userId!, job);
+                          Provider.of<JobProvider>(
+                            context,
+                            listen: false,
+                          ).toggleSaveJob(auth.userId!, job);
                         }
                       },
                       icon: Icon(
@@ -255,7 +261,10 @@ class _SeeAllJobsScreenState extends State<SeeAllJobsScreen> {
           ),
           const Text(
             'Try adjusting your search query',
-            style: TextStyle(color: Colors.black38, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: Colors.black38,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

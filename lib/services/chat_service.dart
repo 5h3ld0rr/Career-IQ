@@ -9,9 +9,11 @@ class ChatService {
         .collection('chats')
         .where('participants', arrayContains: userId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatRoom.fromMap(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ChatRoom.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Stream<List<ChatMessage>> getMessages(String chatRoomId) {
@@ -21,22 +23,24 @@ class ChatService {
         .collection('messages')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatMessage.fromMap(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ChatMessage.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Future<void> sendMessage(String chatRoomId, ChatMessage message) async {
     final batch = _firestore.batch();
-    
+
     final messageRef = _firestore
         .collection('chats')
         .doc(chatRoomId)
         .collection('messages')
         .doc();
-    
+
     batch.set(messageRef, message.toMap());
-    
+
     final chatRef = _firestore.collection('chats').doc(chatRoomId);
     batch.update(chatRef, {
       'lastMessage': message.content,
@@ -98,7 +102,8 @@ class ChatService {
       ChatMessage(
         id: '',
         senderId: recruiterId,
-        content: 'Hello! I saw your application. Are you free for a call tomorrow?',
+        content:
+            'Hello! I saw your application. Are you free for a call tomorrow?',
         timestamp: DateTime.now(),
       ),
     );

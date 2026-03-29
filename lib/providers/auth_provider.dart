@@ -41,25 +41,26 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _populateUserData(dynamic user) async {
     if (user == null) return;
-    
+
     _isAuthenticated = true;
     _userEmail = user.email;
     _profilePictureUrl = user.photoURL;
-    
+
     final profile = await _authService.getUserProfile(user.uid);
-    _userName = profile?['name'] ?? user.displayName ?? _userEmail?.split('@')[0];
-    
+    _userName =
+        profile?['name'] ?? user.displayName ?? _userEmail?.split('@')[0];
+
     if (profile?['photoUrl'] != null) {
       _profilePictureUrl = profile!['photoUrl'];
     }
-    
+
     _resumeFileName = profile?['resumeFileName'];
     _resumeUrl = profile?['resumeUrl'];
-    
+
     if (profile?['resumeUploadedAt'] != null) {
       _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
     }
-    
+
     _skills = List<String>.from(profile?['skills'] ?? []);
     _bio = profile?['bio'];
     _experience = profile?['experience'];
@@ -186,7 +187,11 @@ class AuthProvider with ChangeNotifier {
     try {
       final uid = _authService.currentUser?.uid;
       if (uid != null) {
-        final url = await _authService.uploadProfilePicture(uid, fileBytes, fileName);
+        final url = await _authService.uploadProfilePicture(
+          uid,
+          fileBytes,
+          fileName,
+        );
         if (url != null) {
           await _authService.updateProfile(photoUrl: url);
           _profilePictureUrl = url;
@@ -211,7 +216,11 @@ class AuthProvider with ChangeNotifier {
       if (uid != null) {
         final url = await _authService.uploadResume(uid, fileBytes, fileName);
         if (url != null) {
-          await _authService.updateResumeInfo(uid, fileName: fileName, url: url);
+          await _authService.updateResumeInfo(
+            uid,
+            fileName: fileName,
+            url: url,
+          );
           _resumeFileName = fileName;
           _resumeUrl = url;
           _resumeUploadedAt = DateTime.now();
@@ -243,7 +252,11 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateUserDetails({String? bio, String? experience, String? location}) async {
+  Future<void> updateUserDetails({
+    String? bio,
+    String? experience,
+    String? location,
+  }) async {
     final uid = _authService.currentUser?.uid;
     if (uid == null) return;
 

@@ -20,7 +20,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.userId != null) {
-        Provider.of<NotificationProvider>(context, listen: false).loadUserNotifications(auth.userId!);
+        Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        ).loadUserNotifications(auth.userId!);
       }
     });
   }
@@ -65,37 +68,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.all(24),
-                    sliver: isLoading 
-                      ? const SliverFillRemaining(
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      : notifications.isEmpty
-                        ? SliverFillRemaining(
-                            child: _buildEmptyState(context),
+                    sliver: isLoading
+                        ? const SliverFillRemaining(
+                            child: Center(child: CircularProgressIndicator()),
                           )
+                        : notifications.isEmpty
+                        ? SliverFillRemaining(child: _buildEmptyState(context))
                         : SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final notif = notifications[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 16),
-                                  child: _buildNotificationItem(
-                                    context,
-                                    notif.id,
-                                    notif.title,
-                                    notif.body,
-                                    _formatTime(notif.createdAt),
-                                    _getIconForType(notif.type),
-                                    _getColorForType(notif.type),
-                                    notif.isRead,
-                                    notif.type,
-                                  ),
-                                );
-                              },
-                              childCount: notifications.length,
-                            ),
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final notif = notifications[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _buildNotificationItem(
+                                  context,
+                                  notif.id,
+                                  notif.title,
+                                  notif.body,
+                                  _formatTime(notif.createdAt),
+                                  _getIconForType(notif.type),
+                                  _getColorForType(notif.type),
+                                  notif.isRead,
+                                  notif.type,
+                                ),
+                              );
+                            }, childCount: notifications.length),
                           ),
                   ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               );
             },
@@ -104,16 +106,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-            // Demo Simulator
-            final auth = Provider.of<AuthProvider>(context, listen: false);
-            if (auth.userId != null) {
-              Provider.of<NotificationProvider>(context, listen: false).pushService?.simulateNotification(
-                'Application Update', 
-                'Your application for Software Engineer at Figma has been updated to "Accepted".', 
-                'application',
-                auth.userId!,
-              );
-            }
+          // Demo Simulator
+          final auth = Provider.of<AuthProvider>(context, listen: false);
+          if (auth.userId != null) {
+            Provider.of<NotificationProvider>(
+              context,
+              listen: false,
+            ).pushService?.simulateNotification(
+              'Application Update',
+              'Your application for Software Engineer at Figma has been updated to "Accepted".',
+              'application',
+              auth.userId!,
+            );
+          }
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.send_rounded, color: Colors.blue),
@@ -128,9 +133,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } else if (difference.inDays == 1) {
       return '1 day ago';
     } else if (difference.inHours > 0) {
-      return '\${difference.inHours} hours ago';
+      return '${difference.inHours} hours ago';
     } else if (difference.inMinutes > 0) {
-      return '\${difference.inMinutes} minutes ago';
+      return '${difference.inMinutes} minutes ago';
     } else {
       return 'Just now';
     }
@@ -138,19 +143,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   IconData _getIconForType(String type) {
     switch (type) {
-      case 'application': return Icons.work_history_rounded;
-      case 'reminder': return Icons.event_available_rounded;
-      case 'job': return Icons.auto_awesome_rounded;
-      default: return Icons.notifications_active_rounded;
+      case 'application':
+        return Icons.work_history_rounded;
+      case 'reminder':
+        return Icons.event_available_rounded;
+      case 'job':
+        return Icons.auto_awesome_rounded;
+      default:
+        return Icons.notifications_active_rounded;
     }
   }
 
   Color _getColorForType(String type) {
     switch (type) {
-      case 'application': return Colors.blueAccent;
-      case 'reminder': return Colors.orangeAccent;
-      case 'job': return Colors.purpleAccent;
-      default: return Colors.greenAccent;
+      case 'application':
+        return Colors.blueAccent;
+      case 'reminder':
+        return Colors.orangeAccent;
+      case 'job':
+        return Colors.purpleAccent;
+      default:
+        return Colors.greenAccent;
     }
   }
 
@@ -161,7 +174,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_rounded, size: 64, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
+          Icon(
+            Icons.notifications_off_rounded,
+            size: 64,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.3),
+          ),
           const SizedBox(height: 16),
           const Text(
             'No notifications yet',
@@ -171,7 +190,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Text(
             'We will notify you when there are updates.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -227,16 +249,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: disableBlur ? Padding(
-            padding: padding ?? const EdgeInsets.all(20),
-            child: child,
-          ) : BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(20),
-            child: child,
-          ),
-        ),
+        child: disableBlur
+            ? Padding(
+                padding: padding ?? const EdgeInsets.all(20),
+                child: child,
+              )
+            : BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Padding(
+                  padding: padding ?? const EdgeInsets.all(20),
+                  child: child,
+                ),
+              ),
       ),
     );
   }
@@ -254,7 +278,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   ) {
     return GestureDetector(
       onTap: () {
-        Provider.of<NotificationProvider>(context, listen: false).markAsRead(id);
+        Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        ).markAsRead(id);
         // Add navigation logic if requested
       },
       child: _buildGlassBox(
@@ -268,14 +295,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    iconColor.withValues(alpha: 0.15),
+                    iconColor.withValues(alpha: 0.05),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: !isRead ? iconColor : Colors.transparent, 
-                  width: 1.5
-                )
+                  color: iconColor.withValues(alpha: !isRead ? 0.5 : 0.1),
+                  width: 1.2,
+                ),
               ),
-              child: Icon(icon, color: iconColor, size: 24),
+              child: Stack(
+                children: [
+                  Icon(icon, color: iconColor, size: 24),
+                  if (!isRead)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: iconColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -285,19 +337,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: !isRead ? FontWeight.w900 : FontWeight.w600,
-                          fontSize: 14,
+                      Expanded(
+                        child: Text(
+                          title,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontWeight: !isRead
+                                ? FontWeight.w900
+                                : FontWeight.w600,
+                            fontSize: 14,
+                            letterSpacing: -0.2,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 12),
                       Text(
                         time,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 10,
-                          fontWeight: FontWeight.normal,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -316,18 +378,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ],
               ),
             ),
-            if (!isRead)
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0, top: 4.0),
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.redAccent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              )
           ],
         ),
       ),

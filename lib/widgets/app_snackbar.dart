@@ -5,8 +5,9 @@ import 'package:careeriq/main.dart'; // To access scaffoldMessengerKey
 class AppSnackBar {
   static void show(String message, {bool isError = false}) {
     String cleanMessage = _getFriendlyErrorMessage(message);
-    if (cleanMessage.isEmpty) return; // Skip "ghost" notifications (cancellations)
-    
+    if (cleanMessage.isEmpty)
+      return; // Skip "ghost" notifications (cancellations)
+
     scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
@@ -57,7 +58,9 @@ class AppSnackBar {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+                      isError
+                          ? Icons.error_outline_rounded
+                          : Icons.check_circle_outline_rounded,
                       color: Colors.white,
                       size: 22,
                     ),
@@ -84,7 +87,8 @@ class AppSnackBar {
   }
 
   static String _getFriendlyErrorMessage(String message) {
-    if (message.contains('invalid-credential') || message.contains('wrong-password')) {
+    if (message.contains('invalid-credential') ||
+        message.contains('wrong-password')) {
       return "Invalid email or password. Please try again.";
     }
     if (message.contains('user-not-found')) {
@@ -96,8 +100,8 @@ class AppSnackBar {
     if (message.contains('network-request-failed')) {
       return "Network error. Please check your connection.";
     }
-    if (message.toLowerCase().contains('cancelled') || 
-        message.toLowerCase().contains('abort') || 
+    if (message.toLowerCase().contains('cancelled') ||
+        message.toLowerCase().contains('abort') ||
         message == 'null') {
       return ""; // Filter these out
     }
@@ -107,9 +111,9 @@ class AppSnackBar {
     if (message.contains('invalid-email')) {
       return "Please enter a valid email address.";
     }
-    
-    if (message.contains('dev.flutter.pigeon') || 
-        message.contains('platform_interface') || 
+
+    if (message.contains('dev.flutter.pigeon') ||
+        message.contains('platform_interface') ||
         message.contains('HostApi')) {
       return "Authentication service unavailable. Please try again later.";
     }
@@ -122,12 +126,12 @@ class AppSnackBar {
     if (message.contains(']')) {
       return message.split(']').last.trim();
     }
-    
+
     // Fallback for very long technical strings (potential internal names)
     if (message.length > 50 && message.contains('.')) {
       return "Service error. Please try again in a moment.";
     }
-    
+
     return message;
   }
 }

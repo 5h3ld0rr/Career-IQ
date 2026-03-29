@@ -20,34 +20,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
 
   void _handleSignUp() async {
-    if (_nameController.text.isEmpty || 
-        _emailController.text.isEmpty || 
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
-      Provider.of<AuthProvider>(context, listen: false)
-          .showNotification("Please fill all fields", isError: true);
+      Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      ).showNotification("Please fill all fields", isError: true);
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      Provider.of<AuthProvider>(context, listen: false)
-          .showNotification("Passwords do not match", isError: true);
+      Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      ).showNotification("Passwords do not match", isError: true);
       return;
     }
 
     final password = _passwordController.text;
-    
+
     // Complex validation: 8+ chars, 1 lower, 1 upper, 1 digit, 1 special
     bool hasMinLength = password.length >= 8;
     bool hasUppercase = password.contains(RegExp(r'[A-Z]'));
     bool hasLowercase = password.contains(RegExp(r'[a-z]'));
     bool hasDigits = password.contains(RegExp(r'[0-9]'));
-    bool hasSpecialCharacters = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    bool hasSpecialCharacters = password.contains(
+      RegExp(r'[!@#$%^&*(),.?":{}|<>]'),
+    );
 
-    if (!hasMinLength || !hasUppercase || !hasLowercase || !hasDigits || !hasSpecialCharacters) {
+    if (!hasMinLength ||
+        !hasUppercase ||
+        !hasLowercase ||
+        !hasDigits ||
+        !hasSpecialCharacters) {
       Provider.of<AuthProvider>(context, listen: false).showNotification(
-        "Password needs: 8+ chars, uppercase, lowercase, number, and special character", 
-        isError: true
+        "Password needs: 8+ chars, uppercase, lowercase, number, and special character",
+        isError: true,
       );
       return;
     }
@@ -58,7 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _emailController.text,
       _passwordController.text,
     );
-    
+
     if (success && mounted) {
       // Return to login screen
       Navigator.pop(context);
@@ -163,7 +173,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         Text(
                           'OR',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.3),
                             fontWeight: FontWeight.w900,
                             fontSize: 12,
                           ),
@@ -258,7 +270,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-              alpha: Theme.of(context).brightness == Brightness.light ? 0.04 : 0.2,
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.04
+                  : 0.2,
             ),
             blurRadius: 30,
             offset: const Offset(0, 10),
@@ -299,8 +313,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         decoration: InputDecoration(
           filled: true,
-          fillColor: isDark 
-              ? Colors.black.withValues(alpha: 0.2) 
+          fillColor: isDark
+              ? Colors.black.withValues(alpha: 0.2)
               : Colors.white.withValues(alpha: 0.35),
           hintText: hint,
           hintStyle: TextStyle(
@@ -308,14 +322,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Icon(
-            icon, 
+            icon,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
             size: 22,
           ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                    _obscurePassword
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     size: 20,
                   ),
@@ -332,12 +348,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFF03A9F4),
-              width: 2,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF03A9F4), width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 20,
+            horizontal: 20,
+          ),
         ),
       ),
     );

@@ -30,10 +30,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToNext() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     // Check if user is already logged in
     await authProvider.checkAuthStatus();
-    
+
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
@@ -72,7 +72,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Image.asset(
                     'assets/images/logo.png',
                     fit: BoxFit.contain,
-                    // If the image doesn't exist yet, we can catch it or 
+                    // If the image doesn't exist yet, we can catch it or
                     // just let it fail gracefully for now while the user adds it.
                     errorBuilder: (context, error, stackTrace) => const Icon(
                       Icons.work_rounded,

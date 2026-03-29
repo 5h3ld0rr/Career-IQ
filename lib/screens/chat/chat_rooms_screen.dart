@@ -31,8 +31,10 @@ class ChatRoomsScreen extends StatelessWidget {
         children: [
           _buildBackgroundDecor(),
           StreamBuilder<List<ChatRoom>>(
-            stream: Provider.of<ChatProvider>(context, listen: false)
-                .getChatRooms(auth.userId!),
+            stream: Provider.of<ChatProvider>(
+              context,
+              listen: false,
+            ).getChatRooms(auth.userId!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -43,7 +45,10 @@ class ChatRoomsScreen extends StatelessWidget {
 
               final rooms = snapshot.data!;
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 itemCount: rooms.length,
                 itemBuilder: (context, index) {
                   return _buildChatTile(context, rooms[index], auth.userId!);
@@ -95,20 +100,30 @@ class ChatRoomsScreen extends StatelessWidget {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     return OutlinedButton.icon(
       onPressed: () {
-        Provider.of<ChatProvider>(context, listen: false).seedChatRooms(auth.userId!);
+        Provider.of<ChatProvider>(
+          context,
+          listen: false,
+        ).seedChatRooms(auth.userId!);
       },
       icon: const Icon(Icons.auto_awesome),
       label: const Text('GENERATE TEST CHAT'),
     );
   }
 
-  Widget _buildChatTile(BuildContext context, ChatRoom room, String currentUserId) {
+  Widget _buildChatTile(
+    BuildContext context,
+    ChatRoom room,
+    String currentUserId,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -125,7 +140,9 @@ class ChatRoomsScreen extends StatelessWidget {
             contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
               radius: 30,
-              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               backgroundImage: room.companyLogo != null
                   ? NetworkImage(room.companyLogo!)
                   : null,
@@ -170,7 +187,8 @@ class ChatRoomsScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ChatViewScreen(chatRoomId: room.id, room: room),
+                  builder: (_) =>
+                      ChatViewScreen(chatRoomId: room.id, room: room),
                 ),
               );
             },

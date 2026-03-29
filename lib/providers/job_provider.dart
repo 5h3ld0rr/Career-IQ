@@ -231,28 +231,26 @@ class JobProvider with ChangeNotifier {
 
     // Use a Set to track processed IDs to avoid redundant calls for duplicates
     final processedIds = <String>{};
-    
+
     // Combine lists, but focus on top 5 latest and top 3 featured
-    final targetJobs = [
-      ..._jobs.take(5),
-      ..._featuredJobs.take(3),
-    ];
+    final targetJobs = [..._jobs.take(5), ..._featuredJobs.take(3)];
 
     for (var job in targetJobs) {
       if (processedIds.contains(job.id) || job.matchScore != null) continue;
-      
+
       job.isAnalyzing = true;
       notifyListeners();
 
       try {
         final score = await _aiService.calculateJobMatchScore(
           resumeContent: userProfile,
-          jobDescription: "${job.title} at ${job.companyName}\n${job.description}\nRequirements: ${job.requirements.join(', ')}",
+          jobDescription:
+              "${job.title} at ${job.companyName}\n${job.description}\nRequirements: ${job.requirements.join(', ')}",
         );
-        
+
         job.matchScore = score;
         processedIds.add(job.id);
-        
+
         // Sync score with other lists where this job ID might exist
         for (var lJob in _jobs) {
           if (lJob.id == job.id) lJob.matchScore = score;

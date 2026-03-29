@@ -19,7 +19,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,7 +73,10 @@ class CareerIQApp extends StatelessWidget {
 
     // Initialize notification service once per app startup
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<NotificationProvider>(context, listen: false).initializeService((route) {
+      Provider.of<NotificationProvider>(
+        context,
+        listen: false,
+      ).initializeService((route) {
         if (route != null && navigatorKey.currentState != null) {
           navigatorKey.currentState!.pushNamed(route);
         }

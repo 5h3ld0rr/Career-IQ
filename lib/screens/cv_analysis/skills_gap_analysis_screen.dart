@@ -113,16 +113,14 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...recommendations
-                        .map(
-                          (rec) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _buildGlassBox(
-                              child: _buildRecommendationItem(rec),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                    ...recommendations.map(
+                      (rec) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildGlassBox(
+                          child: _buildRecommendationItem(rec),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 48),
                   ]),
                 ),

@@ -196,11 +196,14 @@ class JobDetailsScreen extends StatelessWidget {
             imageUrl: job.logoUrl,
             width: 60,
             height: 60,
-            placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 2),
+            placeholder: (context, url) =>
+                const CircularProgressIndicator(strokeWidth: 2),
             errorWidget: (context, url, error) => Icon(
               Icons.business_rounded,
               size: 40,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -250,6 +253,7 @@ class JobDetailsScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildAISection(BuildContext context) {
     return Column(
       children: [
@@ -285,7 +289,12 @@ class JobDetailsScreen extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => MockInterviewScreen(
                   initialRole: job.title,
-                  initialLevel: job.requirements.any((r) => r.toLowerCase().contains('senior')) ? 'Senior' : 'Junior',
+                  initialLevel:
+                      job.requirements.any(
+                        (r) => r.toLowerCase().contains('senior'),
+                      )
+                      ? 'Senior'
+                      : 'Junior',
                 ),
               ),
             );
@@ -304,11 +313,7 @@ class JobDetailsScreen extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: const Color(0xFF03A9F4),
-          size: 32,
-        ),
+        Icon(icon, color: const Color(0xFF03A9F4), size: 32),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -316,7 +321,10 @@ class JobDetailsScreen extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
               ),
               Text(
                 subtitle,
@@ -413,7 +421,9 @@ class JobDetailsScreen extends StatelessWidget {
   bool _isApplied(BuildContext context, AuthProvider auth) {
     if (auth.userId == null) return false;
     final jobProvider = Provider.of<JobProvider>(context, listen: false);
-    return jobProvider.userApplications.any((app) => app['job']['id'] == job.id);
+    return jobProvider.userApplications.any(
+      (app) => app['job']['id'] == job.id,
+    );
   }
 
   Widget _buildApplyButton(BuildContext context, AuthProvider auth) {
@@ -431,16 +441,16 @@ class JobDetailsScreen extends StatelessWidget {
 
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => ApplyJobScreen(job: job),
-            ),
+            MaterialPageRoute(builder: (_) => ApplyJobScreen(job: job)),
           );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         child: const Text(
           'APPLY NOW',
@@ -477,5 +487,4 @@ class JobDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
 }
