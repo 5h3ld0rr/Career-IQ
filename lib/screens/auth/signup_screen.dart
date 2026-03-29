@@ -134,7 +134,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         _buildPrimaryButton(
                           isLoading,
                           _handleSignUp,
-                          'JOIN ELITE',
+                          'Register',
                         ),
                         const SizedBox(height: 24),
                         Text(
