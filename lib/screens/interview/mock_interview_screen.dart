@@ -1,55 +1,107 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../services/ai_service.dart';
 import 'interview_feedback_screen.dart';
 
 class MockInterviewScreen extends StatefulWidget {
-  const MockInterviewScreen({super.key});
+  final String? initialRole;
+  final String? initialLevel;
+  const MockInterviewScreen({super.key, this.initialRole, this.initialLevel});
 
   @override
   State<MockInterviewScreen> createState() => _MockInterviewScreenState();
 }
 
 class _MockInterviewScreenState extends State<MockInterviewScreen> {
+  final _aiService = AIService();
+  final _roleController = TextEditingController();
+  final _answerController = TextEditingController();
+  
   bool _isRecording = false;
   int _currentQuestionIndex = 0;
   bool _isAnalyzing = false;
+  bool _isSettingUp = true;
+  bool _isLoadingQuestions = false;
+  String _selectedLevel = 'Junior';
+  
+  List<String> _questions = [];
+  final List<Map<String, String>> _responses = [];
 
-  final List<String> _questions = [
-    "Tell me about a challenging project you've worked on recently.",
-    "How do you handle disagreements within a technical team?",
-    "What is your approach to learning new technologies?",
-    "Where do you see yourself in the next 3 to 5 years?",
-  ];
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialRole != null) {
+      _roleController.text = widget.initialRole!;
+    }
+    if (widget.initialLevel != null) {
+      _selectedLevel = widget.initialLevel!;
+    }
+  }
+
+  void _generateQuestions() async {
+    if (_roleController.text.isEmpty) return;
+    
+    setState(() {
+      _isLoadingQuestions = true;
+    });
+
+    try {
+      final qs = await _aiService.generateMockInterviewQuestions(
+        role: _roleController.text,
+        experienceLevel: _selectedLevel,
+      );
+      setState(() {
+        _questions = qs;
+        _isSettingUp = false;
+        _isLoadingQuestions = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingQuestions = false);
+    }
+  }
+
+  void _nextQuestion() {
+    // Save current answer
+    _responses.add({
+      'question': _questions[_currentQuestionIndex],
+      'answer': _answerController.text.isNotEmpty 
+          ? _answerController.text 
+          : "The candidate practiced speaking this answer.",
+    });
+    
+    _answerController.clear();
+
+    if (_currentQuestionIndex < _questions.length - 1) {
+      setState(() {
+        _currentQuestionIndex++;
+      });
+    } else {
+      _finishInterview();
+    }
+  }
 
   void _finishInterview() async {
     setState(() => _isAnalyzing = true);
-    await Future.delayed(const Duration(seconds: 3));
-    setState(() => _isAnalyzing = false);
-
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => InterviewFeedbackScreen(
-            score: 82.0,
-            insights: [
-              {
-                'icon': Icons.check_circle_outline_rounded,
-                'title': 'Great Confidence',
-                'subtitle': 'You maintained steady eye contact.',
-                'color': Colors.blue,
-              },
-              {
-                'icon': Icons.lightbulb_outline_rounded,
-                'title': 'Technical Depth',
-                'subtitle': 'Try to include more specific metrics.',
-                'color': Colors.cyan,
-              },
-            ],
-          ),
-        ),
+    
+    try {
+      final analysis = await _aiService.analyzeInterviewSession(
+        conversation: _responses,
       );
+      
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InterviewFeedbackScreen(
+              score: (analysis['score'] as num?)?.toDouble() ?? 0.0,
+              insights: List<Map<String, dynamic>>.from(analysis['insights'] ?? []),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isAnalyzing = false);
     }
   }
 
@@ -60,8 +112,110 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
       body: Stack(
         children: [
           _buildBackgroundDecor(),
-          _isAnalyzing ? _buildAnalyzingState() : _buildInterviewBody(),
+          if (_isSettingUp) 
+            _buildSetupView()
+          else if (_isAnalyzing) 
+            _buildAnalyzingState() 
+          else 
+            _buildInterviewBody(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSetupView() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildGlassBox(
+              borderRadius: 50,
+              padding: const EdgeInsets.all(4),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'Interview Setup',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+            ),
+            const Text(
+              'Tell AI what role you are preparing for.',
+              style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 48),
+            _buildGlassBox(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _roleController,
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. Flutter Developer, Product Manager',
+                      labelText: 'Target Role',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Experience Level',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.black45),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: ['Junior', 'Mid-Level', 'Senior'].map((level) {
+                      final isSelected = _selectedLevel == level;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedLevel = level),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppTheme.primaryBlue : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? AppTheme.primaryBlue : Colors.black12,
+                            ),
+                          ),
+                          child: Text(
+                            level,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: _isLoadingQuestions ? null : _generateQuestions,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryBlue,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                child: _isLoadingQuestions 
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('START AI INTERVIEW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -137,9 +291,9 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                const Text(
-                  'Mock Interview AI',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                Text(
+                  _roleController.text.toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1),
                 ),
                 _buildRecordingIndicator(),
               ],
@@ -166,7 +320,7 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Evaluating confidence and clarity.',
+              'Evaluating your performance and insights.',
               style: TextStyle(
                 color: Colors.black54,
                 fontWeight: FontWeight.w600,
@@ -210,7 +364,7 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _questions[_currentQuestionIndex],
+                    _questions.isNotEmpty ? _questions[_currentQuestionIndex] : "Loading questions...",
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
@@ -256,20 +410,32 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
       child: _buildGlassBox(
         child: Column(
           children: [
+            if (_isRecording) ...[
+               TextField(
+                controller: _answerController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'Type your answer here or practice speaking...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildConsoleAction(Icons.skip_next_rounded, 'Skip', () {
-                  setState(
-                    () => _currentQuestionIndex =
-                        (_currentQuestionIndex + 1) % _questions.length,
-                  );
+                  if (_currentQuestionIndex < _questions.length - 1) {
+                    setState(() => _currentQuestionIndex++);
+                  }
                 }),
                 _buildRecordButton(),
                 _buildConsoleAction(
-                  Icons.check_circle_outline_rounded,
-                  'Finish',
-                  _finishInterview,
+                  _currentQuestionIndex == _questions.length - 1 
+                      ? Icons.check_circle_outline_rounded 
+                      : Icons.arrow_forward_rounded,
+                  _currentQuestionIndex == _questions.length - 1 ? 'Finish' : 'Next',
+                  _nextQuestion,
                 ),
               ],
             ),
@@ -297,7 +463,7 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: (_currentQuestionIndex + 1) / _questions.length,
+              value: _questions.isNotEmpty ? (_currentQuestionIndex + 1) / _questions.length : 0,
               backgroundColor: Colors.white,
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFF03A9F4),

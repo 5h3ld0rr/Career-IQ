@@ -53,6 +53,8 @@ class ProfileScreen extends StatelessWidget {
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         _buildProfileHeader(context, authProvider),
+                        const SizedBox(height: 24),
+                        _buildCompletenessCheck(context, authProvider),
                         const SizedBox(height: 32),
                         _buildSectionTitle(context, 'Resume'),
                         _buildGlassBox(
@@ -127,6 +129,60 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompletenessCheck(BuildContext context, AuthProvider auth) {
+    int percentage = 0;
+    if (auth.resumeUrl != null) percentage += 40;
+    if (auth.skills.isNotEmpty) percentage += 30;
+    if (auth.bio != null && auth.bio!.isNotEmpty) percentage += 30;
+
+    return _buildGlassBox(
+      context,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Profile Strength',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+              ),
+              Text(
+                '$percentage%',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  color: percentage == 100 ? Colors.green : AppTheme.primaryBlue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(
+            value: percentage / 100,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            valueColor: AlwaysStoppedAnimation<Color>(
+                percentage == 100 ? Colors.green : AppTheme.primaryBlue),
+            minHeight: 8,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            percentage == 100
+                ? 'Your profile is perfect! You are 2x more likely to be hired.'
+                : 'Complete your profile to increase your visibility to recruiters.',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

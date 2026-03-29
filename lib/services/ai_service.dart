@@ -1,5 +1,6 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import '../models/salary_insight.dart';
 
@@ -182,6 +183,64 @@ class AIService {
         "companySummary": "Could not fetch company details.",
         "commonQuestions": [],
         "preparationTips": ["Error generating prep: $e"]
+      };
+    }
+  }
+
+  Future<List<String>> generateMockInterviewQuestions({
+    required String role,
+    required String experienceLevel,
+  }) async {
+    final prompt = """
+    Generate exactly 5 targeted interview questions for a $experienceLevel $role role. 
+    Mix technical/role-specific questions with behavioral ones.
+    Return only a JSON list of strings.
+    """;
+    
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final list = _parseJsonListResponse(response.text ?? "[]");
+      return list.map((e) => e.toString()).toList();
+    } catch (e) {
+      debugPrint("Error generating mock questions: $e");
+      return [
+        "Tell me about a challenging project you've worked on recently.",
+        "How do you handle disagreements within a technical team?",
+        "What is your approach to learning new technologies?",
+        "Where do you see yourself in the next 3 to 5 years?",
+        "Why do you want for this role?"
+      ];
+    }
+  }
+
+  Future<Map<String, dynamic>> analyzeInterviewSession({
+    required List<Map<String, String>> conversation,
+  }) async {
+    final conversationStr = conversation.map((e) => "Q: ${e['question']}\nA: ${e['answer']}").join("\n\n");
+    
+    final prompt = """
+    As an expert interviewer and career coach, analyze the following interview conversation. 
+    
+    $conversationStr
+    
+    Provide a score (0-100) and 3-5 high-impact insights into the candidate's performance.
+    Return only JSON with these keys:
+    - 'score': (double)
+    - 'insights': list of objects with {'icon': (Ionicons/Material icon name string, like 'checkmark_circle_outline' or 'bulb_outline'), 'title': (String), 'subtitle': (String), 'color': (one of 'blue', 'orange', 'red', 'green', 'indigo')}
+    
+    Return ONLY the JSON.
+    """;
+    
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      return _parseJsonResponse(response.text ?? "{}");
+    } catch (e) {
+      debugPrint("Error analyzing interview: $e");
+      return {
+        'score': 0.0,
+        'insights': [
+          {'icon': 'warning', 'title': 'Analysis Error', 'subtitle': 'Could not analyze session due to an error.', 'color': 'red'}
+        ]
       };
     }
   }

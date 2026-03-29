@@ -138,44 +138,56 @@ class InterviewFeedbackScreen extends StatelessWidget {
   }
 
   Widget _buildScoreHeader() {
+    String feedbackText = 'Your interview performance is being analyzed.';
+    if (score >= 85) {
+      feedbackText = 'Outstanding! You are ready for the real thing.';
+    } else if (score >= 70) {
+      feedbackText = 'Great performance with some room for improvement.';
+    } else {
+      feedbackText = 'Good start. Focus on the insights below to improve.';
+    }
+
     return Column(
       children: [
         Stack(
           alignment: Alignment.center,
           children: [
-            SizedBox(
-              width: 100,
-              height: 100,
-              child: CircularProgressIndicator(
-                value: score / 100,
-                strokeWidth: 8,
-                backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFF03A9F4),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: CircularProgressIndicator(
+                  value: score / 100,
+                  strokeWidth: 8,
+                  backgroundColor: Colors.white,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF03A9F4),
+                  ),
+                  strokeCap: StrokeCap.round,
                 ),
-                strokeCap: StrokeCap.round,
               ),
             ),
-            Text(
-              '${score.toInt()}%',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
+            if (score > 0)
+              Text(
+                '${score.toInt()}%',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 16),
         const Text(
-          'Confidence Score',
+          'Interview Score',
           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Your tone was professional and steady.',
+        Text(
+          feedbackText,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black54,
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -190,8 +202,8 @@ class InterviewFeedbackScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildMetricItem('Clarity', 85, Colors.blueAccent),
-        _buildMetricItem('Pace', 60, Colors.cyan),
-        _buildMetricItem('Keywords', 92, Colors.lightBlue),
+        _buildMetricItem('Confidence', (score * 0.9).toInt(), Colors.cyan),
+        _buildMetricItem('Technical', (score * 1.1).clamp(0, 100).toInt(), Colors.lightBlue),
       ],
     );
   }
@@ -230,13 +242,49 @@ class InterviewFeedbackScreen extends StatelessWidget {
     );
   }
 
+  IconData _getIconData(String? iconName) {
+    switch (iconName) {
+      case 'checkmark_circle_outline':
+        return Icons.check_circle_outline_rounded;
+      case 'bulb_outline':
+        return Icons.lightbulb_outline_rounded;
+      case 'trending_up_outline':
+        return Icons.trending_up_rounded;
+      case 'alert_circle_outline':
+        return Icons.error_outline_rounded;
+      case 'chatbubble_ellipses_outline':
+        return Icons.chat_bubble_outline_rounded;
+      case 'shield_checkmark_outline':
+        return Icons.verified_user_outlined;
+      default:
+        return Icons.insights_rounded;
+    }
+  }
+
+  Color _getColor(String? colorName) {
+    switch (colorName) {
+      case 'blue':
+        return Colors.blue;
+      case 'green':
+        return Colors.green;
+      case 'orange':
+        return Colors.orange;
+      case 'red':
+        return Colors.red;
+      case 'indigo':
+        return Colors.indigo;
+      default:
+        return AppTheme.primaryBlue;
+    }
+  }
+
   Widget _buildInsightCard(BuildContext context, Map<String, dynamic> insight) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
-          insight['icon'] ?? Icons.lightbulb_outline_rounded,
-          color: const Color(0xFF03A9F4),
+          _getIconData(insight['icon']),
+          color: _getColor(insight['color']),
           size: 24,
         ),
         const SizedBox(width: 16),
@@ -245,7 +293,7 @@ class InterviewFeedbackScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                insight['title'],
+                insight['title'] ?? 'Insight',
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 15,
@@ -253,7 +301,7 @@ class InterviewFeedbackScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                insight['subtitle'],
+                insight['subtitle'] ?? '',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.black54,

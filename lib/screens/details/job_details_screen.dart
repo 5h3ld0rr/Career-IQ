@@ -8,6 +8,7 @@ import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
 import 'ai_cover_letter_screen.dart';
 import 'apply_job_screen.dart';
+import '../interview/mock_interview_screen.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Job job;
@@ -250,13 +251,63 @@ class JobDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildAISection(BuildContext context) {
+    return Column(
+      children: [
+        _buildActionRow(
+          context,
+          icon: Icons.description_rounded,
+          title: 'AI Cover Letter',
+          subtitle: 'Custom letter for this job.',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AICoverLetterScreen(
+                  jobTitle: job.title,
+                  jobDescription: job.description,
+                ),
+              ),
+            );
+          },
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8.0),
+          child: Divider(height: 1),
+        ),
+        _buildActionRow(
+          context,
+          icon: Icons.mic_rounded,
+          title: 'Practice Interview',
+          subtitle: 'AI-led mock session for this job.',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MockInterviewScreen(
+                  initialRole: job.title,
+                  initialLevel: job.requirements.any((r) => r.toLowerCase().contains('senior')) ? 'Senior' : 'Junior',
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionRow(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return Row(
       children: [
-        const Icon(
-          Icons.auto_awesome_rounded,
-          color: Color(0xFF03A9F4),
+        Icon(
+          icon,
+          color: const Color(0xFF03A9F4),
           size: 32,
         ),
         const SizedBox(width: 16),
@@ -264,13 +315,13 @@ class JobDetailsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'AI Cover Letter',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
               ),
-              const Text(
-                'Custom letter for this job.',
-                style: TextStyle(
+              Text(
+                subtitle,
+                style: const TextStyle(
                   color: Colors.black54,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -283,19 +334,9 @@ class JobDetailsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           borderRadius: 12,
           child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AICoverLetterScreen(
-                    jobTitle: job.title,
-                    jobDescription: job.description,
-                  ),
-                ),
-              );
-            },
+            onTap: onTap,
             child: const Text(
-              'GENERATE',
+              'START',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 11,

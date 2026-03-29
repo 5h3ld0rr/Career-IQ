@@ -45,6 +45,21 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A), // Premium Dark Navy
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 16),
+              onPressed: () => Navigator.pop(context),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ),
         title: const Text(
           'Salary ROI Analyst',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
