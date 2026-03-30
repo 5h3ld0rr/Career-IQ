@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../../core/theme.dart';
 import 'post_job_screen.dart';
+import 'manage_jobs_screen.dart';
 
 class RecruiterDashboardScreen extends StatefulWidget {
   const RecruiterDashboardScreen({super.key});
@@ -122,31 +123,51 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          _buildStatItem('Active Jobs', provider.postedJobs.length.toString(), Icons.work_outline),
+          _buildStatItem(
+            'Active Jobs', 
+            provider.postedJobs.length.toString(), 
+            Icons.work_outline,
+            () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageJobsScreen()));
+            },
+          ),
           const SizedBox(width: 12),
-          _buildStatItem('Total Views', '0', Icons.visibility_outlined),
+          _buildStatItem(
+            'Total Candidates', 
+            '0', 
+            Icons.people_alt_outlined,
+            () {
+              // Add Candidates screen later
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Candidates view coming soon!')),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon) {
+  Widget _buildStatItem(String label, String value, IconData icon, VoidCallback onTap) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.getGlassColor(context),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 12),
-            Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-            Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
-          ],
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.getGlassColor(context),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 12),
+              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+              Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
+            ],
+          ),
         ),
       ),
     );
