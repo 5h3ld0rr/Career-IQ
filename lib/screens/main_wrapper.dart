@@ -6,7 +6,6 @@ import 'home/home_screen.dart';
 import 'saved/saved_jobs_screen.dart';
 import 'profile/profile_screen.dart';
 import 'tracker/application_tracker_screen.dart';
-import 'career_tools/career_tools_screen.dart';
 import 'cv_analysis/cv_upload_screen.dart';
 import 'interview/mock_interview_screen.dart';
 import 'salary_roi/salary_roi_screen.dart';
@@ -28,7 +27,6 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const ApplicationTrackerScreen(),
-    const CareerToolsScreen(),
     const SavedJobsScreen(),
     const ProfileScreen(),
   ];
@@ -130,9 +128,9 @@ class _MainWrapperState extends State<MainWrapper> {
               children: [
                 _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
                 _buildNavItem(1, Icons.assignment_outlined, Icons.assignment_rounded, 'Tracker'),
-                _buildNavItem(2, Icons.widgets_outlined, Icons.widgets_rounded, ''),
-                _buildNavItem(3, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved'),
-                _buildNavItem(4, Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
+                _buildNavItem(-1, Icons.widgets_outlined, Icons.widgets_rounded, ''), // AI Hub Button (no screen index)
+                _buildNavItem(2, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved'),
+                _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
               ],
             ),
           ),
@@ -142,10 +140,7 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   void _navigateTo(Widget screen) {
-    setState(() {
-      _isAIHubMenuOpen = false;
-      _selectedIndex = 2; // Switch to AI Hub tab view
-    });
+    setState(() => _isAIHubMenuOpen = false);
     
     // Smooth transition
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -162,7 +157,7 @@ class _MainWrapperState extends State<MainWrapper> {
 
   Widget _buildNavItem(int index, IconData outlineIcon, IconData filledIcon, String label) {
     bool isSelected = _selectedIndex == index;
-    bool isAIHub = index == 2;
+    bool isAIHub = index == -1;
     final theme = Theme.of(context);
     final activeColor = isAIHub ? const Color(0xFF00B0FF) : theme.colorScheme.primary;
     final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);
@@ -174,7 +169,10 @@ class _MainWrapperState extends State<MainWrapper> {
             _showAIHubMenu();
           } else if (!isSelected) {
             HapticFeedback.mediumImpact();
-            setState(() => _selectedIndex = index);
+            setState(() {
+              _selectedIndex = index;
+              _isAIHubMenuOpen = false; // Ensure menu closes
+            });
           }
         },
         behavior: HitTestBehavior.opaque,
