@@ -28,7 +28,7 @@ class _ExpertAIChatScreenState extends State<ExpertAIChatScreen> {
   void initState() {
     super.initState();
     final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
-    _model = GenerativeModel(model: 'gemini-1.5-flash-latest', apiKey: apiKey);
+    _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
     _chatSession = _model.startChat(history: [
       Content('user', [TextPart("You are Career IQ Expert, a professional career coach. Help users with career advice, resumes, and interviews. Be concise, professional, and encouraging.")]),
       Content('model', [TextPart("Understood. I am ready to help as your Career IQ Expert.")]),

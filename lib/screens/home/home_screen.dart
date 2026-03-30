@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Future.microtask(() {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
-      jobProvider.loadJobs().then((_) {
+      jobProvider.loadJobs(location: auth.location).then((_) {
         final profileStr =
             "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
         if (auth.skills.isNotEmpty || auth.bio != null) {
@@ -96,6 +96,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           _buildFeaturedJobs(jobs),
                           const SizedBox(height: 32),
+                          if (jobs.suggestedJobs.isNotEmpty) ...[
+                            _buildSectionTitle(
+                              'Suggested Near ${auth.location ?? ""}',
+                              showSeeAll: true,
+                              onSeeAll: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SeeAllJobsScreen(
+                                    title: 'Jobs Near You',
+                                    initialJobs: jobs.suggestedJobs,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            _buildSuggestedJobs(jobs),
+                            const SizedBox(height: 32),
+                          ],
                           _buildSectionTitle(
                             'Latest Job Listings',
                             showSeeAll: true,
@@ -689,6 +706,105 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestedJobs(JobProvider jobs) {
+    return SizedBox(
+      height: 180,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        itemCount: jobs.suggestedJobs.length,
+        itemBuilder: (context, i) =>
+            _buildSuggestedCard(jobs.suggestedJobs[i], context),
+      ),
+    );
+  }
+
+  Widget _buildSuggestedCard(Job job, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job)),
+        ),
+        child: _buildGlassBox(
+          width: 240,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _buildGlassBox(
+                    padding: const EdgeInsets.all(6),
+                    borderRadius: 10,
+                    disableBlur: true,
+                    child: CachedNetworkImage(
+                      imageUrl: job.logoUrl,
+                      width: 24,
+                      height: 24,
+                      errorWidget: (context, url, error) => const Icon(Icons.business_rounded, size: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      job.companyName,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                job.title,
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.location_on_rounded, size: 12, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    job.location,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    job.salary,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  if (job.matchScore != null)
+                    _buildMatchScoreCircle(job.matchScore!),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

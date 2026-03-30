@@ -14,7 +14,7 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
 
     if (aiProvider.isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF2F8FF),
+        backgroundColor: AppTheme.getScaffoldColor(context),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -42,7 +42,7 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
 
     if (gapData == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF2F8FF),
+        backgroundColor: AppTheme.getScaffoldColor(context),
         appBar: AppBar(
           title: const Text('Skills Analysis'),
           backgroundColor: Colors.transparent,
@@ -81,7 +81,7 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
+      backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
           _buildBackgroundDecor(),
@@ -106,49 +106,49 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                title: const Text('Skills Gap Analysis'),
+                title: const Text('Career Match IQ'),
               ),
               SliverPadding(
                 padding: const EdgeInsets.all(24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    _buildGlassBox(
-                      child: _buildMatchCard(context, matchPercentage),
-                    ),
+                    _buildGlassBox(child: _buildMatchPercentageSection(matchPercentage)),
                     const SizedBox(height: 32),
-                    _buildSkillSection(
-                      context,
-                      'Core Skills You Possess',
-                      currentSkills,
-                      Colors.blueAccent,
-                    ),
+                    _buildSectionTitle('Your Strengths'),
+                    const SizedBox(height: 16),
+                    _buildSkillList(currentSkills, isMissing: false),
                     const SizedBox(height: 32),
-                    _buildSkillSection(
-                      context,
-                      'Growth Opportunities',
-                      missingSkills,
-                      Colors.cyan,
-                    ),
+                    _buildSectionTitle('Critical Gaps'),
+                    const SizedBox(height: 16),
+                    _buildSkillList(missingSkills, isMissing: true),
                     const SizedBox(height: 32),
-                    const Text(
-                      'Expert Recommendations',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
+                    _buildSectionTitle('AI Recommendations'),
                     const SizedBox(height: 16),
                     ...recommendations.map(
                       (rec) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: _buildGlassBox(
-                          child: _buildRecommendationItem(rec),
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.auto_awesome, color: Color(0xFF03A9F4), size: 18),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  rec,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 100),
                   ]),
                 ),
               ),
@@ -161,8 +161,8 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
 
   Widget _buildBackgroundDecor() {
     return Positioned(
-      top: -50,
-      right: -50,
+      top: -100,
+      right: -100,
       child: Container(
         width: 300,
         height: 300,
@@ -170,11 +170,106 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
           shape: BoxShape.circle,
           gradient: RadialGradient(
             colors: [
-              const Color(0xFF81D4FA).withValues(alpha: 0.3),
+              const Color(0xFF03A9F4).withValues(alpha: 0.3),
               Colors.transparent,
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w900,
+        color: Colors.black,
+        letterSpacing: -0.5,
+      ),
+    );
+  }
+
+  Widget _buildMatchPercentageSection(int percentage) {
+    return Column(
+      children: [
+        const Text(
+          'Target Role Fit',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black54),
+        ),
+        const SizedBox(height: 16),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 120,
+              height: 120,
+              child: CircularProgressIndicator(
+                value: percentage / 100,
+                strokeWidth: 10,
+                backgroundColor: Colors.white,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  percentage > 70 ? const Color(0xFF00E676) : const Color(0xFF03A9F4),
+                ),
+                strokeCap: StrokeCap.round,
+              ),
+            ),
+            Text(
+              '$percentage%',
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSkillList(List<String> skills, {required bool isMissing}) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: skills.map((skill) => _buildSkillBadge(skill, isMissing)).toList(),
+    );
+  }
+
+  Widget _buildSkillBadge(String skill, bool isMissing) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: isMissing
+            ? Colors.red.withValues(alpha: 0.05)
+            : Colors.green.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isMissing
+              ? Colors.red.withValues(alpha: 0.15)
+              : Colors.green.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isMissing ? Icons.warning_amber_rounded : Icons.check_circle_rounded,
+            size: 14,
+            color: isMissing ? Colors.redAccent : Colors.greenAccent[700],
+          ),
+          const SizedBox(width: 8),
+          Text(
+            skill,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: isMissing ? Colors.red[900] : Colors.green[900],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -194,7 +289,7 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -205,139 +300,11 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Padding(
-            padding: padding ?? const EdgeInsets.all(20),
+            padding: padding ?? const EdgeInsets.all(24),
             child: child,
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMatchCard(BuildContext context, int percentage) {
-    return Row(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 80,
-              height: 80,
-              child: CircularProgressIndicator(
-                value: percentage / 100,
-                strokeWidth: 8,
-                backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFF03A9F4),
-                ),
-                strokeCap: StrokeCap.round,
-              ),
-            ),
-            Text(
-              '$percentage%',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(width: 24),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Matching Score',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Based on your profile vs industry standards.',
-                style: TextStyle(
-                  color: Colors.black54,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSkillSection(
-    BuildContext context,
-    String title,
-    List<String> skills,
-    Color color,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: skills
-              .map(
-                (skill) => _buildGlassBox(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  borderRadius: 12,
-                  child: Text(
-                    skill,
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecommendationItem(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(
-          Icons.auto_awesome_rounded,
-          color: Color(0xFF03A9F4),
-          size: 20,
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.black87,
-              height: 1.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

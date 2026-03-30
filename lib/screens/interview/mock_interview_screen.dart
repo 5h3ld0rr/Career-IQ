@@ -110,7 +110,7 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
+      backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
           _buildBackgroundDecor(),

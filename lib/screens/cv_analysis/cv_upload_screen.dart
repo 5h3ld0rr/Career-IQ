@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:provider/provider.dart';
 import '../../providers/ai_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../core/theme.dart';
 import 'skills_gap_analysis_screen.dart';
 
 class CVUploadScreen extends StatefulWidget {
@@ -112,7 +113,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
+      backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
           // Background Gradient Circles for Glass Look

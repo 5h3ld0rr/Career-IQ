@@ -5,6 +5,7 @@ import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/core/theme.dart';
 import 'package:careeriq/providers/theme_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:careeriq/providers/job_provider.dart';
 import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
@@ -216,18 +217,8 @@ class ProfileScreen extends StatelessWidget {
     return Column(
       children: [
         GestureDetector(
-          onTap: () async {
-            FilePickerResult? result = await FilePicker.platform.pickFiles(
-              type: FileType.image,
-              withData: true,
-            );
-            if (result != null && result.files.single.bytes != null) {
-              await auth.updateProfilePicture(
-                result.files.single.bytes,
-                result.files.single.name,
-              );
-            }
-          },
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _showImagePickerOptions(context, auth),
           child: Stack(
             children: [
               _buildGlassBox(
@@ -272,16 +263,30 @@ class ProfileScreen extends StatelessWidget {
               Positioned(
                 bottom: 0,
                 right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt_rounded,
-                    color: Colors.white,
-                    size: 16,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _showImagePickerOptions(context, auth),
+                    borderRadius: BorderRadius.circular(100),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -401,6 +406,11 @@ class ProfileScreen extends StatelessWidget {
                   experience: experienceController.text,
                   location: locationController.text,
                 );
+
+                if (context.mounted) {
+                  final jobProvider = Provider.of<JobProvider>(context, listen: false);
+                  await jobProvider.loadJobs(location: locationController.text);
+                }
 
                 if (context.mounted) {
                   Navigator.pop(context);
@@ -788,5 +798,125 @@ class ProfileScreen extends StatelessWidget {
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
       ),
     );
+  }
+
+  void _showImagePickerOptions(BuildContext context, AuthProvider auth) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              'Update Profile Picture',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildPickerOption(
+                    context,
+                    Icons.camera_alt_rounded,
+                    'Camera',
+                    () => _pickImage(context, ImageSource.camera, auth),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildPickerOption(
+                    context,
+                    Icons.photo_library_rounded,
+                    'Gallery',
+                    () => _pickImage(context, ImageSource.gallery, auth),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPickerOption(
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 32,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(
+    BuildContext context,
+    ImageSource source,
+    AuthProvider auth,
+  ) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        await auth.updateProfilePicture(bytes, image.name);
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+    }
   }
 }

@@ -9,6 +9,7 @@ class JobProvider with ChangeNotifier {
 
   List<Job> _jobs = [];
   List<Job> _featuredJobs = [];
+  List<Job> _suggestedJobs = [];
   List<Job> _savedJobs = [];
   bool _isLoading = false;
   String? _error;
@@ -21,6 +22,7 @@ class JobProvider with ChangeNotifier {
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
+  List<Job> get suggestedJobs => _suggestedJobs;
   List<Job> get savedJobs => _savedJobs;
   List<Map<String, dynamic>> get userApplications => _userApplications;
   bool get isLoading => _isLoading;
@@ -55,6 +57,16 @@ class JobProvider with ChangeNotifier {
         location: location,
       );
 
+      // Populate suggested jobs if user location is provided
+      if (location != null && location.isNotEmpty) {
+        _suggestedJobs = _jobs.where((j) => 
+          j.location.toLowerCase().contains(location.toLowerCase()) ||
+          location.toLowerCase().contains(j.location.toLowerCase())
+        ).toList();
+      } else {
+        _suggestedJobs = [];
+      }
+
       // Auto-seed if database is empty and no query/filter is applied
       if (_jobs.isEmpty &&
           (_currentQuery == null || _currentQuery!.isEmpty) &&
@@ -65,6 +77,9 @@ class JobProvider with ChangeNotifier {
 
       // Sync with saved jobs
       for (var job in _jobs) {
+        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+      }
+      for (var job in _suggestedJobs) {
         job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
       }
     } catch (e) {
@@ -232,8 +247,8 @@ class JobProvider with ChangeNotifier {
     // Use a Set to track processed IDs to avoid redundant calls for duplicates
     final processedIds = <String>{};
 
-    // Combine lists, but focus on top 5 latest and top 3 featured
-    final targetJobs = [..._jobs.take(5), ..._featuredJobs.take(3)];
+    // Combine lists, but focus on top results
+    final targetJobs = [..._jobs.take(5), ..._featuredJobs.take(3), ..._suggestedJobs.take(3)];
 
     for (var job in targetJobs) {
       if (processedIds.contains(job.id) || job.matchScore != null) continue;
@@ -257,6 +272,9 @@ class JobProvider with ChangeNotifier {
         }
         for (var fJob in _featuredJobs) {
           if (fJob.id == job.id) fJob.matchScore = score;
+        }
+        for (var sJob in _suggestedJobs) {
+          if (sJob.id == job.id) sJob.matchScore = score;
         }
       } catch (e) {
         debugPrint('Error calculating score for ${job.id}: $e');

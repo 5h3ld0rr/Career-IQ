@@ -41,6 +41,7 @@ class _MainWrapperState extends State<MainWrapper> {
           // Main Content
           NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
+              if (_isAIHubMenuOpen) return true; // Don't hide while menu is open
               if (notification.direction == ScrollDirection.reverse) {
                 if (_bottomNavVisible) setState(() => _bottomNavVisible = false);
               } else if (notification.direction == ScrollDirection.forward) {
@@ -156,8 +157,8 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   Widget _buildNavItem(int index, IconData outlineIcon, IconData filledIcon, String label) {
-    bool isSelected = _selectedIndex == index;
-    bool isAIHub = index == -1;
+    final bool isAIHub = index == -1;
+    final bool isSelected = isAIHub ? _isAIHubMenuOpen : _selectedIndex == index;
     final theme = Theme.of(context);
     final activeColor = isAIHub ? const Color(0xFF00B0FF) : theme.colorScheme.primary;
     final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);

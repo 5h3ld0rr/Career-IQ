@@ -15,7 +15,7 @@ class InterviewFeedbackScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8FF),
+      backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
           _buildBackgroundDecor(),
@@ -150,19 +150,17 @@ class InterviewFeedbackScreen extends StatelessWidget {
         Stack(
           alignment: Alignment.center,
           children: [
-            SliverToBoxAdapter(
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: CircularProgressIndicator(
-                  value: score / 100,
-                  strokeWidth: 8,
-                  backgroundColor: Colors.white,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF03A9F4),
-                  ),
-                  strokeCap: StrokeCap.round,
+            SizedBox(
+              width: 100,
+              height: 100,
+              child: CircularProgressIndicator(
+                value: score / 100,
+                strokeWidth: 8,
+                backgroundColor: Colors.white,
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFF03A9F4),
                 ),
+                strokeCap: StrokeCap.round,
               ),
             ),
             if (score > 0)
@@ -321,11 +319,15 @@ class InterviewFeedbackScreen extends StatelessWidget {
   Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Practice Again',
-            style: TextStyle(fontWeight: FontWeight.w900),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Practice Again',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
           ),
         ),
         const SizedBox(height: 12),
