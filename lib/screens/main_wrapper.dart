@@ -10,7 +10,10 @@ import 'cv_analysis/cv_upload_screen.dart';
 import 'interview/mock_interview_screen.dart';
 import 'salary_roi/salary_roi_screen.dart';
 import 'chat/expert_ai_chat_screen.dart';
+import 'recruiter/recruiter_dashboard_screen.dart';
 import '../core/theme.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -24,15 +27,26 @@ class _MainWrapperState extends State<MainWrapper> {
   bool _bottomNavVisible = true;
   bool _isAIHubMenuOpen = false;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const ApplicationTrackerScreen(),
-    const SavedJobsScreen(),
-    const ProfileScreen(),
-  ];
+  List<Widget> _getScreens(bool isRecruiter) {
+    if (isRecruiter) {
+      return [
+        const RecruiterDashboardScreen(),
+        const ApplicationTrackerScreen(), // Maybe show applicants here later
+        const SavedJobsScreen(), // Applicants saved
+        const ProfileScreen(),
+      ];
+    }
+    return [
+      const HomeScreen(),
+      const ApplicationTrackerScreen(),
+      const SavedJobsScreen(),
+      const ProfileScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
     return Scaffold(
       backgroundColor: AppTheme.getScaffoldColor(context),
       extendBody: true,
@@ -49,7 +63,7 @@ class _MainWrapperState extends State<MainWrapper> {
               }
               return true;
             },
-            child: IndexedStack(index: _selectedIndex, children: _screens),
+            child: IndexedStack(index: _selectedIndex, children: _getScreens(authProvider.isRecruiter)),
           ),
 
           // Menu Overlay Background (Dim)
@@ -77,6 +91,10 @@ class _MainWrapperState extends State<MainWrapper> {
               opacity: _isAIHubMenuOpen ? 1.0 : 0.0,
               child: _AIHubMenuOverlay(
                 onToolSelected: (screen) => _navigateTo(screen),
+                onSwitchRole: () {
+                  setState(() => _isAIHubMenuOpen = false);
+                  authProvider.toggleUserRole();
+                },
               ),
             ),
           ),
@@ -244,13 +262,15 @@ class _MainWrapperState extends State<MainWrapper> {
 
 class _AIHubMenuOverlay extends StatelessWidget {
   final Function(Widget) onToolSelected;
+  final VoidCallback onSwitchRole;
 
-  const _AIHubMenuOverlay({required this.onToolSelected});
+  const _AIHubMenuOverlay({required this.onToolSelected, required this.onSwitchRole});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final auth = Provider.of<AuthProvider>(context);
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -312,6 +332,13 @@ class _AIHubMenuOverlay extends StatelessWidget {
                     Icons.forum_rounded,
                     const Color(0xFFD500F9),
                     () => onToolSelected(const ExpertAIChatScreen()),
+                  ),
+                  _buildMenuAction(
+                    context,
+                    'Switch Role',
+                    auth.isRecruiter ? Icons.person_search_rounded : Icons.business_center_rounded,
+                    const Color(0xFF607D8B),
+                    () => onSwitchRole(),
                   ),
                 ],
               ),

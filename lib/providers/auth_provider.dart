@@ -19,6 +19,7 @@ class AuthProvider with ChangeNotifier {
   String? _bio;
   String? _experience;
   String? _location;
+  String _userRole = 'Job Seeker'; // Default role
 
   String? get userId => _authService.currentUser?.uid;
   bool get isAuthenticated => _isAuthenticated;
@@ -34,6 +35,8 @@ class AuthProvider with ChangeNotifier {
   String? get bio => _bio;
   String? get experience => _experience;
   String? get location => _location;
+  String get userRole => _userRole;
+  bool get isRecruiter => _userRole == 'Recruiter';
 
   void showNotification(String message, {bool isError = false}) {
     AppSnackBar.show(message, isError: isError);
@@ -65,6 +68,7 @@ class AuthProvider with ChangeNotifier {
     _bio = profile?['bio'];
     _experience = profile?['experience'];
     _location = profile?['location'];
+    _userRole = profile?['role'] ?? 'Job Seeker';
   }
 
   Future<void> checkAuthStatus() async {
@@ -98,7 +102,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> signUp(String name, String email, String password) async {
+  Future<bool> signUp(String name, String email, String password, {String? role, String? companyName}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -108,6 +112,8 @@ class AuthProvider with ChangeNotifier {
         email,
         password,
         displayName: name,
+        role: role,
+        companyName: companyName,
       );
       if (user != null) {
         // Send verification and log out immediately
@@ -299,6 +305,27 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       showNotification(_error!, isError: true);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleUserRole() async {
+    final uid = _authService.currentUser?.uid;
+    if (uid == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final newRole = _userRole == 'Job Seeker' ? 'Recruiter' : 'Job Seeker';
+      await _authService.updateUserProfile(uid, {'role': newRole});
+      _userRole = newRole;
+      showNotification("Switched to $newRole mode!");
+    } catch (e) {
+      _error = e.toString();
+      showNotification("Failed to switch role.", isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();

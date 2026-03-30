@@ -11,6 +11,7 @@ class Job {
   final String jobType; // Full-time, Part-time, Remote
   final DateTime postedAt;
   final String applyUrl;
+  final String? postedBy;
   bool isSaved;
   int? matchScore;
   bool isAnalyzing;
@@ -28,6 +29,7 @@ class Job {
     required this.jobType,
     required this.postedAt,
     required this.applyUrl,
+    this.postedBy,
     this.isSaved = false,
     this.matchScore,
     this.isAnalyzing = false,
@@ -49,6 +51,7 @@ class Job {
           ? DateTime.parse(json['posted_at'])
           : (json['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: json['apply_url'] ?? '',
+      postedBy: json['posted_by'],
       matchScore: json['match_score'],
     );
   }
@@ -69,6 +72,7 @@ class Job {
           ? DateTime.parse(data['posted_at'])
           : (data['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: data['apply_url'] ?? '',
+      postedBy: data['posted_by'],
       matchScore: data['match_score'],
     );
   }
@@ -91,6 +95,7 @@ class Job {
       'job_type': jobType,
       'posted_at': postedAt.toIso8601String(),
       'apply_url': applyUrl,
+      'posted_by': postedBy,
     };
   }
 }

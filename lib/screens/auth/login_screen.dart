@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String _selectedRole = 'Job Seeker';
 
   void _handleLogin() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -55,15 +56,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                       borderRadius: 16,
                       padding: const EdgeInsets.all(16),
-                      child: const Icon(
-                        Icons.work_rounded,
-                        color: Color(0xFF03A9F4),
+                      child: Icon(
+                        _selectedRole == 'Recruiter' ? Icons.business_center_rounded : Icons.work_rounded,
+                        color: const Color(0xFF03A9F4),
                         size: 32,
                       ),
                     ),
                     const SizedBox(height: 32),
                     Text(
-                      'Welcome Back!',
+                      _selectedRole == 'Recruiter' ? 'Recruiter Login' : 'Job Seeker Login',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -73,13 +74,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Login to continue your career journey.',
+                      _selectedRole == 'Recruiter' 
+                        ? 'Find the best talent for your company.' 
+                        : 'Login to continue your career journey.',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
+                    _buildRoleSwitcher(),
+                    const SizedBox(height: 32),
                     _buildGlassBox(
                       context,
                       child: Column(
@@ -157,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         TextButton(
                           onPressed: () =>
-                              Navigator.pushNamed(context, '/signup'),
+                              Navigator.pushNamed(context, '/signup', arguments: _selectedRole),
                           child: const Text(
                             'Join Now',
                             style: TextStyle(
@@ -379,6 +384,53 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading: isLoading,
       onPressed: _handleGoogleLogin,
       label: 'Continue with Google',
+    );
+  }
+
+  Widget _buildRoleSwitcher() {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _buildSwitcherTab('Job Seeker')),
+          Expanded(child: _buildSwitcherTab('Recruiter')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitcherTab(String role) {
+    final isSelected = _selectedRole == role;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = role),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF03A9F4) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: const Color(0xFF03A9F4).withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+          ] : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          role,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+      ),
     );
   }
 }

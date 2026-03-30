@@ -17,13 +17,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _companyController = TextEditingController();
   bool _obscurePassword = true;
+  String _selectedRole = 'Job Seeker'; // Default role
+
+  @override
+  void initState() {
+    super.initState();
+    // Use a post-frame callback to safely access the route arguments
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final String? roleArgument = ModalRoute.of(context)?.settings.arguments as String?;
+      if (roleArgument != null) {
+        setState(() {
+          _selectedRole = roleArgument;
+        });
+      }
+    });
+  }
 
   void _handleSignUp() async {
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
-        _confirmPasswordController.text.isEmpty) {
+        _confirmPasswordController.text.isEmpty ||
+        (_selectedRole == 'Recruiter' && _companyController.text.isEmpty)) {
       Provider.of<AuthProvider>(
         context,
         listen: false,
@@ -67,6 +84,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _nameController.text,
       _emailController.text,
       _passwordController.text,
+      role: _selectedRole,
+      companyName: _selectedRole == 'Recruiter' ? _companyController.text : null,
     );
 
     if (success && mounted) {
@@ -132,7 +151,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
+                  _buildRoleSwitcher(),
+                  const SizedBox(height: 32),
                   _buildGlassBox(
                     context,
                     child: Column(
@@ -149,6 +170,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           'Email Address',
                           Icons.email_outlined,
                         ),
+                        if (_selectedRole == 'Recruiter')
+                          _buildTextField(
+                            context,
+                            _companyController,
+                            'Company Name',
+                            Icons.business_rounded,
+                          ),
                         _buildTextField(
                           context,
                           _passwordController,
@@ -163,7 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           Icons.lock_reset_rounded,
                           isPassword: true,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         _buildPrimaryButton(
                           isLoading,
                           _handleSignUp,
@@ -396,6 +424,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
       isLoading: isLoading,
       onPressed: _handleGoogleLogin,
       label: 'Google Sign Up',
+    );
+  }
+
+  Widget _buildRoleSwitcher() {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _buildSwitcherTab('Job Seeker')),
+          Expanded(child: _buildSwitcherTab('Recruiter')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitcherTab(String role) {
+    final isSelected = _selectedRole == role;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = role),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF03A9F4) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: const Color(0xFF03A9F4).withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+          ] : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          role,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+      ),
     );
   }
 }

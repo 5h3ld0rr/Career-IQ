@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:careeriq/providers/job_provider.dart';
 import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
+import '../recruiter/recruiter_dashboard_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -45,6 +46,8 @@ class ProfileScreen extends StatelessWidget {
                           context,
                           child: _buildResumeSection(context, authProvider),
                         ),
+                        const SizedBox(height: 32),
+                        _buildRecruiterSection(context, authProvider),
                         const SizedBox(height: 32),
                         _buildSectionTitle(
                           context,
@@ -310,6 +313,35 @@ class ProfileScreen extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+        const SizedBox(height: 12),
+        // Switch Mode Button
+        _buildGlassBox(
+          context,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          borderRadius: 100,
+          child: InkWell(
+            onTap: () => auth.toggleUserRole(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  auth.isRecruiter ? Icons.person_search_rounded : Icons.business_center_rounded,
+                  size: 16,
+                  color: const Color(0xFF03A9F4),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  auth.isRecruiter ? 'Switch to Job Seeker' : 'Switch to Recruiter',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF03A9F4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 12),
         GestureDetector(
           onTap: () => _showEditProfileDialog(context, auth),
@@ -763,6 +795,53 @@ class ProfileScreen extends StatelessWidget {
           auth.logout();
           Navigator.pushReplacementNamed(context, '/login');
         }, isDestructive: true),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, bottom: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecruiterSection(BuildContext context, AuthProvider auth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(context, 'Recruiter Tools'),
+        _buildGlassBox(
+          context,
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              _buildMenuTile(
+                context,
+                Icons.dashboard_rounded,
+                'Recruiter Dashboard',
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RecruiterDashboardScreen()),
+                ),
+              ),
+              const Divider(height: 1, indent: 55),
+              _buildMenuTile(
+                context,
+                Icons.swap_horiz_rounded,
+                'Switch to ${auth.userRole == 'Recruiter' ? 'Job Seeker' : 'Recruiter'} Mode',
+                () => auth.toggleUserRole(),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

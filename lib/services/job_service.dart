@@ -303,4 +303,17 @@ class JobService {
     }
     return savedJobs;
   }
+
+  Future<void> addJob(Job job) async {
+    await _firestore.collection('jobs').doc(job.id).set(job.toJson());
+  }
+
+  Future<List<Job>> fetchJobsByUser(String userId) async {
+    final snapshot = await _firestore
+        .collection('jobs')
+        .where('posted_by', isEqualTo: userId)
+        .get();
+
+    return snapshot.docs.map((doc) => Job.fromFirestore(doc)).toList();
+  }
 }

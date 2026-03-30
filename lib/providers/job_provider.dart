@@ -19,11 +19,13 @@ class JobProvider with ChangeNotifier {
   String _selectedWorkMode = 'All';
 
   List<Map<String, dynamic>> _userApplications = [];
+  List<Job> _postedJobs = [];
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
   List<Job> get suggestedJobs => _suggestedJobs;
   List<Job> get savedJobs => _savedJobs;
+  List<Job> get postedJobs => _postedJobs;
   List<Map<String, dynamic>> get userApplications => _userApplications;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -84,6 +86,38 @@ class JobProvider with ChangeNotifier {
       }
     } catch (e) {
       _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadPostedJobs(String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _postedJobs = await _jobService.fetchJobsByUser(userId);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addJob(Job job) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _jobService.addJob(job);
+      _postedJobs.insert(0, job);
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
