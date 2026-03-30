@@ -159,7 +159,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                       ),
                     ),
                   ),
-                  title: const Text('Elite Hire'),
+                  title: const Text('career IQ'),
                 ),
                 SliverPadding(
                   padding: const EdgeInsets.all(24),
