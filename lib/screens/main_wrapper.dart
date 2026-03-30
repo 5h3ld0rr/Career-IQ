@@ -31,8 +31,8 @@ class _MainWrapperState extends State<MainWrapper> {
     if (isRecruiter) {
       return [
         const RecruiterDashboardScreen(),
-        const ApplicationTrackerScreen(), // Maybe show applicants here later
-        const SavedJobsScreen(), // Applicants saved
+        const Scaffold(body: Center(child: Text('ATS & Applicants Coming Soon', style: TextStyle(fontWeight: FontWeight.bold)))),
+        const Scaffold(body: Center(child: Text('Smart Inbox Coming Soon', style: TextStyle(fontWeight: FontWeight.bold)))),
         const ProfileScreen(),
       ];
     }
@@ -146,9 +146,15 @@ class _MainWrapperState extends State<MainWrapper> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
-                _buildNavItem(1, Icons.assignment_outlined, Icons.assignment_rounded, 'Tracker'),
+                if (!Provider.of<AuthProvider>(context).isRecruiter)
+                  _buildNavItem(1, Icons.assignment_outlined, Icons.assignment_rounded, 'Tracker')
+                else
+                  _buildNavItem(1, Icons.people_outline_rounded, Icons.people_alt_rounded, 'ATS'),
                 _buildNavItem(-1, Icons.widgets_outlined, Icons.widgets_rounded, ''), // AI Hub Button (no screen index)
-                _buildNavItem(2, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved'),
+                if (!Provider.of<AuthProvider>(context).isRecruiter)
+                  _buildNavItem(2, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved')
+                else
+                  _buildNavItem(2, Icons.forum_outlined, Icons.forum_rounded, 'Inbox'),
                 _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
               ],
             ),
@@ -302,37 +308,82 @@ class _AIHubMenuOverlay extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              Wrap(
+                spacing: 16,
+                runSpacing: 24,
+                alignment: WrapAlignment.center,
                 children: [
-                  _buildMenuAction(
-                    context,
-                    'CV Analyst',
-                    Icons.description_rounded,
-                    const Color(0xFF00B0FF),
-                    () => onToolSelected(const CVUploadScreen()),
-                  ),
-                  _buildMenuAction(
-                    context,
-                    'Interview',
-                    Icons.psychology_rounded,
-                    const Color(0xFFFF9100),
-                    () => onToolSelected(const MockInterviewScreen()),
-                  ),
-                  _buildMenuAction(
-                    context,
-                    'Salary ROI',
-                    Icons.insights_rounded,
-                    const Color(0xFF00E676),
-                    () => onToolSelected(const SalaryROIScreen()),
-                  ),
-                  _buildMenuAction(
-                    context,
-                    'Expert AI',
-                    Icons.forum_rounded,
-                    const Color(0xFFD500F9),
-                    () => onToolSelected(const ExpertAIChatScreen()),
-                  ),
+                  if (!auth.isRecruiter) ...[
+                    _buildMenuAction(
+                      context,
+                      'CV Analyst',
+                      Icons.description_rounded,
+                      const Color(0xFF00B0FF),
+                      () => onToolSelected(const CVUploadScreen()),
+                    ),
+                    _buildMenuAction(
+                      context,
+                      'Interview',
+                      Icons.psychology_rounded,
+                      const Color(0xFFFF9100),
+                      () => onToolSelected(const MockInterviewScreen()),
+                    ),
+                    _buildMenuAction(
+                      context,
+                      'Salary ROI',
+                      Icons.insights_rounded,
+                      const Color(0xFF00E676),
+                      () => onToolSelected(const SalaryROIScreen()),
+                    ),
+                    _buildMenuAction(
+                      context,
+                      'Expert AI',
+                      Icons.forum_rounded,
+                      const Color(0xFFD500F9),
+                      () => onToolSelected(const ExpertAIChatScreen()),
+                    ),
+                  ] else ...[
+                    _buildMenuAction(
+                      context,
+                      'ATS',
+                      Icons.people_alt_rounded,
+                      const Color(0xFF03A9F4),
+                      () {
+                         Navigator.pop(context);
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ATS Coming Soon')));
+                      },
+                    ),
+                    _buildMenuAction(
+                      context,
+                      'Manage Jobs',
+                      Icons.work_rounded,
+                      const Color(0xFF4CAF50),
+                      () {
+                         Navigator.pop(context);
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Manage Jobs Coming Soon')));
+                      },
+                    ),
+                    _buildMenuAction(
+                      context,
+                      'JD Generator',
+                      Icons.auto_awesome_rounded,
+                      const Color(0xFFD500F9),
+                      () {
+                         Navigator.pop(context);
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI JD Generator Coming Soon')));
+                      },
+                    ),
+                    _buildMenuAction(
+                      context,
+                      'Smart Inbox',
+                      Icons.forum_rounded,
+                      const Color(0xFFFF9800),
+                      () {
+                         Navigator.pop(context);
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Smart Inbox Coming Soon')));
+                      },
+                    ),
+                  ],
                   _buildMenuAction(
                     context,
                     'Switch Role',
