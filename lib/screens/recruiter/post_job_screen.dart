@@ -233,12 +233,20 @@ class _PostJobScreenState extends State<PostJobScreen> {
                     postedBy: auth.userId,
                   );
 
-                  await jobProvider.addJob(newJob);
-                  if (mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Job posted successfully!')),
-                    );
+                  try {
+                    await jobProvider.addJob(newJob);
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Job posted successfully!')),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to post job: $e')),
+                      );
+                    }
                   }
                 }
               },

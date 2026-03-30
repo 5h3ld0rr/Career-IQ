@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../../core/theme.dart';
+import '../notifications/notifications_screen.dart';
 import 'post_job_screen.dart';
 import 'manage_jobs_screen.dart';
 
@@ -92,7 +93,12 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+              );
+            },
           ),
         ],
       ),
