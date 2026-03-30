@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'home/home_screen.dart';
 import 'saved/saved_jobs_screen.dart';
 import 'profile/profile_screen.dart';
@@ -9,6 +10,7 @@ import 'career_tools/career_tools_screen.dart';
 import 'cv_analysis/cv_upload_screen.dart';
 import 'interview/mock_interview_screen.dart';
 import 'salary_roi/salary_roi_screen.dart';
+import 'chat/expert_ai_chat_screen.dart';
 import '../core/theme.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -20,6 +22,8 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
+  bool _bottomNavVisible = true;
+  bool _isAIHubMenuOpen = false;
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -32,9 +36,64 @@ class _MainWrapperState extends State<MainWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.getScaffoldColor(context),
       extendBody: true,
-      body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: _buildBottomNav(),
+      body: Stack(
+        children: [
+          // Main Content
+          NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (_bottomNavVisible) setState(() => _bottomNavVisible = false);
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (!_bottomNavVisible) setState(() => _bottomNavVisible = true);
+              }
+              return true;
+            },
+            child: IndexedStack(index: _selectedIndex, children: _screens),
+          ),
+
+          // Menu Overlay Background (Dim)
+          if (_isAIHubMenuOpen)
+            GestureDetector(
+              onTap: () => setState(() => _isAIHubMenuOpen = false),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: _isAIHubMenuOpen ? 1.0 : 0.0,
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+
+          // Floating AI Hub Menu
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutBack,
+            bottom: _isAIHubMenuOpen ? 120 : -300,
+            left: 20,
+            right: 20,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: _isAIHubMenuOpen ? 1.0 : 0.0,
+              child: _AIHubMenuOverlay(
+                onToolSelected: (screen) => _navigateTo(screen),
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: AnimatedOpacity(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutQuart,
+        opacity: _bottomNavVisible ? 1.0 : 0.0,
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutQuart,
+          offset: _bottomNavVisible ? Offset.zero : const Offset(0, 1.5),
+          child: _buildBottomNav(),
+        ),
+      ),
     );
   }
 
@@ -82,20 +141,23 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
+  void _navigateTo(Widget screen) {
+    setState(() {
+      _isAIHubMenuOpen = false;
+      _selectedIndex = 2; // Switch to AI Hub tab view
+    });
+    
+    // Smooth transition
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+      }
+    });
+  }
+
   void _showAIHubMenu() {
     HapticFeedback.heavyImpact();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      isScrollControlled: true,
-      builder: (context) => _AIHubMenuOverlay(
-        onToolSelected: (index) {
-          Navigator.pop(context);
-          setState(() => _selectedIndex = 2); // Switch to AI Hub tab
-        },
-      ),
-    );
+    setState(() => _isAIHubMenuOpen = !_isAIHubMenuOpen);
   }
 
   Widget _buildNavItem(int index, IconData outlineIcon, IconData filledIcon, String label) {
@@ -182,7 +244,7 @@ class _MainWrapperState extends State<MainWrapper> {
 }
 
 class _AIHubMenuOverlay extends StatelessWidget {
-  final Function(int) onToolSelected;
+  final Function(Widget) onToolSelected;
 
   const _AIHubMenuOverlay({required this.onToolSelected});
 
@@ -192,20 +254,21 @@ class _AIHubMenuOverlay extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF121212).withValues(alpha: 0.9) : Colors.white.withValues(alpha: 0.9),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+        color: isDark ? const Color(0xFF121212).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(40),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 40,
-            offset: const Offset(0, -10),
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 50,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+        borderRadius: BorderRadius.circular(40),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Column(
@@ -228,28 +291,28 @@ class _AIHubMenuOverlay extends StatelessWidget {
                     'CV Analyst',
                     Icons.description_rounded,
                     const Color(0xFF00B0FF),
-                    () => _navigateTo(context, const CVUploadScreen()),
+                    () => onToolSelected(const CVUploadScreen()),
                   ),
                   _buildMenuAction(
                     context,
                     'Interview',
                     Icons.psychology_rounded,
                     const Color(0xFFFF9100),
-                    () => _navigateTo(context, const MockInterviewScreen()),
+                    () => onToolSelected(const MockInterviewScreen()),
                   ),
                   _buildMenuAction(
                     context,
                     'Salary ROI',
                     Icons.insights_rounded,
                     const Color(0xFF00E676),
-                    () => _navigateTo(context, const SalaryROIScreen()),
+                    () => onToolSelected(const SalaryROIScreen()),
                   ),
                   _buildMenuAction(
                     context,
                     'Expert AI',
                     Icons.forum_rounded,
                     const Color(0xFFD500F9),
-                    () {},
+                    () => onToolSelected(const ExpertAIChatScreen()),
                   ),
                 ],
               ),
@@ -268,12 +331,6 @@ class _AIHubMenuOverlay extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _navigateTo(BuildContext context, Widget screen) {
-    Navigator.pop(context);
-    onToolSelected(2);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
   Widget _buildMenuAction(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
