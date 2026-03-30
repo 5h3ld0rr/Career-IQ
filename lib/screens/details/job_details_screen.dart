@@ -8,6 +8,7 @@ import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/screens/interview/mock_interview_screen.dart';
 import 'ai_cover_letter_screen.dart';
 import 'apply_job_screen.dart';
+import 'package:careeriq/core/theme.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Job job;
@@ -86,9 +87,9 @@ class JobDetailsScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       job.description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         height: 1.6,
                         fontWeight: FontWeight.w500,
                       ),
@@ -104,7 +105,7 @@ class JobDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...job.responsibilities.map((res) => _buildListItem(res)),
+                    ...job.responsibilities.map((res) => _buildListItem(context, res)),
                     const SizedBox(height: 32),
                     const Text(
                       'Requirements',
@@ -114,7 +115,7 @@ class JobDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...job.requirements.map((req) => _buildListItem(req)),
+                    ...job.requirements.map((req) => _buildListItem(context, req)),
                     const SizedBox(height: 120),
                   ]),
                 ),
@@ -157,32 +158,36 @@ class JobDetailsScreen extends StatelessWidget {
     EdgeInsets? padding,
     double borderRadius = 24,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.8),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+    return Builder(
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppTheme.getGlassColor(context),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(
+              color: AppTheme.getGlassBorderColor(context),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(20),
-            child: child,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(borderRadius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Padding(
+                padding: padding ?? const EdgeInsets.all(20),
+                child: child,
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -220,9 +225,9 @@ class JobDetailsScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           '${job.companyName} • ${job.location}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: Colors.black54,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -328,8 +333,8 @@ class JobDetailsScreen extends StatelessWidget {
               ),
               Text(
                 subtitle,
-                style: const TextStyle(
-                  color: Colors.black54,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -356,25 +361,25 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildListItem(String text) {
+  Widget _buildListItem(BuildContext context, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.check_circle_rounded,
-            color: Color(0xFF03A9F4),
+            color: Theme.of(context).colorScheme.primary,
             size: 20,
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 height: 1.5,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -395,9 +400,9 @@ class JobDetailsScreen extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: AppTheme.getGlassColor(context),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white, width: 1.5),
+              border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
             ),
             child: Consumer<AuthProvider>(
               builder: (context, auth, _) {

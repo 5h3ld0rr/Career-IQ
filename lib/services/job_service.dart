@@ -1,76 +1,14 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'cloudinary_service.dart';
+import 'jsearch_service.dart';
 import '../models/job.dart';
 
 class JobService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final CloudinaryService _cloudinary = CloudinaryService();
+  final JSearchService _jsearchService = JSearchService();
 
-  static const String _mockJobsJson = '''
-  [
-    {
-      "id": "1",
-      "title": "Software Engineer",
-      "company_name": "Google",
-      "category": "IT",
-      "logo_url": "https://logo.clearbit.com/google.com",
-      "location": "Mountain View, CA",
-      "salary": "\$150k - \$200k",
-      "description": "We are looking for a Software Engineer...",
-      "responsibilities": ["Coding", "Design"],
-      "requirements": ["3+ years experience"],
-      "job_type": "Full-time",
-      "posted_at": "2024-03-10T10:00:00Z",
-      "apply_url": "https://careers.google.com"
-    },
-    {
-      "id": "2",
-      "title": "Business Analyst",
-      "company_name": "Airbnb",
-      "category": "Business",
-      "logo_url": "https://logo.clearbit.com/airbnb.com",
-      "location": "Remote",
-      "salary": "\$130k - \$180k",
-      "description": "Join our business team...",
-      "responsibilities": ["Analysis", "Strategy"],
-      "requirements": ["Expert in Excel"],
-      "job_type": "Remote",
-      "posted_at": "2024-03-12T09:00:00Z",
-      "apply_url": "https://careers.airbnb.com"
-    },
-    {
-      "id": "3",
-      "title": "Mechanical Engineer",
-      "company_name": "Tesla",
-      "category": "Engineering",
-      "logo_url": "https://logo.clearbit.com/tesla.com",
-      "location": "Palo Alto, CA",
-      "salary": "\$120k - \$160k",
-      "description": "Build cars...",
-      "responsibilities": ["AutoCAD", "Design"],
-      "requirements": ["BS in Engineering"],
-      "job_type": "Full-time",
-      "posted_at": "2024-03-13T14:30:00Z",
-      "apply_url": "https://careers.tesla.com"
-    },
-    {
-      "id": "4",
-      "title": "Hotel Manager",
-      "company_name": "Hilton",
-      "category": "Hotel",
-      "logo_url": "https://logo.clearbit.com/hilton.com",
-      "location": "San Jose, CA",
-      "salary": "\$80k - \$110k",
-      "description": "Manage our premium hotels...",
-      "responsibilities": ["Guest service", "Operations"],
-      "requirements": ["Hospitality degree"],
-      "job_type": "Full-time",
-      "posted_at": "2024-03-14T11:00:00Z",
-      "apply_url": "https://careers.hilton.com"
-    }
-  ]
-  ''';
 
   Future<List<Job>> fetchJobs({
     String? query,
@@ -132,6 +70,82 @@ class JobService {
     return jobs;
   }
 
+  /// Fetches real-time job listings from JSearch API for Sri Lanka.
+  ///
+  /// Results are cached to Firestore for offline access.
+  /// Falls back to Firestore-cached jobs if the API call fails.
+  Future<List<Job>> fetchLiveJobs({
+    String? query,
+    String? location,
+    int page = 1,
+  }) async {
+    try {
+      final response = await _jsearchService.searchJobs(
+        query: query,
+        page: page,
+      );
+
+      if (response.jobs.isNotEmpty) {
+        final appJobs = _jsearchService.toAppJobs(response.jobs);
+
+        // Cache to Firestore for offline access
+        await _cacheLiveJobs(appJobs);
+
+        return appJobs;
+      }
+    } catch (e) {
+      debugPrint('JobService: JSearch fetch failed, falling back to cache: $e');
+    }
+
+    // Fallback: return cached live jobs from Firestore
+    return _getCachedLiveJobs(query: query);
+  }
+
+  /// Caches live jobs to Firestore for offline access.
+  Future<void> _cacheLiveJobs(List<Job> jobs) async {
+    final batch = _firestore.batch();
+    for (final job in jobs) {
+      final docRef = _firestore.collection('live_jobs_cache').doc(job.id);
+      batch.set(docRef, {
+        ...job.toJson(),
+        'cached_at': FieldValue.serverTimestamp(),
+      });
+    }
+    try {
+      await batch.commit();
+    } catch (e) {
+      debugPrint('JobService: Cache write failed: $e');
+    }
+  }
+
+  /// Retrieves cached live jobs from Firestore.
+  Future<List<Job>> _getCachedLiveJobs({String? query}) async {
+    final snapshot = await _firestore
+        .collection('live_jobs_cache')
+        .orderBy('cached_at', descending: true)
+        .limit(50)
+        .get();
+
+    List<Job> jobs = snapshot.docs.map((doc) {
+      final data = Map<String, dynamic>.from(doc.data());
+      data['id'] = doc.id;
+      return Job.fromJson(data);
+    }).toList();
+
+    if (query != null && query.isNotEmpty) {
+      jobs = jobs
+          .where(
+            (j) =>
+                j.title.toLowerCase().contains(query.toLowerCase()) ||
+                j.companyName.toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList();
+    }
+
+    return jobs;
+  }
+
+
   Future<List<Job>> fetchFeaturedJobs({String? category}) async {
     Query query = _firestore.collection('jobs');
 
@@ -150,45 +164,25 @@ class JobService {
     }).toList();
   }
 
-  /// Method to reset system data (clears jobs and user data, then seeds)
-  Future<void> seedJobs({String? userId}) async {
+  /// Resets user-specific data (applications and saved jobs).
+  Future<void> resetUserData(String userId) async {
     final batch = _firestore.batch();
 
-    // 1. Delete all current jobs
-    final allJobs = await _firestore.collection('jobs').get();
-    for (var doc in allJobs.docs) {
+    final apps = await _firestore
+        .collection('applications')
+        .where('userId', isEqualTo: userId)
+        .get();
+    for (var doc in apps.docs) {
       batch.delete(doc.reference);
     }
 
-    // 2. If userId is provided, delete their applications and saved jobs
-    if (userId != null) {
-      final apps = await _firestore
-          .collection('applications')
-          .where('userId', isEqualTo: userId)
-          .get();
-      for (var doc in apps.docs) {
-        batch.delete(doc.reference);
-      }
-
-      final savedJobs = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('saved_jobs')
-          .get();
-      for (var doc in savedJobs.docs) {
-        batch.delete(doc.reference);
-      }
-    }
-
-    // 3. Seed fresh jobs
-    final List<dynamic> data = json.decode(_mockJobsJson);
-    for (var jobData in data) {
-      final jsonMap = jobData as Map<String, dynamic>;
-      final docRef = _firestore.collection('jobs').doc(jsonMap['id']);
-      // Remove id from map before saving as it will be the doc id
-      final Map<String, dynamic> cleanData = Map.from(jsonMap);
-      cleanData.remove('id');
-      batch.set(docRef, cleanData);
+    final savedJobs = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('saved_jobs')
+        .get();
+    for (var doc in savedJobs.docs) {
+      batch.delete(doc.reference);
     }
 
     await batch.commit();

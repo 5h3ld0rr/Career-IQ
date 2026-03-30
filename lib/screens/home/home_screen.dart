@@ -10,6 +10,7 @@ import '../details/job_details_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../jobs/see_all_jobs_screen.dart';
 import 'package:careeriq/providers/notification_provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -64,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _buildBackgroundDecor(),
           SafeArea(
+            bottom: false,
             child: RefreshIndicator(
               onRefresh: () => jobs.loadJobs(),
               child: CustomScrollView(
@@ -81,21 +83,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 24),
                           _buildCategoryFilters(jobs),
                           const SizedBox(height: 32),
-                          _buildSectionTitle(
-                            'Featured Jobs',
-                            showSeeAll: true,
-                            onSeeAll: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => SeeAllJobsScreen(
-                                  title: 'Featured Jobs',
-                                  initialJobs: jobs.featuredJobs,
+                          if (jobs.isLoading || jobs.featuredJobs.isNotEmpty) ...[
+                            _buildSectionTitle(
+                              'Featured Jobs',
+                              showSeeAll: true,
+                              onSeeAll: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SeeAllJobsScreen(
+                                    title: 'Featured Jobs',
+                                    initialJobs: jobs.featuredJobs,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          _buildFeaturedJobs(jobs),
-                          const SizedBox(height: 32),
+                            _buildFeaturedJobs(jobs),
+                            const SizedBox(height: 32),
+                          ],
                           if (jobs.suggestedJobs.isNotEmpty) ...[
                             _buildSectionTitle(
                               'Suggested Near ${auth.location ?? ""}',
@@ -132,17 +136,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, i) {
-                        final job = jobs.jobs[i];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildJobListItem(job, context),
-                        );
-                      }, childCount: jobs.jobs.length),
-                    ),
+                    sliver: jobs.isLoading
+                        ? SliverList(
+                            delegate: SliverChildBuilderDelegate((context, i) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildVerticalShimmerItem(),
+                              );
+                            }, childCount: 5),
+                          )
+                        : jobs.jobs.isEmpty
+                            ? const SliverToBoxAdapter(
+                                child: Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 40),
+                                    child: Text('No jobs found'),
+                                  ),
+                                ),
+                              )
+                            : SliverList(
+                                delegate: SliverChildBuilderDelegate((context, i) {
+                                  final job = jobs.jobs[i];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _buildJobListItem(job, context),
+                                  );
+                                }, childCount: jobs.jobs.length),
+                              ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
             ),
@@ -240,22 +261,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: -50,
-      right: -50,
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              const Color(0xFF81D4FA).withValues(alpha: 0.35),
-              Colors.transparent,
-            ],
+    return Stack(
+      children: [
+        Positioned(
+          top: -100,
+          right: -50,
+          child: Container(
+            width: 350,
+            height: 350,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                  Colors.transparent,
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+        Positioned(
+          top: 200,
+          left: -100,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF00E676).withValues(alpha: 0.15),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -380,13 +422,23 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: TextField(
                 controller: _searchController,
-                onSubmitted: (val) => jobs.loadJobs(query: val),
+                onSubmitted: (val) {
+                  if (val.trim().isNotEmpty) {
+                    jobs.loadJobs(query: val.trim());
+                  }
+                },
+                style: const TextStyle(fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: 'Search for jobs...',
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    fontWeight: FontWeight.w500,
+                  ),
                   prefixIcon: Icon(
                     Icons.search_rounded,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -610,19 +662,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Colors.white.withValues(alpha: 0.9)
-                          : Colors.white.withValues(alpha: 0.3),
+                          ? Theme.of(context).colorScheme.primary
+                          : AppTheme.getGlassColor(context),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.5),
+                            ? Theme.of(context).colorScheme.primary
+                            : AppTheme.getGlassBorderColor(context),
                         width: 1.5,
                       ),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: Colors.blueAccent.withValues(alpha: 0.2),
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -636,18 +688,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           _getCategoryIcon(cat),
                           size: 18,
                           color: isSelected
-                              ? Colors.blueAccent
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           cat,
                           style: TextStyle(
                             color: isSelected
-                                ? Theme.of(context).colorScheme.onSurface
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w900,
                             fontSize: 13,
                           ),
@@ -810,17 +860,32 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFeaturedJobs(JobProvider jobs) {
+    if (jobs.isLoading) {
+      return SizedBox(
+        height: 200,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          itemCount: 3,
+          itemBuilder: (context, i) => Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _buildHorizontalShimmerItem(),
+          ),
+        ),
+      );
+    }
+    
+    if (jobs.featuredJobs.isEmpty) return const SizedBox.shrink();
+
     return SizedBox(
       height: 200,
-      child: jobs.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              itemCount: jobs.featuredJobs.length,
-              itemBuilder: (context, i) =>
-                  _buildFeaturedCard(jobs.featuredJobs[i], context),
-            ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        itemCount: jobs.featuredJobs.length,
+        itemBuilder: (context, i) =>
+            _buildFeaturedCard(jobs.featuredJobs[i], context),
+      ),
     );
   }
 
@@ -941,6 +1006,161 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildVerticalShimmerItem() {
+    return _buildGlassBox(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Shimmer.fromColors(
+            baseColor: AppTheme.getSkeletonBase(context),
+            highlightColor: AppTheme.getSkeletonHighlight(context),
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Shimmer.fromColors(
+                  baseColor: AppTheme.getSkeletonBase(context),
+                  highlightColor: AppTheme.getSkeletonHighlight(context),
+                  child: Container(
+                    height: 16,
+                    width: double.infinity,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Shimmer.fromColors(
+                  baseColor: AppTheme.getSkeletonBase(context),
+                  highlightColor: AppTheme.getSkeletonHighlight(context),
+                  child: Container(
+                    height: 12,
+                    width: 150,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Shimmer.fromColors(
+                      baseColor: AppTheme.getSkeletonBase(context),
+                      highlightColor: AppTheme.getSkeletonHighlight(context),
+                      child: Container(
+                        height: 20,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Shimmer.fromColors(
+                      baseColor: AppTheme.getSkeletonBase(context),
+                      highlightColor: AppTheme.getSkeletonHighlight(context),
+                      child: Container(
+                        height: 20,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHorizontalShimmerItem() {
+    return _buildGlassBox(
+      width: 280,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Shimmer.fromColors(
+                baseColor: AppTheme.getSkeletonBase(context),
+                highlightColor: AppTheme.getSkeletonHighlight(context),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              Shimmer.fromColors(
+                baseColor: AppTheme.getSkeletonBase(context),
+                highlightColor: AppTheme.getSkeletonHighlight(context),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Shimmer.fromColors(
+            baseColor: AppTheme.getSkeletonBase(context),
+            highlightColor: AppTheme.getSkeletonHighlight(context),
+            child: Container(height: 16, width: 200, color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Shimmer.fromColors(
+            baseColor: AppTheme.getSkeletonBase(context),
+            highlightColor: AppTheme.getSkeletonHighlight(context),
+            child: Container(height: 12, width: 120, color: Colors.white),
+          ),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Shimmer.fromColors(
+                baseColor: AppTheme.getSkeletonBase(context),
+                highlightColor: AppTheme.getSkeletonHighlight(context),
+                child: Container(height: 16, width: 80, color: Colors.white),
+              ),
+              Shimmer.fromColors(
+                baseColor: AppTheme.getSkeletonBase(context),
+                highlightColor: AppTheme.getSkeletonHighlight(context),
+                child: Container(
+                  height: 24,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

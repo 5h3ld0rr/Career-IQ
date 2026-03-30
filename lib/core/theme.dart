@@ -42,6 +42,18 @@ class AppTheme {
         : Colors.white.withValues(alpha: 0.12);
   }
 
+  static Color getSkeletonBase(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.light
+        ? Colors.black.withValues(alpha: 0.05)
+        : Colors.white.withValues(alpha: 0.05);
+  }
+
+  static Color getSkeletonHighlight(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.light
+        ? Colors.white.withValues(alpha: 0.6)
+        : Colors.white.withValues(alpha: 0.15);
+  }
+
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,

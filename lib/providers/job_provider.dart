@@ -11,6 +11,7 @@ class JobProvider with ChangeNotifier {
   List<Job> _featuredJobs = [];
   List<Job> _suggestedJobs = [];
   List<Job> _savedJobs = [];
+  List<Job> _liveJobs = [];
   bool _isLoading = false;
   String? _error;
   String? _currentQuery;
@@ -25,6 +26,7 @@ class JobProvider with ChangeNotifier {
   List<Job> get featuredJobs => _featuredJobs;
   List<Job> get suggestedJobs => _suggestedJobs;
   List<Job> get savedJobs => _savedJobs;
+  List<Job> get liveJobs => _liveJobs;
   List<Job> get postedJobs => _postedJobs;
   List<Map<String, dynamic>> get userApplications => _userApplications;
   bool get isLoading => _isLoading;
@@ -51,6 +53,7 @@ class JobProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Fetch from Firestore (seeded/manual jobs)
       _jobs = await _jobService.fetchJobs(
         query: _currentQuery,
         category: _currentCategory,
@@ -58,6 +61,21 @@ class JobProvider with ChangeNotifier {
         workMode: _selectedWorkMode == 'All' ? null : _selectedWorkMode,
         location: location,
       );
+
+      // Also fetch live jobs from Jooble API and merge
+      try {
+        final live = await _jobService.fetchLiveJobs(
+          query: _currentQuery,
+          location: location,
+        );
+        // Merge live jobs, avoiding duplicates by ID
+        final existingIds = _jobs.map((j) => j.id).toSet();
+        final newLive = live.where((j) => !existingIds.contains(j.id)).toList();
+        _liveJobs = newLive;
+        _jobs = [..._jobs, ...newLive];
+      } catch (e) {
+        debugPrint('Live jobs fetch failed (non-blocking): $e');
+      }
 
       // Populate suggested jobs if user location is provided
       if (location != null && location.isNotEmpty) {
@@ -69,13 +87,6 @@ class JobProvider with ChangeNotifier {
         _suggestedJobs = [];
       }
 
-      // Auto-seed if database is empty and no query/filter is applied
-      if (_jobs.isEmpty &&
-          (_currentQuery == null || _currentQuery!.isEmpty) &&
-          (_currentCategory == null || _currentCategory == 'All')) {
-        await _jobService.seedJobs();
-        _jobs = await _jobService.fetchJobs();
-      }
 
       // Sync with saved jobs
       for (var job in _jobs) {
@@ -209,14 +220,14 @@ class JobProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      await _jobService.seedJobs(userId: userId);
-      await loadJobs();
       if (userId != null) {
+        await _jobService.resetUserData(userId);
         await loadUserApplications(userId);
         await loadSavedJobs(userId);
       }
+      await loadJobs();
     } catch (e) {
-      _error = 'Failed to seed database: $e';
+      _error = 'Failed to reset data: $e';
       rethrow;
     } finally {
       _isLoading = false;
