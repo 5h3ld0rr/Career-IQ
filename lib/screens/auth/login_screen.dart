@@ -134,19 +134,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           _buildPrimaryButton(isLoading, _handleLogin, 'LOGIN'),
-                          const SizedBox(height: 24),
-                          Text(
-                            'OR',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.3),
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12,
+                          if (_selectedRole != 'Recruiter') ...[
+                            const SizedBox(height: 24),
+                            Text(
+                              'OR',
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.3),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 24),
-                          _buildGoogleButton(isLoading),
+                            const SizedBox(height: 24),
+                            _buildGoogleButton(isLoading),
+                          ],
                         ],
                       ),
                     ),
