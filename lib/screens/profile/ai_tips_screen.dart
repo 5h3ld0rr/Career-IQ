@@ -194,7 +194,7 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Elite Optimizer',
+                'Career IQ Optimizer',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
               ),
               Text(
