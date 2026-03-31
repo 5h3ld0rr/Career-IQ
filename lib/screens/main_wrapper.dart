@@ -12,6 +12,7 @@ import 'salary_roi/salary_roi_screen.dart';
 import 'chat/expert_ai_chat_screen.dart';
 import 'recruiter/recruiter_dashboard_screen.dart';
 import 'recruiter/ats_dashboard_screen.dart';
+import 'recruiter/smart_inbox_screen.dart';
 import '../core/theme.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -33,7 +34,7 @@ class _MainWrapperState extends State<MainWrapper> {
       return [
         const RecruiterDashboardScreen(),
         const ATSDashboardScreen(),
-        const Scaffold(body: Center(child: Text('Smart Inbox Coming Soon', style: TextStyle(fontWeight: FontWeight.bold)))),
+        const SmartInboxScreen(),
         const ProfileScreen(),
       ];
     }
