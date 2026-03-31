@@ -17,7 +17,7 @@ class SalaryProvider with ChangeNotifier {
     required List<String> userSkills,
     required List<String> targetJobTitles,
   }) async {
-    if (userSkills.isEmpty && targetJobTitles.isEmpty) return;
+    // Fetch even if empty to provide general market insights
 
     _isLoading = true;
     _error = null;

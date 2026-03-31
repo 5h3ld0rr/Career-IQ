@@ -224,13 +224,23 @@ class JobProvider with ChangeNotifier {
     required String userId,
     required String jobId,
     required dynamic resumeFile,
+    bool useProfileResume = false,
     String? coverLetter,
   }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      final resumeUrl = await _jobService.uploadResume(resumeFile, userId);
+      String? resumeUrl;
+      
+      if (useProfileResume) {
+        // If useProfileResume is true, the service layer will fetch the existing URL from profile
+        resumeUrl = await _jobService.getProfileResumeUrl(userId);
+      } else {
+        // Otherwise upload the new file
+        resumeUrl = await _jobService.uploadResume(resumeFile, userId);
+      }
+
       await applyForJob(
         userId,
         jobId,

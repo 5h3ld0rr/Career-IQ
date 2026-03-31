@@ -8,7 +8,13 @@ import 'package:careeriq/providers/auth_provider.dart';
 import 'package:careeriq/screens/interview/mock_interview_screen.dart';
 import 'ai_cover_letter_screen.dart';
 import 'apply_job_screen.dart';
+import 'package:careeriq/widgets/app_snackbar.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:careeriq/core/theme.dart';
+import 'package:shimmer/shimmer.dart';
+import '../cv_analysis/skills_gap_analysis_screen.dart';
+import '../../services/resume_text_service.dart';
+import '../../providers/ai_provider.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Job job;
@@ -17,106 +23,43 @@ class JobDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: AppTheme.getScaffoldColor(context),
       body: Stack(
         children: [
           _buildBackgroundDecor(),
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverAppBar(
-                floating: true,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _buildGlassBox(
-                    borderRadius: 50,
-                    padding: const EdgeInsets.all(4),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 16,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _buildGlassBox(
-                      borderRadius: 50,
-                      padding: const EdgeInsets.all(4),
-                      child: Consumer2<AuthProvider, JobProvider>(
-                        builder: (context, auth, jobs, _) => IconButton(
-                          icon: Icon(
-                            job.isSaved
-                                ? Icons.bookmark_rounded
-                                : Icons.bookmark_outline_rounded,
-                            size: 20,
-                            color: job.isSaved
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                          ),
-                          onPressed: () {
-                            if (auth.userId != null) {
-                              jobs.toggleSaveJob(auth.userId!, job);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              _buildAppBar(context),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 20),
-                    Center(child: _buildCompanyHeader(context)),
-                    const SizedBox(height: 40),
-                    const Text(
-                      'Job Description',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                    _buildCompanyHeader(context),
+                    const SizedBox(height: 48),
+                    _buildSectionHeader(context, 'Job Description'),
                     const SizedBox(height: 12),
                     Text(
                       job.description,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        height: 1.6,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.7,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 32),
-                    _buildGlassBox(child: _buildAISection(context)),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'Responsibilities',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    _buildAISection(context),
+                    const SizedBox(height: 40),
+                    _buildSectionHeader(context, 'Responsibilities'),
+                    const SizedBox(height: 20),
                     ...job.responsibilities.map((res) => _buildListItem(context, res)),
                     const SizedBox(height: 32),
-                    const Text(
-                      'Requirements',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    _buildSectionHeader(context, 'Requirements'),
+                    const SizedBox(height: 20),
                     ...job.requirements.map((req) => _buildListItem(context, req)),
-                    const SizedBox(height: 120),
+                    const SizedBox(height: 140),
                   ]),
                 ),
               ),
@@ -133,23 +76,133 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: 100,
-      right: -50,
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              const Color(0xFF81D4FA).withValues(alpha: 0.3),
-              Colors.transparent,
-            ],
+  Widget _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      floating: true,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 70,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
+        child: _buildGlassIconButton(
+          context,
+          icon: Icons.arrow_back_ios_new_rounded,
+          onTap: () => Navigator.pop(context),
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16, top: 4, bottom: 4),
+          child: Consumer2<AuthProvider, JobProvider>(
+            builder: (context, auth, jobs, _) => _buildGlassIconButton(
+              context,
+              icon: job.isSaved
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_outline_rounded,
+              color: job.isSaved ? Colors.orangeAccent : null,
+              onTap: () {
+                if (auth.userId != null) {
+                  jobs.toggleSaveJob(auth.userId!, job);
+                }
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGlassIconButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.getGlassColor(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppTheme.getGlassBorderColor(context),
+              width: 1.5,
+            ),
+          ),
+          child: IconButton(
+            icon: Icon(icon, size: 18, color: color),
+            onPressed: onTap,
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBackgroundDecor() {
+    return Stack(
+      children: [
+        Positioned(
+          top: 100,
+          right: -100,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF03A9F4).withValues(alpha: 0.15),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 400,
+          left: -150,
+          child: Container(
+            width: 400,
+            height: 400,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF81D4FA).withValues(alpha: 0.1),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -194,193 +247,415 @@ class JobDetailsScreen extends StatelessWidget {
   Widget _buildCompanyHeader(BuildContext context) {
     return Column(
       children: [
-        _buildGlassBox(
-          borderRadius: 24,
-          padding: const EdgeInsets.all(16),
-          child: CachedNetworkImage(
-            imageUrl: job.logoUrl,
-            width: 60,
-            height: 60,
-            placeholder: (context, url) =>
-                const CircularProgressIndicator(strokeWidth: 2),
-            errorWidget: (context, url, error) => Icon(
-              Icons.business_rounded,
-              size: 40,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.5),
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                Theme.of(context).colorScheme.secondary.withValues(alpha: 0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: _buildGlassBox(
+            borderRadius: 100,
+            padding: const EdgeInsets.all(20),
+            child: CachedNetworkImage(
+              imageUrl: job.logoUrl,
+              width: 60,
+              height: 60,
+              placeholder: (context, url) =>
+                  const CircularProgressIndicator(strokeWidth: 2),
+              errorWidget: (context, url, error) => Icon(
+                Icons.business_rounded,
+                size: 40,
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 32),
         Text(
           job.title,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 24,
+          style: GoogleFonts.outfit(
+            fontSize: 28,
             fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
+            letterSpacing: -1,
+            height: 1.1,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 12),
         Text(
           '${job.companyName} • ${job.location}',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 15,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildGlassPill(job.jobType, Colors.blueAccent),
+            _buildGlassPill(
+              context,
+              job.jobType,
+              Theme.of(context).colorScheme.primary,
+              Icons.work_outline_rounded,
+            ),
             const SizedBox(width: 12),
-            _buildGlassPill(job.salary, Colors.cyan),
+            _buildGlassPill(
+              context,
+              job.salary,
+              const Color(0xFF00BFA5),
+              Icons.payments_outlined,
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildGlassPill(String text, Color color) {
+  Widget _buildGlassPill(
+    BuildContext context,
+    String text,
+    Color color,
+    IconData icon,
+  ) {
     return _buildGlassBox(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      borderRadius: 12,
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w800,
-          fontSize: 11,
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      borderRadius: 16,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w900,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildAISection(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildActionRow(
-          context,
-          icon: Icons.description_rounded,
-          title: 'AI Cover Letter',
-          subtitle: 'Custom letter for this job.',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AICoverLetterScreen(
-                  jobTitle: job.title,
-                  jobDescription: job.description,
-                ),
+        _buildSectionHeader(context, 'Smart Career Tools'),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: _buildAICard(
+                context,
+                icon: Icons.auto_awesome_outlined,
+                title: 'Apply with AI',
+                subtitle: 'Generate specialized Cover Letter',
+                color: const Color(0xFF673AB7),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AICoverLetterScreen(
+                        jobTitle: job.title,
+                        jobDescription: job.description,
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
-          child: Divider(height: 1),
-        ),
-        _buildActionRow(
-          context,
-          icon: Icons.mic_rounded,
-          title: 'Practice Interview',
-          subtitle: 'AI-led mock session for this job.',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => MockInterviewScreen(
-                  initialRole: job.title,
-                  initialLevel:
-                      job.requirements.any(
-                        (r) => r.toLowerCase().contains('senior'),
-                      )
-                      ? 'Senior'
-                      : 'Junior',
-                ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildAICard(
+                context,
+                icon: Icons.interpreter_mode_outlined,
+                title: 'Mock Interview',
+                subtitle: 'Practice for this specific role',
+                color: const Color(0xFF0091EA),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MockInterviewScreen(
+                        initialRole: job.title,
+                        initialLevel:
+                            job.requirements.any(
+                                  (r) => r.toLowerCase().contains('senior'),
+                                )
+                                ? 'Senior'
+                                : 'Junior',
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildAICard(
+          context,
+          icon: Icons.query_stats_rounded,
+          title: 'Detailed Skills Gap',
+          subtitle: 'Compare your profile against this role',
+          color: const Color(0xFF00BFA5),
+          onTap: () => _handleSkillsGapAnalysis(context),
         ),
       ],
     );
   }
 
-  Widget _buildActionRow(
+  Future<void> _handleSkillsGapAnalysis(BuildContext context) async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final aiProvider = Provider.of<AIProvider>(context, listen: false);
+
+    if (auth.resumeUrl == null) {
+      AppSnackBar.show('Please upload your resume in Profile first to check fit', isError: true);
+      return;
+    }
+
+    // Show loading with premium glassmorphic style
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(seconds: 2),
+            curve: Curves.easeInOut,
+            builder: (context, value, child) {
+              return Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getGlassColor(context).withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3 * value),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1 * value),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: child,
+                ),
+              );
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 6,
+                        strokeCap: StrokeCap.round,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Shimmer.fromColors(
+                  baseColor: Theme.of(context).colorScheme.onSurface,
+                  highlightColor: Theme.of(context).colorScheme.primary,
+                  child: const Text(
+                    'AI Skill Scan...',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Comparing profile with ${job.companyName}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // 1. Extract text from profile resume
+      final resumeText = await ResumeTextService.extractTextFromUrl(auth.resumeUrl!);
+      
+      // 2. Perform analysis
+      await aiProvider.analyzeSkillsGap(
+        resumeContent: resumeText.isNotEmpty ? resumeText : "Profile content for ${auth.userName}. Analyze based on available data.",
+        jobDescription: job.description,
+      );
+
+      // Close loading
+      if (context.mounted) Navigator.pop(context);
+
+      // Navigate to results
+      if (context.mounted && aiProvider.skillsGap != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SkillsGapAnalysisScreen(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context);
+      AppSnackBar.show('Analysis failed. Please try again later.');
+    }
+  }
+
+  Widget _buildAICard(
     BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return Row(
-      children: [
-        Icon(icon, color: const Color(0xFF03A9F4), size: 32),
-        const SizedBox(width: 16),
-        Expanded(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.2),
+              color.withValues(alpha: 0.0),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: _buildGlassBox(
+          padding: const EdgeInsets.all(20),
+          borderRadius: 24,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 20),
               Text(
                 title,
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
-                  fontSize: 16,
+                  fontSize: 15,
+                  height: 1.1,
+                  letterSpacing: -0.2,
                 ),
               ),
+              const SizedBox(height: 8),
               Text(
                 subtitle,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
+                  height: 1.4,
                 ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Text(
+                    'GENERATE',
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.arrow_forward_ios_rounded, size: 10, color: color),
+                ],
               ),
             ],
           ),
         ),
-        _buildGlassBox(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          borderRadius: 12,
-          child: GestureDetector(
-            onTap: onTap,
-            child: const Text(
-              'START',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 11,
-                color: Color(0xFF03A9F4),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildListItem(BuildContext context, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.check_circle_rounded,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.check_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              size: 14,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 height: 1.5,
                 color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.1,
               ),
             ),
           ),
@@ -400,7 +675,7 @@ class JobDetailsScreen extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.getGlassColor(context),
+              color: AppTheme.getGlassColor(context).withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
             ),
@@ -432,15 +707,31 @@ class JobDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildApplyButton(BuildContext context, AuthProvider auth) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
       height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF03A9F4),
+            Color(0xFF0288D1),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF03A9F4).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: () {
           if (auth.userId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please login to apply')),
-            );
+            AppSnackBar.show('Please login to apply', isError: true);
             return;
           }
 
@@ -450,16 +741,21 @@ class JobDetailsScreen extends StatelessWidget {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          side: BorderSide.none,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
         child: const Text(
           'APPLY NOW',
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+            letterSpacing: 1.2,
+          ),
         ),
       ),
     );

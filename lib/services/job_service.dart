@@ -188,6 +188,19 @@ class JobService {
     await batch.commit();
   }
 
+  Future<String?> getProfileResumeUrl(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      if (doc.exists) {
+        return doc.data()?['resumeUrl'] as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting profile resume: $e');
+      return null;
+    }
+  }
+
   Future<String> uploadResume(dynamic file, String userId, {String? fileName}) async {
     try {
       final url = await _cloudinary.uploadFile(

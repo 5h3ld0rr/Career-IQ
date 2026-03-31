@@ -1,16 +1,10 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import '../models/salary_insight.dart';
+import 'open_router_service.dart';
 
 class AIService {
-  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
-
-  final GenerativeModel _model;
-
-  AIService()
-      : _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+  final OpenRouterService _openRouter = OpenRouterService();
 
   static const List<String> _generalTips = [
     "Use strong action verbs list like 'managed', 'developed', 'coordinated'.",
@@ -46,24 +40,17 @@ class AIService {
   }
 
   Future<String> analyzeResume(String content) async {
-    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY') {
-      return "Please configure your Gemini API Key in AIService to enable real AI analysis.";
-    }
-
     try {
       final prompt =
           "Analyze the following resume content and provide constructive feedback, highlighting strengths and areas for improvement. Keep it professional and encouraging:\n\n$content";
-      final response = await _model.generateContent([Content.text(prompt)]);
-      return response.text ?? "AI couldn't generate a response at this time.";
+      return await _openRouter.generateResponse(prompt);
     } catch (e) {
       return "Error analyzing resume: $e";
     }
   }
 
   Future<List<Map<String, dynamic>>> extractSkillsFromResume(String content) async {
-    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY' || content.isEmpty) {
-      return [];
-    }
+    if (content.isEmpty) return [];
 
     try {
       final prompt = """
@@ -73,11 +60,11 @@ class AIService {
       Resume Content:
       $content
       
-      Return ONLY the JSON.
+      Return ONLY the JSON list.
       """;
       
-      final response = await _model.generateContent([Content.text(prompt)]);
-      final list = _parseJsonListResponse(response.text ?? "[]");
+      final response = await _openRouter.generateResponse(prompt);
+      final list = _parseJsonListResponse(response);
       return list.map((e) => e as Map<String, dynamic>).toList();
     } catch (e) {
       debugPrint("Error extracting skills: $e");
@@ -89,21 +76,13 @@ class AIService {
     required String resumeContent,
     required String jobDescription,
   }) async {
-    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY') {
-      return {
-        "matchPercentage": 0,
-        "currentSkills": [],
-        "missingSkills": [],
-        "recommendations": ["Please configure your Gemini API Key."],
-      };
-    }
-
     try {
       final prompt =
           """
       Compare the following resume content with the job description.
       Provide a JSON response with the following keys:
       - 'matchPercentage': an integer from 0-100 indicating how well the candidate matches the job.
+      - 'summary': a 1-sentence professional qualitative summary of the overall fit.
       - 'currentSkills': a list of skills from the resume that are relevant to the job.
       - 'missingSkills': a list of skills mentioned in the job description but missing from the resume.
       - 'recommendations': a list of 3 actionable steps to bridge the skill gap.
@@ -117,8 +96,8 @@ class AIService {
       Return ONLY the JSON.
       """;
 
-      final response = await _model.generateContent([Content.text(prompt)]);
-      return _parseJsonResponse(response.text ?? "{}");
+      final response = await _openRouter.generateResponse(prompt);
+      return _parseJsonResponse(response);
     } catch (e) {
       return {
         "matchPercentage": 0,
@@ -133,39 +112,34 @@ class AIService {
     required List<String> userSkills,
     required List<String> targetJobTitles,
   }) async {
-    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY') {
-      return [];
-    }
-
     try {
       final prompt =
           """
-      Act as a specialized Job Market Analyst. 
-      Analyze the following user skills and target job titles to provide 3-5 high-impact salary insights for someone looking to grow their career.
+      Act as a specialized Career ROI and Market Value Analyst. 
+      Analyze the following professional profile data and target roles to provide 3-5 high-impact salary insights.
+      
+      User Skills Profile: ${userSkills.isEmpty ? "General Digital & Soft Skills" : userSkills.join(', ')}
+      Target Career Titles: ${targetJobTitles.isEmpty ? "High-Growth Tech & Business Roles" : targetJobTitles.join(', ')}
+
       For each insight, provide:
-      - 'skillName': The name of a high-value skill (could be one they have or one they SHOULD add).
+      - 'skillName': A high-value skill (could be one they have or a critical one they are missing according to market trends 2026).
       - 'currentMarketValue': Estimated annual salary increase in USD for having this skill.
-      - 'potentialIncreasePercentage': Percentage growth in salary if this skill is mastered.
-      - 'trendData': A list of 6 monthly data points (representing growth trend over last 6 months, normalized 0-100).
-      - 'aiRecommendation': A 1-sentence strategic advice on why this skill is valuable.
+      - 'potentialIncreasePercentage': Percentage growth in salary if this skill is mastered (e.g., 15.5).
+      - 'trendData': A list of exactly 6 monthly data points (representing value trend over last 6 months, normalized 0-100).
+      - 'aiRecommendation': A 1-sentence strategic advice on why this skill is a high-ROI investment.
 
-      User Skills: ${userSkills.join(', ')}
-      Target Titles: ${targetJobTitles.join(', ')}
-
-      Return the response as a JSON list of objects with these keys. 
+      Return the response as a JSON list of objects with these exact keys. 
       Return ONLY the JSON list.
       """;
 
-      final response = await _model.generateContent([Content.text(prompt)]);
-      final List<dynamic> jsonList = _parseJsonListResponse(
-        response.text ?? "[]",
-      );
+      final response = await _openRouter.generateResponse(prompt);
+      final List<dynamic> jsonList = _parseJsonListResponse(response);
 
       return jsonList
           .map((e) => SalaryInsight.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print("Error in getSalaryInsights: $e");
+      debugPrint("Error in getSalaryInsights: $e");
       return [];
     }
   }
@@ -174,10 +148,7 @@ class AIService {
     required String resumeContent,
     required String jobDescription,
   }) async {
-    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY' ||
-        resumeContent.isEmpty) {
-      return 0;
-    }
+    if (resumeContent.isEmpty) return 0;
 
     try {
       final prompt =
@@ -186,11 +157,11 @@ class AIService {
       Resume: $resumeContent
       Job Description: $jobDescription
       
-      Return ONLY a single integer between 0 and 100 representing the percentage match score.
+      Return ONLY a single integer between 0 and 100 representing the percentage match score. Do not add any text.
       """;
 
-      final response = await _model.generateContent([Content.text(prompt)]);
-      final scoreText = response.text?.replaceAll(RegExp(r'[^0-9]'), '') ?? '0';
+      final response = await _openRouter.generateResponse(prompt);
+      final scoreText = response.replaceAll(RegExp(r'[^0-9]'), '');
       return int.tryParse(scoreText) ?? 0;
     } catch (e) {
       debugPrint("Error calculating match score: $e");
@@ -202,15 +173,10 @@ class AIService {
     required String resumeContent,
     required String jobDescription,
   }) async {
-    if (_apiKey == 'REPLACE_WITH_YOUR_GEMINI_API_KEY') {
-      return "Please configure your Gemini API Key in AIService to enable AI cover letter generation.";
-    }
-
     try {
       final prompt =
           "Based on the following resume and job description, generate a professional and compelling cover letter:\n\nResume:\n$resumeContent\n\nJob Description:\n$jobDescription";
-      final response = await _model.generateContent([Content.text(prompt)]);
-      return response.text ?? "AI couldn't generate a cover letter.";
+      return await _openRouter.generateResponse(prompt);
     } catch (e) {
       return "Error generating cover letter: $e";
     }
@@ -228,7 +194,7 @@ class AIService {
     $jobDescription
 
     Provide the response in JSON format with these exact keys:
-    - 'companySummary': A brief, 2-3 sentence overview of what the company does (if you know it, or a generic professional guess based on the description).
+    - 'companySummary': A brief, 2-3 sentence overview of what the company does.
     - 'commonQuestions': A list of 5-7 most likely behavioral or technical interview questions for this specific role.
     - 'preparationTips': A list of 3-5 specific tips for this interview.
 
@@ -236,8 +202,8 @@ class AIService {
     """;
 
     try {
-      final response = await _model.generateContent([Content.text(prompt)]);
-      return _parseJsonResponse(response.text ?? "{}");
+      final response = await _openRouter.generateResponse(prompt);
+      return _parseJsonResponse(response);
     } catch (e) {
       return {
         "companySummary": "Could not fetch company details.",
@@ -259,8 +225,8 @@ class AIService {
     """;
 
     try {
-      final response = await _model.generateContent([Content.text(prompt)]);
-      final list = _parseJsonListResponse(response.text ?? "[]");
+      final response = await _openRouter.generateResponse(prompt);
+      final list = _parseJsonListResponse(response);
       return list.map((e) => e.toString()).toList();
     } catch (e) {
       debugPrint("Error generating mock questions: $e");
@@ -290,14 +256,14 @@ class AIService {
     Provide a score (0-100) and 3-5 high-impact insights into the candidate's performance.
     Return only JSON with these keys:
     - 'score': (double)
-    - 'insights': list of objects with {'icon': (Ionicons/Material icon name string, like 'checkmark_circle_outline' or 'bulb_outline'), 'title': (String), 'subtitle': (String), 'color': (one of 'blue', 'orange', 'red', 'green', 'indigo')}
+    - 'insights': list of objects with {'icon': (Ionicons/Material icon name string), 'title': (String), 'subtitle': (String), 'color': (one of 'blue', 'orange', 'red', 'green', 'indigo')}
     
     Return ONLY the JSON.
     """;
 
     try {
-      final response = await _model.generateContent([Content.text(prompt)]);
-      return _parseJsonResponse(response.text ?? "{}");
+      final response = await _openRouter.generateResponse(prompt);
+      return _parseJsonResponse(response);
     } catch (e) {
       debugPrint("Error analyzing interview: $e");
       return {
@@ -325,7 +291,11 @@ class AIService {
     try {
       return json.decode(jsonStr.trim()) as Map<String, dynamic>;
     } catch (_) {
-      return {};
+      try {
+        return json.decode(text.trim()) as Map<String, dynamic>;
+      } catch (__) {
+        return {};
+      }
     }
   }
 
@@ -340,7 +310,11 @@ class AIService {
     try {
       return json.decode(jsonStr.trim()) as List<dynamic>;
     } catch (_) {
-      return [];
+      try {
+        return json.decode(text.trim()) as List<dynamic>;
+      } catch (__) {
+        return [];
+      }
     }
   }
 }

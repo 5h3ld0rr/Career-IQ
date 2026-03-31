@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shimmer/shimmer.dart';
@@ -48,69 +50,196 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
 
     return Scaffold(
       backgroundColor: scaffoldBg,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark ? Colors.white10 : Colors.black12,
-              ),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: textColor,
-                size: 16,
-              ),
-              onPressed: () => Navigator.pop(context),
-              padding: EdgeInsets.zero,
-            ),
+          padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+          child: _buildGlassIconButton(
+            context,
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () => Navigator.pop(context),
           ),
         ),
         title: Text(
-          'Salary ROI Analyst',
-          style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+          'ROI Analyst',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w900,
+            fontSize: 22,
+            letterSpacing: -1,
+            color: textColor,
+          ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.refresh,
-              color: isDark ? Colors.blueAccent : AppTheme.primaryBlue,
+          Padding(
+            padding: const EdgeInsets.only(right: 16, top: 4, bottom: 4),
+            child: _buildGlassIconButton(
+              context,
+              icon: Icons.refresh_rounded,
+              onTap: _refreshInsights,
             ),
-            onPressed: _refreshInsights,
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderCard(salaryProvider, isDark),
-            const SizedBox(height: 30),
-            _buildMarketTrendSection(salaryProvider, isDark),
-            const SizedBox(height: 30),
-            Text(
-              'High-Impact Skills',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: textColor,
+      body: Stack(
+        children: [
+          _buildBackgroundDecor(),
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 120, 20, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderCard(salaryProvider, isDark),
+                const SizedBox(height: 40),
+                
+                if (salaryProvider.insights.isNotEmpty || salaryProvider.isLoading) ...[
+                  _buildMarketTrendSection(salaryProvider, isDark),
+                  const SizedBox(height: 40),
+                  
+                  Text(
+                    'High-ROI Skills',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSkillsGrid(salaryProvider, isDark),
+                  const SizedBox(height: 40),
+                  _buildRecommendationSection(salaryProvider, isDark),
+                ] else ...[
+                  _buildEmptyState(context, isDark),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassIconButton(BuildContext context, {required IconData icon, required VoidCallback onTap}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white60,
+              width: 1.5,
+            ),
+          ),
+          child: IconButton(
+            icon: Icon(icon, size: 18, color: isDark ? Colors.white : AppTheme.darkText),
+            onPressed: onTap,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundDecor() {
+    return Stack(
+      children: [
+        Positioned(
+          top: -100,
+          right: -100,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppTheme.primaryBlue.withValues(alpha: 0.2),
+                  Colors.transparent,
+                ],
               ),
             ),
-            const SizedBox(height: 15),
-            _buildSkillsGrid(salaryProvider, isDark),
-            const SizedBox(height: 30),
-            _buildRecommendationSection(salaryProvider, isDark),
-          ],
+          ),
         ),
+        Positioned(
+          bottom: 100,
+          left: -40,
+          child: Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFF472B6).withValues(alpha: 0.05),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, bool isDark) {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          Container(
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryBlue.withValues(alpha: 0.05),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.analytics_outlined,
+              size: 80,
+              color: AppTheme.primaryBlue,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'Analyzing Market Potential',
+            style: GoogleFonts.outfit(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Explore more jobs and complete your profile skills to unlock personalized salary ROI insights.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white60 : Colors.black54,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton(
+            onPressed: _refreshInsights,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            child: const Text('Try Again', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -127,17 +256,8 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [AppTheme.primaryBlue, AppTheme.darkBlue]
-              : [AppTheme.primaryBlue, AppTheme.accentBlue],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
             color: AppTheme.primaryBlue.withValues(alpha: isDark ? 0.2 : 0.3),
@@ -147,35 +267,77 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Potential Earnings Growth',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [AppTheme.primaryBlue, AppTheme.darkBlue]
+                      : [const Color(0xFF0288D1), const Color(0xFF03A9F4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Market Growth',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const Icon(Icons.trending_up_rounded, color: Colors.white70),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: totalGrowth),
+                    duration: const Duration(seconds: 2),
+                    builder: (context, value, child) => Text(
+                      '+${value.toStringAsFixed(1)}%',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 56,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Potential value increase based on 2026 market demand benchmarks.',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '+${totalGrowth.toStringAsFixed(1)}%',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 48,
-              fontWeight: FontWeight.w900,
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Icon(
+                Icons.account_balance_wallet_rounded,
+                size: 150,
+                color: Colors.white.withValues(alpha: 0.07),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Based on your current skill set vs market demand.',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 14,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -193,53 +355,77 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Value Trends',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          'Value Trajectory',
+          style: GoogleFonts.outfit(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
             color: textColor,
           ),
         ),
         const SizedBox(height: 20),
         Container(
-          height: 250,
-          padding: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
+          height: 260,
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: isDark
-                ? []
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          child: LineChart(
-            LineChartData(
-              gridData: const FlGridData(show: false),
-              titlesData: const FlTitlesData(show: false),
-              borderData: FlBorderData(show: false),
-              lineBarsData: provider.insights.map((insight) {
-                return LineChartBarData(
-                  spots: insight.trendData.asMap().entries.map((e) {
-                    return FlSpot(e.key.toDouble(), e.value);
-                  }).toList(),
-                  isCurved: true,
-                  color: _getGlowColor(provider.insights.indexOf(insight)),
-                  barWidth: 4,
-                  isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: _getGlowColor(
-                      provider.insights.indexOf(insight),
-                    ).withValues(alpha: 0.1),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 30, 20, 10),
+                child: LineChart(
+                  LineChartData(
+                    gridData: const FlGridData(show: false),
+                    titlesData: const FlTitlesData(show: false),
+                    borderData: FlBorderData(show: false),
+                    lineBarsData: provider.insights.map((insight) {
+                      return LineChartBarData(
+                        spots: insight.trendData.asMap().entries.map((e) {
+                          return FlSpot(e.key.toDouble(), e.value);
+                        }).toList(),
+                        isCurved: true,
+                        color: _getGlowColor(provider.insights.indexOf(insight)),
+                        barWidth: 6,
+                        isStrokeCapRound: true,
+                        dotData: const FlDotData(show: false),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: _getGlowColor(
+                            provider.insights.indexOf(insight),
+                          ).withValues(alpha: 0.15),
+                        ),
+                      );
+                    }).toList(),
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipColor: (touchedSpot) => Colors.black87.withValues(alpha: 0.8),
+                        getTooltipItems: (touchedSpots) {
+                          return touchedSpots.map((spot) {
+                            return LineTooltipItem(
+                              '${spot.y.toInt()}% value',
+                              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
                   ),
-                );
-              }).toList(),
+                ),
+              ),
             ),
           ),
         ),
@@ -257,9 +443,9 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 15,
-        mainAxisSpacing: 15,
-        childAspectRatio: 1.5,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1.1,
       ),
       itemCount: provider.insights.length,
       itemBuilder: (context, index) {
@@ -269,46 +455,56 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
         return Container(
           decoration: BoxDecoration(
             color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
-                  : AppTheme.primaryBlue.withValues(alpha: 0.1),
-              width: 1,
+                  : Colors.black.withValues(alpha: 0.05),
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
                 color: isDark
                     ? color.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.05),
-                blurRadius: 15,
-                spreadRadius: 0,
+                    : Colors.black.withValues(alpha: 0.03),
+                blurRadius: 20,
               ),
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.bolt_rounded, color: color, size: 20),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   insight.skillName,
-                  style: TextStyle(
+                  style: GoogleFonts.outfit(
                     color: isDark ? Colors.white : AppTheme.darkText,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     fontSize: 16,
+                    height: 1.1,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 5),
+                const Spacer(),
                 Text(
                   '+${insight.potentialIncreasePercentage}%',
-                  style: TextStyle(
+                  style: GoogleFonts.outfit(
                     color: color,
                     fontWeight: FontWeight.w900,
-                    fontSize: 20,
+                    fontSize: 22,
+                    letterSpacing: -1,
                   ),
                 ),
               ],
