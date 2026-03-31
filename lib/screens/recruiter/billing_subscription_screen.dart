@@ -2,6 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import 'payment_checkout_screen.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class BillingSubscriptionScreen extends StatefulWidget {
   const BillingSubscriptionScreen({super.key});
@@ -18,17 +21,99 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
   final List<Map<String, dynamic>> _billingHistory = [
     {
       'date': 'Oct 1, 2026',
-      'amount': '\$19.00',
+      'amount': '\$10.00',
+      'plan': 'Pro Plan',
       'status': 'Paid',
       'invoice': '#INV-10293'
     },
     {
       'date': 'Sep 1, 2026',
-      'amount': '\$19.00',
+      'amount': '\$10.00',
+      'plan': 'Pro Plan',
       'status': 'Paid',
       'invoice': '#INV-09827'
     },
+    {
+      'date': 'Aug 1, 2026',
+      'amount': '\$0.00',
+      'plan': 'Free Tier',
+      'status': 'Paid',
+      'invoice': '#INV-08731'
+    },
   ];
+
+  Future<void> _generateAndDownloadInvoice(Map<String, dynamic> invoice) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Padding(
+            padding: const pw.EdgeInsets.all(32),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('CareerIQ Invoice', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                pw.SizedBox(height: 20),
+                pw.Divider(color: PdfColors.grey400),
+                pw.SizedBox(height: 20),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('Billed To:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
+                        pw.Text('Recruiter Account'),
+                        pw.Text('CareerIQ User'),
+                      ]
+                    ),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text("Invoice #: \${invoice['invoice']}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text("Date: \${invoice['date']}"),
+                      ]
+                    ),
+                  ]
+                ),
+                pw.SizedBox(height: 40),
+                pw.Text('Subscription Details', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey800)),
+                pw.SizedBox(height: 10),
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(12),
+                  decoration: pw.BoxDecoration(color: PdfColors.grey100, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text("Plan: \${invoice['plan']}"),
+                      pw.Text("Status: \${invoice['status']}", style: pw.TextStyle(color: PdfColors.green800, fontWeight: pw.FontWeight.bold)),
+                    ]
+                  ),
+                ),
+                pw.SizedBox(height: 40),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('TOTAL DUE', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
+                    pw.Text(invoice['amount'], style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                  ]
+                ),
+                pw.Spacer(),
+                pw.Divider(color: PdfColors.grey400),
+                pw.SizedBox(height: 10),
+                pw.Text('Thank you for choosing CareerIQ!', style: pw.TextStyle(fontSize: 12, color: PdfColors.grey600)),
+                pw.Text('For support, contact billing@careeriq.com', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+    await Printing.sharePdf(bytes: await pdf.save(), filename: "\${invoice['invoice']}.pdf");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -434,6 +519,13 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
   }
 
   Widget _buildBillingHistory(ThemeData theme, bool isDark) {
+    if (_billingHistory.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: Text('No billing history available')),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context).withValues(alpha: 0.3),
@@ -445,58 +537,105 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Column(
-            children: _billingHistory.map((invoice) {
-              return Column(
-                children: [
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.receipt_long_rounded, color: theme.colorScheme.primary),
-                    ),
-                    title: Text(
-                      invoice['invoice'],
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      invoice['date'],
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          invoice['amount'],
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+            children: [
+              ..._billingHistory.map((invoice) {
+                final isLast = invoice == _billingHistory.last;
+                return Column(
+                  children: [
+                    InkWell(
+                      onTap: () async {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Preparing \${invoice['invoice']}...")));
+                        await _generateAndDownloadInvoice(invoice);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(Icons.receipt_long_rounded, color: theme.colorScheme.primary, size: 22),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        invoice['plan'],
+                                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          invoice['status'],
+                                          style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "\${invoice['invoice']} • \${invoice['date']}",
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  invoice['amount'],
+                                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                                ),
+                                const SizedBox(height: 4),
+                                Icon(Icons.file_download_outlined, color: theme.colorScheme.primary, size: 18),
+                              ],
+                            ),
+                          ],
                         ),
-                        Text(
-                          invoice['status'],
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Downloading invoice pdf...')));
-                    },
+                    if (!isLast)
+                      Divider(height: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.05), indent: 70),
+                  ],
+                );
+              }),
+              Divider(height: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+              InkWell(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening all invoices...')));
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'View All Invoices',
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
                   ),
-                  if (invoice != _billingHistory.last)
-                    Divider(height: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.05), indent: 70),
-                ],
-              );
-            }).toList(),
+                ),
+              ),
+            ],
           ),
         ),
       ),
