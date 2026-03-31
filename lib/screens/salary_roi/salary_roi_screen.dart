@@ -320,8 +320,9 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
   }
 
   Widget _buildRecommendationSection(SalaryProvider provider, bool isDark) {
-    if (provider.isLoading || provider.insights.isEmpty)
+    if (provider.isLoading || provider.insights.isEmpty) {
       return const SizedBox.shrink();
+    }
 
     return Container(
       width: double.infinity,

@@ -60,6 +60,7 @@ dependencies:
   desktop_drop: ^0.7.0
   syncfusion_flutter_pdf: 28.1.33
   image_picker: ^1.2.1
+  firebase_app_check: 0.4.2
 
 dev_dependencies:
   flutter_test:

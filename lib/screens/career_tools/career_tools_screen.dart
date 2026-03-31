@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../cv_analysis/cv_upload_screen.dart';
 import '../interview/mock_interview_screen.dart';

@@ -10,6 +10,7 @@ import 'package:careeriq/providers/job_provider.dart';
 import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
 import '../recruiter/manage_jobs_screen.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -59,8 +60,14 @@ class ProfileScreen extends StatelessWidget {
                           _buildSectionTitle(
                             context,
                             'About',
-                            onEdit: () =>
-                                _showEditProfileDialog(context, authProvider),
+                            onEdit: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const EditProfileScreen(),
+                                ),
+                              );
+                            },
                           ),
                           _buildGlassBox(
                             context,
@@ -129,9 +136,11 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildCompletenessCheck(BuildContext context, AuthProvider auth) {
     int percentage = 0;
-    if (auth.resumeUrl != null) percentage += 40;
-    if (auth.skills.isNotEmpty) percentage += 30;
-    if (auth.bio != null && auth.bio!.isNotEmpty) percentage += 30;
+    if (auth.resumeUrl != null) percentage += 20;
+    if (auth.skills.isNotEmpty) percentage += 20;
+    if (auth.bio != null && auth.bio!.isNotEmpty) percentage += 20;
+    if (auth.isEmailVerified) percentage += 20;
+    if (auth.isPhoneVerified) percentage += 20;
 
     return _buildGlassBox(
       context,
@@ -321,8 +330,16 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 12),
+        const SizedBox(height: 12),
         GestureDetector(
-          onTap: () => _showEditProfileDialog(context, auth),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EditProfileScreen(),
+              ),
+            );
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -360,94 +377,6 @@ class ProfileScreen extends StatelessWidget {
       ],
     );
   }
-
-  void _showEditProfileDialog(BuildContext context, AuthProvider auth) {
-    final nameController = TextEditingController(text: auth.userName);
-    final experienceController = TextEditingController(text: auth.experience);
-    final bioController = TextEditingController(text: auth.bio);
-    final locationController = TextEditingController(text: auth.location);
-
-    final nameLabel = auth.isRecruiter ? 'Company Name' : 'Name';
-    final experienceLabel = auth.isRecruiter ? 'Industry / Sector' : 'Current Role / Experience';
-    final bioLabel = auth.isRecruiter ? 'Company Description' : 'Bio';
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(auth.isRecruiter ? 'Edit Company Profile' : 'Edit Profile'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: nameLabel),
-              ),
-              TextField(
-                controller: experienceController,
-                decoration: InputDecoration(
-                  labelText: experienceLabel,
-                ),
-              ),
-              TextField(
-                controller: locationController,
-                decoration: const InputDecoration(labelText: 'Location'),
-              ),
-              TextField(
-                controller: bioController,
-                maxLines: 3,
-                decoration: InputDecoration(labelText: bioLabel),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (nameController.text.isNotEmpty) {
-                // Show a brief loading indicator or just update immediately
-                final scaffold = ScaffoldMessenger.of(context);
-
-                if (nameController.text != auth.userName) {
-                  await auth.updateName(nameController.text);
-                }
-                await auth.updateUserDetails(
-                  bio: bioController.text,
-                  experience: experienceController.text,
-                  location: locationController.text,
-                );
-
-                if (context.mounted) {
-                  final jobProvider = Provider.of<JobProvider>(context, listen: false);
-                  await jobProvider.loadJobs(location: locationController.text);
-                }
-
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  scaffold.showSnackBar(
-                    const SnackBar(
-                      content: Text('Profile updated successfully!'),
-                      behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text(
-              'Save',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showEditSkillsDialog(BuildContext context, AuthProvider auth) {
     final controller = TextEditingController();
     List<String> tempSkills = List.from(auth.skills);

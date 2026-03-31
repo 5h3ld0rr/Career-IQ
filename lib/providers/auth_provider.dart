@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:careeriq/services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:careeriq/widgets/app_snackbar.dart';
+import 'dart:math';
+import 'package:careeriq/services/twilio_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -21,6 +23,12 @@ class AuthProvider with ChangeNotifier {
   String? _location;
   String _userRole = 'Job Seeker'; // Default role
 
+  bool _isEmailVerified = false;
+  bool _isPhoneVerified = false;
+  String? _phoneNumber;
+  String? _currentOtp;
+  String? _pendingPhone;
+
   String? get userId => _authService.currentUser?.uid;
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
@@ -37,6 +45,11 @@ class AuthProvider with ChangeNotifier {
   String? get location => _location;
   String get userRole => _userRole;
   bool get isRecruiter => _userRole == 'Recruiter';
+  bool get isExternalProvider => _authService.isExternalProvider;
+
+  bool get isEmailVerified => _isEmailVerified;
+  bool get isPhoneVerified => _isPhoneVerified;
+  String? get phoneNumber => _phoneNumber;
 
   void showNotification(String message, {bool isError = false}) {
     AppSnackBar.show(message, isError: isError);
@@ -69,13 +82,17 @@ class AuthProvider with ChangeNotifier {
     _experience = profile?['experience'];
     _location = profile?['location'];
     _userRole = profile?['role'] ?? 'Job Seeker';
+    _isEmailVerified = user.emailVerified;
+    _isPhoneVerified = profile?['isPhoneVerified'] ?? false;
+    _phoneNumber = profile?['phoneNumber'];
   }
 
   Future<void> checkAuthStatus() async {
     final user = _authService.currentUser;
     if (user != null) {
       try {
-        await _populateUserData(user);
+        await user.reload();
+        await _populateUserData(_authService.currentUser);
       } catch (e) {
         debugPrint('Error checking auth status: $e');
       }
@@ -84,6 +101,11 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> login(String email, String password) async {
+    if (email.trim().isEmpty || password.trim().isEmpty) {
+      showNotification("Email and password are required.", isError: true);
+      return;
+    }
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -103,6 +125,11 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> signUp(String name, String email, String password, {String? role, String? companyName}) async {
+    if (name.trim().isEmpty || email.trim().isEmpty || password.trim().isEmpty) {
+      showNotification("Please fill all required fields.", isError: true);
+      return false;
+    }
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -261,30 +288,52 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> updateUserDetails({
+    String? name,
+    String? email,
     String? bio,
     String? experience,
     String? location,
   }) async {
-    final uid = _authService.currentUser?.uid;
-    if (uid == null) return;
-
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
-      final data = <String, dynamic>{};
-      if (bio != null) data['bio'] = bio;
-      if (experience != null) data['experience'] = experience;
-      if (location != null) data['location'] = location;
+      final uid = _authService.currentUser?.uid;
+      if (uid == null) {
+        showNotification('Not logged in. Please re-login and try again.', isError: true);
+        return;
+      }
 
+      // Never write email for external (Google) accounts — Firebase manages it
+      final isExternal = _authService.isExternalProvider;
+      final data = <String, dynamic>{
+        if (name != null) 'name': name,
+        if (email != null && !isExternal) 'email': email,
+        if (bio != null) 'bio': bio,
+        if (experience != null) 'experience': experience,
+        if (location != null) 'location': location,
+      };
+
+      debugPrint('[updateUserDetails] Writing to Firestore: $data');
       await _authService.updateUserProfile(uid, data);
+
+      if (name != null) _userName = name;
+      if (email != null && !isExternal) _userEmail = email;
       if (bio != null) _bio = bio;
       if (experience != null) _experience = experience;
       if (location != null) _location = location;
-      showNotification("Profile updated successfully!");
+
+      // Also update Firebase Auth display name
+      if (name != null) {
+        await _authService.updateProfile(name: name);
+      }
+
+      showNotification('Profile updated successfully!');
     } catch (e) {
+      debugPrint('[updateUserDetails] ERROR: $e');
       _error = e.toString();
-      showNotification(_error!, isError: true);
+      showNotification('Failed to save profile. Please try again.', isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -326,6 +375,99 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       showNotification("Failed to switch role.", isError: true);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> reloadUser() async {
+    final user = _authService.currentUser;
+    if (user != null) {
+      try {
+        await user.reload();
+        await _populateUserData(_authService.currentUser);
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Error reloading: $e');
+      }
+    }
+  }
+
+  Future<void> sendEmailVerification({String? newEmail}) async {
+    _isLoading = true;
+    notifyListeners();
+    final trimmedNewEmail = newEmail?.trim() ?? '';
+    try {
+      if (trimmedNewEmail.isNotEmpty && trimmedNewEmail != _userEmail) {
+        await _authService.updateEmail(trimmedNewEmail);
+        showNotification("Verification email sent to $trimmedNewEmail.");
+      } else {
+        await _authService.sendEmailVerification();
+        showNotification("Verification email sent to $_userEmail.");
+      }
+    } catch (e) {
+      showNotification(e.toString(), isError: true);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> sendPhoneOtp(String phone) async {
+    final trimmedPhone = phone.trim();
+    if (trimmedPhone.isEmpty) {
+      showNotification("Phone number is required.", isError: true);
+      return false;
+    }
+
+    if (!trimmedPhone.startsWith('+')) {
+      showNotification("Phone number must include country code (e.g., +94).", isError: true);
+      return false;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final otp = (100000 + Random().nextInt(900000)).toString();
+      _currentOtp = otp;
+      _pendingPhone = trimmedPhone;
+      final success = await TwilioService().sendOtp(trimmedPhone, otp);
+      if (success) {
+        showNotification("OTP sent via SMS!");
+        return true;
+      } else {
+        showNotification("Twilio service error. Check .env configuration and balance.", isError: true);
+        return false;
+      }
+    } catch (e) {
+      showNotification("Failed to connect to OTP service: $e", isError: true);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> verifyPhoneOtp(String otp) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (otp == _currentOtp && _pendingPhone != null) {
+        final uid = _authService.currentUser?.uid;
+        if (uid != null) {
+           await _authService.updateUserProfile(uid, {
+             'isPhoneVerified': true,
+             'phoneNumber': _pendingPhone,
+           });
+           _isPhoneVerified = true;
+           _phoneNumber = _pendingPhone;
+           showNotification("Phone Number Verified Successfully!");
+           return true;
+        }
+      }
+      showNotification("Invalid Verification Code.", isError: true);
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

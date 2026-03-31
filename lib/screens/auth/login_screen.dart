@@ -19,8 +19,17 @@ class _LoginScreenState extends State<LoginScreen> {
   String _selectedRole = 'Job Seeker';
 
   void _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      Provider.of<AuthProvider>(context, listen: false)
+          .showNotification("Please enter email and password.", isError: true);
+      return;
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.login(_emailController.text, _passwordController.text);
+    await authProvider.login(email, password);
     if (authProvider.isAuthenticated && mounted) {
       Navigator.pushReplacementNamed(context, '/main');
     }

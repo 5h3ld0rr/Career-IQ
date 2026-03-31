@@ -5,8 +5,9 @@ import 'package:careeriq/main.dart'; // To access scaffoldMessengerKey
 class AppSnackBar {
   static void show(String message, {bool isError = false}) {
     String cleanMessage = _getFriendlyErrorMessage(message);
-    if (cleanMessage.isEmpty)
+    if (cleanMessage.isEmpty) {
       return; // Skip "ghost" notifications (cancellations)
+    }
 
     scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
     scaffoldMessengerKey.currentState?.showSnackBar(
@@ -122,13 +123,11 @@ class AppSnackBar {
       return "Something went wrong. Please check your inputs and try again.";
     }
 
-    // Strip technical prefixes like [firebase_auth/...] if unknown
     if (message.contains(']')) {
       return message.split(']').last.trim();
     }
 
-    // Fallback for very long technical strings (potential internal names)
-    if (message.length > 50 && message.contains('.')) {
+    if (message.length > 60 && !message.contains(' ') && message.contains('.')) {
       return "Service error. Please try again in a moment.";
     }
 

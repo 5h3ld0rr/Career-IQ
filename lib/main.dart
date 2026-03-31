@@ -17,6 +17,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:flutter/foundation.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -40,13 +42,32 @@ void main() async {
   }
 
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    if (Firebase.apps.isEmpty) {
+      debugPrint('Initializing Firebase...');
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        debugPrint('Firebase Initialized.');
+      } catch (e) {
+        if (e.toString().contains('duplicate-app')) {
+          debugPrint('Firebase already initialized natively.');
+        } else {
+          rethrow;
+        }
+      }
+    } else {
+      debugPrint('Firebase already initialized.');
+    }
+
+    debugPrint('Activating App Check...');
+    await FirebaseAppCheck.instance.activate(
+      providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
+      providerApple: kDebugMode ? const AppleDebugProvider() : const AppleDeviceCheckProvider(),
     );
+    debugPrint('App Check Activated.');
   } catch (e) {
-    debugPrint(
-      'Firebase initialization failed (likely not configured yet): \$e',
-    );
+    debugPrint('Firebase/AppCheck initialization FAILED: $e');
   }
 
   runApp(

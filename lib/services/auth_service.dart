@@ -10,6 +10,15 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
+  bool get isExternalProvider {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    for (final profile in user.providerData) {
+      if (profile.providerId == 'google.com') return true;
+    }
+    return false;
+  }
+
   Future<User?> signInWithEmail(String email, String password) async {
     UserCredential result = await _auth.signInWithEmailAndPassword(
       email: email,
@@ -174,5 +183,27 @@ class AuthService {
     await _firestore.collection('users').doc(uid).set({
       'skills': skills,
     }, SetOptions(merge: true));
+  }
+
+  Future<void> updateEmail(String newEmail) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        await user.verifyBeforeUpdateEmail(newEmail);
+      } on FirebaseAuthException catch (e) {
+        switch (e.code) {
+          case 'requires-recent-login':
+            throw 'Security check failed. Please log out and back in, then try again.';
+          case 'email-already-in-use':
+            throw 'This email is already taken by another account.';
+          case 'invalid-email':
+            throw 'Please enter a valid email address.';
+          default:
+            throw 'Email service error: ${e.message} (Code: ${e.code})';
+        }
+      } catch (e) {
+        throw 'An unexpected error occurred: $e';
+      }
+    }
   }
 }
