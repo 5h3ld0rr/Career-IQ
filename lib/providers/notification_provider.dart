@@ -101,4 +101,26 @@ class NotificationProvider with ChangeNotifier {
     notifyListeners();
     await batch.commit();
   }
+
+  Future<void> clearAllNotifications() async {
+    if (_userId == null) return;
+
+    final batch = _firestore.batch();
+    final col = _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('notifications');
+
+    final snapshot = await col.get();
+    if (snapshot.docs.isEmpty) return;
+
+    for (var doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    _notifications.clear();
+    notifyListeners();
+
+    await batch.commit();
+  }
 }
