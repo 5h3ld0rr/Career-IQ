@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
@@ -421,11 +422,23 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen> with SingleTick
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildActionButton(context, Icons.description_rounded, 'View CV', theme.colorScheme.secondary, () {
-                      if (candidateData['resumeUrl'] != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening CV...')));
+                    _buildActionButton(context, Icons.description_rounded, 'View CV', theme.colorScheme.secondary, () async {
+                      final resumeUrl = candidateData['resumeUrl'];
+                      if (resumeUrl != null && resumeUrl.toString().isNotEmpty) {
+                        final uri = Uri.parse(resumeUrl.toString());
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Could not open CV. Invalid URL.')),
+                            );
+                          }
+                        }
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No CV Available')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('No CV Available for this applicant.')),
+                        );
                       }
                     }),
                     _buildActionButton(context, Icons.forum_rounded, 'Message', const Color(0xFF00B0FF), () async {
