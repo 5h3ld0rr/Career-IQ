@@ -11,7 +11,7 @@ import 'salary_roi/salary_roi_screen.dart';
 import 'chat/expert_ai_chat_screen.dart';
 import 'recruiter/recruiter_dashboard_screen.dart';
 import 'recruiter/ats_dashboard_screen.dart';
-import 'recruiter/smart_inbox_screen.dart';
+import 'recruiter/manage_jobs_screen.dart';
 import '../core/theme.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -33,7 +33,7 @@ class _MainWrapperState extends State<MainWrapper> {
       return [
         const RecruiterDashboardScreen(),
         const ATSDashboardScreen(),
-        const SmartInboxScreen(),
+        const ManageJobsScreen(),
         const ProfileScreen(),
       ];
     }
@@ -168,7 +168,7 @@ class _MainWrapperState extends State<MainWrapper> {
                 if (!Provider.of<AuthProvider>(context).isRecruiter)
                   _buildNavItem(2, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved')
                 else
-                  _buildNavItem(2, Icons.forum_outlined, Icons.forum_rounded, 'Inbox'),
+                  _buildNavItem(2, Icons.work_outline_rounded, Icons.work_rounded, 'Jobs'),
                 _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
               ],
             ),

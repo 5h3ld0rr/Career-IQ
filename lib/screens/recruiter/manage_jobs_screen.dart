@@ -4,6 +4,8 @@ import '../../providers/job_provider.dart';
 import '../../core/theme.dart';
 import '../../models/job.dart';
 import '../details/job_details_screen.dart';
+import 'edit_job_screen.dart';
+import 'ats_dashboard_screen.dart';
 
 class ManageJobsScreen extends StatelessWidget {
   const ManageJobsScreen({super.key});
@@ -157,22 +159,81 @@ class ManageJobsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildSmallButton(
+                        context,
+                        Icons.edit_note_rounded,
+                        'Edit',
+                        Colors.blue,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => EditJobScreen(job: job)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildSmallButton(
+                        context,
+                        Icons.people_alt_rounded,
+                        'Applicants',
+                        Colors.orange,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ATSDashboardScreen(initialJobId: job.id)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'Active',
-                style: TextStyle(
-                  color: Color(0xFF4CAF50),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Active',
+                    style: TextStyle(
+                      color: Color(0xFF4CAF50),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmallButton(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],

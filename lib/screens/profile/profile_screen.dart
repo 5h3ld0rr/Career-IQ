@@ -20,6 +20,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
+          final isRecruiter = authProvider.isRecruiter;
           return Stack(
             children: [
               _buildBackgroundDecor(),
@@ -40,26 +41,28 @@ class ProfileScreen extends StatelessWidget {
                       delegate: SliverChildListDelegate([
                         _buildProfileHeader(context, authProvider),
                         const SizedBox(height: 24),
-                        if (!authProvider.isRecruiter) ...[
-                          _buildCompletenessCheck(context, authProvider),
-                          const SizedBox(height: 32),
-                          _buildSectionTitle(context, 'Resume'),
-                          _buildGlassBox(
-                            context,
-                            child: _buildResumeSection(context, authProvider),
-                          ),
-                          const SizedBox(height: 32),
+                        if (true) ...[
+                          if (!authProvider.isRecruiter) ...[
+                            _buildCompletenessCheck(context, authProvider),
+                            const SizedBox(height: 32),
+                            _buildSectionTitle(context, 'Resume'),
+                            _buildGlassBox(
+                              context,
+                              child: _buildResumeSection(context, authProvider),
+                            ),
+                            const SizedBox(height: 32),
+                            _buildSectionTitle(
+                              context,
+                              'Skills',
+                              onEdit: () =>
+                                  _showEditSkillsDialog(context, authProvider),
+                            ),
+                            _buildSkillsSection(context, authProvider),
+                            const SizedBox(height: 32),
+                          ],
                           _buildSectionTitle(
                             context,
-                            'Skills',
-                            onEdit: () =>
-                                _showEditSkillsDialog(context, authProvider),
-                          ),
-                          _buildSkillsSection(context, authProvider),
-                          const SizedBox(height: 32),
-                          _buildSectionTitle(
-                            context,
-                            'About',
+                            isRecruiter ? 'Company Description' : 'About',
                             onEdit: () {
                               Navigator.push(
                                 context,
@@ -73,7 +76,9 @@ class ProfileScreen extends StatelessWidget {
                             context,
                             child: Text(
                               authProvider.bio ??
-                                  'Add a short bio about yourself to stand out to employers.',
+                                  (isRecruiter 
+                                    ? 'Add a short description about your company.'
+                                    : 'Add a short bio about yourself to stand out to employers.'),
                               style: TextStyle(
                                 color: authProvider.bio != null
                                     ? Theme.of(context).colorScheme.onSurface
