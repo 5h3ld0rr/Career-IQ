@@ -11,6 +11,7 @@ import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
 import '../recruiter/manage_jobs_screen.dart';
 import 'edit_profile_screen.dart';
+import '../recruiter/billing_subscription_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -674,8 +675,9 @@ class ProfileScreen extends StatelessWidget {
             Icons.credit_card_rounded,
             'Billing & Subscription',
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Billing page coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BillingSubscriptionScreen()),
               );
             },
           ),

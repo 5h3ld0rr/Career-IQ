@@ -12,6 +12,7 @@ class Job {
   final DateTime postedAt;
   final String applyUrl;
   final String? postedBy;
+  final String? companyPhone;
   bool isSaved;
   int? matchScore;
   bool isAnalyzing;
@@ -30,6 +31,7 @@ class Job {
     required this.postedAt,
     required this.applyUrl,
     this.postedBy,
+    this.companyPhone,
     this.isSaved = false,
     this.matchScore,
     this.isAnalyzing = false,
@@ -52,6 +54,7 @@ class Job {
           : (json['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: json['apply_url'] ?? '',
       postedBy: json['posted_by'],
+      companyPhone: json['company_phone'],
       matchScore: json['match_score'],
     );
   }
@@ -73,6 +76,7 @@ class Job {
           : (data['posted_at'] as dynamic)?.toDate() ?? DateTime.now(),
       applyUrl: data['apply_url'] ?? '',
       postedBy: data['posted_by'],
+      companyPhone: data['company_phone'],
       matchScore: data['match_score'],
     );
   }
@@ -96,6 +100,7 @@ class Job {
       'posted_at': postedAt.toIso8601String(),
       'apply_url': applyUrl,
       'posted_by': postedBy,
+      'company_phone': companyPhone,
     };
   }
 }

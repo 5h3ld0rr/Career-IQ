@@ -1,10 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
+import '../../providers/chat_provider.dart';
 import '../../models/job.dart';
+import '../../models/chat.dart';
+import '../chat/chat_view_screen.dart';
 
 class ATSDashboardScreen extends StatefulWidget {
   const ATSDashboardScreen({super.key});
@@ -418,15 +422,55 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen> with SingleTick
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildActionButton(context, Icons.description_rounded, 'View CV', theme.colorScheme.secondary, () {
-                      if (candidateData['resumeUrl'] != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening CV...')));
+                    _buildActionButton(context, Icons.description_rounded, 'View CV', theme.colorScheme.secondary, () async {
+                      final resumeUrl = candidateData['resumeUrl'];
+                      if (resumeUrl != null && resumeUrl.toString().isNotEmpty) {
+                        final uri = Uri.parse(resumeUrl.toString());
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Could not open CV. Invalid URL.')),
+                            );
+                          }
+                        }
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No CV Available')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('No CV Available for this applicant.')),
+                        );
                       }
                     }),
-                    _buildActionButton(context, Icons.forum_rounded, 'Message', const Color(0xFF00B0FF), () {
-                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Messaging $name...')));
+                    _buildActionButton(context, Icons.forum_rounded, 'Message', const Color(0xFF00B0FF), () async {
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
+                      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+                      final applicantUid = candidateData['userId'];
+                      if (applicantUid != null) {
+                        final roomId = await chatProvider.getOrCreateChatRoom(
+                          userId: applicantUid,
+                          recruiterId: auth.userId!,
+                          companyName: name, 
+                        );
+                        if (mounted) {
+                          Navigator.push(
+                            context, 
+                            MaterialPageRoute(
+                              builder: (_) => ChatViewScreen(
+                                chatRoomId: roomId, 
+                                room: ChatRoom(
+                                  id: roomId, 
+                                  participants: [applicantUid, auth.userId!], 
+                                  lastMessage: '', 
+                                  lastMessageTime: DateTime.now(),
+                                  companyName: name,
+                                )
+                              )
+                            )
+                          );
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Applicant ID not found')));
+                      }
                     }),
                     _buildActionButton(context, Icons.calendar_month_rounded, 'Schedule', const Color(0xFFFF9100), () {}),
                   ],

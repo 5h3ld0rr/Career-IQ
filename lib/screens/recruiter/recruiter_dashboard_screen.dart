@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../../core/theme.dart';
 import '../notifications/notifications_screen.dart';
+import 'ats_dashboard_screen.dart';
 import 'post_job_screen.dart';
 import 'manage_jobs_screen.dart';
 
@@ -140,13 +141,10 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
           const SizedBox(width: 12),
           _buildStatItem(
             'Total Candidates', 
-            '0', 
+            provider.jobApplicants.length.toString(), 
             Icons.people_alt_outlined,
             () {
-              // Add Candidates screen later
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Candidates view coming soon!')),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ATSDashboardScreen()));
             },
           ),
         ],

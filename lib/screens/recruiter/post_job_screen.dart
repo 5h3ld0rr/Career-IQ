@@ -16,6 +16,7 @@ class _PostJobScreenState extends State<PostJobScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _companyController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _locationController = TextEditingController();
   final _salaryController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -65,6 +66,14 @@ class _PostJobScreenState extends State<PostJobScreen> {
               _buildTextField(
                 controller: _companyController,
                 hint: 'e.g. Google Mobile Service',
+                validator: (v) => v!.isEmpty ? 'required' : null,
+              ),
+
+              const SizedBox(height: 20),
+              _buildInputLabel('Company Telephone Number'),
+              _buildTextField(
+                controller: _phoneController,
+                hint: 'e.g. +94 77 123 4567',
                 validator: (v) => v!.isEmpty ? 'required' : null,
               ),
 
@@ -231,6 +240,7 @@ class _PostJobScreenState extends State<PostJobScreen> {
                     postedAt: DateTime.now(),
                     applyUrl: '', // Default placeholder
                     postedBy: auth.userId,
+                    companyPhone: _phoneController.text,
                   );
 
                   try {

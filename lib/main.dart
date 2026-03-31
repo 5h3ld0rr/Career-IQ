@@ -13,6 +13,7 @@ import 'screens/auth/signup_screen.dart';
 import 'screens/main_wrapper.dart';
 import 'screens/salary_roi/salary_roi_screen.dart';
 import 'providers/salary_provider.dart';
+import 'providers/chat_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -79,6 +80,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => SalaryProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const CareerIQApp(),
     ),
