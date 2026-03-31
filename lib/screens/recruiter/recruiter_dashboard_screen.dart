@@ -4,9 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../../core/theme.dart';
 import '../notifications/notifications_screen.dart';
-import 'ats_dashboard_screen.dart';
 import 'post_job_screen.dart';
-import 'manage_jobs_screen.dart';
 
 class RecruiterDashboardScreen extends StatefulWidget {
   const RecruiterDashboardScreen({super.key});
@@ -138,7 +136,7 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
           const SizedBox(width: 12),
           _buildStatItem(
             'Total Candidates', 
-            provider.jobApplicants.length.toString(), 
+            provider.totalApplicantsCount.toString(), 
             Icons.people_alt_outlined,
           ),
         ],

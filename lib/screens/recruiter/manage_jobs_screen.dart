@@ -180,7 +180,7 @@ class ManageJobsScreen extends StatelessWidget {
                         Colors.orange,
                         () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const ATSDashboardScreen()),
+                          MaterialPageRoute(builder: (_) => ATSDashboardScreen(initialJobId: job.id)),
                         ),
                       ),
                     ],

@@ -11,7 +11,8 @@ import '../../models/chat.dart';
 import '../chat/chat_view_screen.dart';
 
 class ATSDashboardScreen extends StatefulWidget {
-  const ATSDashboardScreen({super.key});
+  final String? initialJobId;
+  const ATSDashboardScreen({super.key, this.initialJobId});
 
   @override
   State<ATSDashboardScreen> createState() => _ATSDashboardScreenState();
@@ -40,11 +41,22 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen> with SingleTick
     
     if (auth.userId != null) {
       await jobProvider.loadPostedJobs(auth.userId!);
+      
       if (jobProvider.postedJobs.isNotEmpty) {
+        String? targetId = widget.initialJobId;
+        
+        // Ensure the initialJobId actually exists in the posted jobs
+        if (targetId != null && !jobProvider.postedJobs.any((j) => j.id == targetId)) {
+          targetId = null;
+        }
+
         setState(() {
-          _selectedJobId = jobProvider.postedJobs.first.id;
+          _selectedJobId = targetId ?? jobProvider.postedJobs.first.id;
         });
-        await jobProvider.loadApplicantsForJob(_selectedJobId!);
+        
+        if (_selectedJobId != null) {
+          await jobProvider.loadApplicantsForJob(_selectedJobId!);
+        }
       }
     }
     

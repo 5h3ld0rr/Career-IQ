@@ -22,6 +22,7 @@ class JobProvider with ChangeNotifier {
   List<Map<String, dynamic>> _userApplications = [];
   List<Map<String, dynamic>> _jobApplicants = [];
   List<Job> _postedJobs = [];
+  int _totalApplicantsCount = 0;
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
@@ -31,6 +32,7 @@ class JobProvider with ChangeNotifier {
   List<Job> get postedJobs => _postedJobs;
   List<Map<String, dynamic>> get userApplications => _userApplications;
   List<Map<String, dynamic>> get jobApplicants => _jobApplicants;
+  int get totalApplicantsCount => _totalApplicantsCount;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get currentQuery => _currentQuery;
@@ -112,6 +114,13 @@ class JobProvider with ChangeNotifier {
 
     try {
       _postedJobs = await _jobService.fetchJobsByUser(userId);
+      // Calculate total applicants for all posted jobs
+      int count = 0;
+      for (var job in _postedJobs) {
+        final applicants = await _jobService.fetchApplicantsForJob(job.id);
+        count += applicants.length;
+      }
+      _totalApplicantsCount = count;
     } catch (e) {
       _error = e.toString();
     } finally {
