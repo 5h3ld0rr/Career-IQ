@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../interview/schedule_interview_screen.dart';
+import '../../widgets/app_snackbar.dart';
 
 class ApplicationTrackerScreen extends StatefulWidget {
   const ApplicationTrackerScreen({super.key});
@@ -55,16 +56,12 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         }
         
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mock data seeded successfully!')),
-          );
+          AppSnackBar.show('Mock data seeded successfully! 🚀');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to seed data: $e')),
-        );
+        AppSnackBar.show('Failed to seed data: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isSeeding = false);
@@ -201,12 +198,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           const SizedBox(height: 12),
           TextButton(
             onPressed: () {
-              // Navigate to Jobs search (index 0 in MainWrapper)
-              // This depends on how MainWrapper is structured, but we can use a workaround
-              // or just tell the user to go to the Search tab.
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to the Search tab to find jobs!')),
-              );
+              AppSnackBar.show('Navigate to the Search tab to find jobs!');
             },
             child: const Text(
               'DISCOVER JOBS',

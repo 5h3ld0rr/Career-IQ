@@ -9,6 +9,7 @@ import '../../providers/chat_provider.dart';
 import '../../models/job.dart';
 import '../../models/chat.dart';
 import '../chat/chat_view_screen.dart';
+import '../../widgets/app_snackbar.dart';
 
 class ATSDashboardScreen extends StatefulWidget {
   const ATSDashboardScreen({super.key});
@@ -375,7 +376,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen> with SingleTick
                                 onSelected: (newStage) {
                                   final provider = Provider.of<JobProvider>(context, listen: false);
                                   provider.updateApplicationStatus(applicationId, newStage);
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Moved $name to $newStage')));
+                                  AppSnackBar.show('Moved $name to $newStage');
                                 },
                                 itemBuilder: (BuildContext context) {
                                   return ['New Applied', 'Shortlisted', 'Interviewing', 'Hired', 'Rejected'].map((String choice) {
@@ -430,15 +431,11 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen> with SingleTick
                           await launchUrl(uri, mode: LaunchMode.externalApplication);
                         } else {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Could not open CV. Invalid URL.')),
-                            );
+                            AppSnackBar.show('Could not open CV. Invalid URL.', isError: true);
                           }
                         }
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('No CV Available for this applicant.')),
-                        );
+                        AppSnackBar.show('No CV Available for this applicant.', isError: true);
                       }
                     }),
                     _buildActionButton(context, Icons.forum_rounded, 'Message', const Color(0xFF00B0FF), () async {
@@ -469,7 +466,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen> with SingleTick
                           );
                         }
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Applicant ID not found')));
+                        AppSnackBar.show('Applicant ID not found', isError: true);
                       }
                     }),
                     _buildActionButton(context, Icons.calendar_month_rounded, 'Schedule', const Color(0xFFFF9100), () {}),
