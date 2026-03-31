@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import 'payment_checkout_screen.dart';
 
 class BillingSubscriptionScreen extends StatefulWidget {
   const BillingSubscriptionScreen({super.key});
@@ -11,7 +12,7 @@ class BillingSubscriptionScreen extends StatefulWidget {
 
 class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
   int _selectedPlanIndex = 1; // Default to Pro
-  final int _currentPlanIndex = 0; // The actual active plan
+  int _currentPlanIndex = 0; // The actual active plan
   bool _isYearly = false;
 
   final List<Map<String, dynamic>> _billingHistory = [
@@ -393,9 +394,24 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: isCurrentPlan ? null : () {
+                onPressed: isCurrentPlan ? null : () async {
                    setState(() => _selectedPlanIndex = index);
-                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Switched to $title plan!')));
+                   final bool? paymentSuccess = await Navigator.push(
+                     context,
+                     MaterialPageRoute(
+                       builder: (_) => PaymentCheckoutScreen(
+                         planTitle: title,
+                         planPrice: price,
+                         period: period,
+                       ),
+                     ),
+                   );
+                   if (paymentSuccess == true) {
+                     setState(() {
+                       _currentPlanIndex = index;
+                     });
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully upgraded to $title plan!')));
+                   }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isCurrentPlan 
