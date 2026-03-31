@@ -12,6 +12,7 @@ import 'salary_roi/salary_roi_screen.dart';
 import 'chat/expert_ai_chat_screen.dart';
 import 'recruiter/recruiter_dashboard_screen.dart';
 import 'recruiter/ats_dashboard_screen.dart';
+import 'recruiter/manage_jobs_screen.dart';
 import 'recruiter/smart_inbox_screen.dart';
 import '../core/theme.dart';
 import 'package:provider/provider.dart';
@@ -34,7 +35,7 @@ class _MainWrapperState extends State<MainWrapper> {
       return [
         const RecruiterDashboardScreen(),
         const ATSDashboardScreen(),
-        const SmartInboxScreen(),
+        const ManageJobsScreen(),
         const ProfileScreen(),
       ];
     }
@@ -156,7 +157,7 @@ class _MainWrapperState extends State<MainWrapper> {
                 if (!Provider.of<AuthProvider>(context).isRecruiter)
                   _buildNavItem(2, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved')
                 else
-                  _buildNavItem(2, Icons.forum_outlined, Icons.forum_rounded, 'Inbox'),
+                  _buildNavItem(2, Icons.work_outline_rounded, Icons.work_rounded, 'Jobs'),
                 _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
               ],
             ),
@@ -350,10 +351,7 @@ class _AIHubMenuOverlay extends StatelessWidget {
                       'Manage Jobs',
                       Icons.work_rounded,
                       const Color(0xFF4CAF50),
-                      () {
-                         Navigator.pop(context);
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Manage Jobs Coming Soon')));
-                      },
+                      () => onToolSelected(const ManageJobsScreen()),
                     ),
                     _buildMenuAction(
                       context,
@@ -370,10 +368,7 @@ class _AIHubMenuOverlay extends StatelessWidget {
                       'Smart Inbox',
                       Icons.forum_rounded,
                       const Color(0xFFFF9800),
-                      () {
-                         Navigator.pop(context);
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Smart Inbox Coming Soon')));
-                      },
+                      () => onToolSelected(const SmartInboxScreen()),
                     ),
                   ],
                   _buildMenuAction(
