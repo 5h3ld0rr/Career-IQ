@@ -65,6 +65,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       style: TextStyle(fontWeight: FontWeight.w900),
                     ),
                     centerTitle: true,
+                    actions: [
+                      if (notifications.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildGlassBox(
+                            context,
+                            borderRadius: 50,
+                            padding: const EdgeInsets.all(4),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.delete_sweep_rounded,
+                                size: 20,
+                                color: Colors.redAccent,
+                              ),
+                              onPressed: () {
+                                Provider.of<NotificationProvider>(
+                                  context,
+                                  listen: false,
+                                ).clearAllNotifications();
+                              },
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.all(24),
@@ -103,25 +127,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             },
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Demo Simulator
-          final auth = Provider.of<AuthProvider>(context, listen: false);
-          if (auth.userId != null) {
-            Provider.of<NotificationProvider>(
-              context,
-              listen: false,
-            ).pushService?.simulateNotification(
-              'Application Update',
-              'Your application for Software Engineer at Figma has been updated to "Accepted".',
-              'application',
-              auth.userId!,
-            );
-          }
-        },
-        backgroundColor: Colors.white,
-        child: const Icon(Icons.send_rounded, color: Colors.blue),
       ),
     );
   }
