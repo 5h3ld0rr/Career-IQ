@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../core/theme.dart';
+import '../../services/open_router_service.dart';
 
 class ExpertAIChatScreen extends StatefulWidget {
   const ExpertAIChatScreen({super.key});
@@ -12,27 +11,29 @@ class ExpertAIChatScreen extends StatefulWidget {
 
 class _ExpertAIChatScreenState extends State<ExpertAIChatScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final OpenRouterService _openRouter = OpenRouterService();
+  
   final List<Map<String, dynamic>> _messages = [
     {
       'isUser': false,
       'text': 'Hello! I am your Career IQ Expert. Ask me anything about job hunting, resume optimization, or interview strategies.',
     }
   ];
-  final ScrollController _scrollController = ScrollController();
-  late final GenerativeModel _model;
-  late final ChatSession _chatSession;
-  bool _isLoading = false;
+  
+  /// Chat history for OpenRouter (formatted as role/content maps)
+  final List<Map<String, String>> _chatHistory = [
+    {
+      'role': 'system',
+      'content': 'You are Career IQ Expert, a professional career coach. Help users with career advice, resumes, and interviews. Be concise, professional, and encouraging.'
+    },
+    {
+      'role': 'assistant',
+      'content': 'Hello! I am your Career IQ Expert. Ask me anything about job hunting, resume optimization, or interview strategies.'
+    }
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
-    _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
-    _chatSession = _model.startChat(history: [
-      Content('user', [TextPart("You are Career IQ Expert, a professional career coach. Help users with career advice, resumes, and interviews. Be concise, professional, and encouraging.")]),
-      Content('model', [TextPart("Understood. I am ready to help as your Career IQ Expert.")]),
-    ]);
-  }
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,15 +53,20 @@ class _ExpertAIChatScreenState extends State<ExpertAIChatScreen> {
 
     setState(() {
       _messages.add({'isUser': true, 'text': text});
+      _chatHistory.add({'role': 'user', 'content': text});
       _messageController.clear();
       _isLoading = true;
     });
     _scrollToBottom();
 
     try {
-      final response = await _chatSession.sendMessage(Content('user', [TextPart(text)]));
+      final response = await _openRouter.sendChatMessage(_chatHistory);
+      
       setState(() {
-        _messages.add({'isUser': false, 'text': response.text ?? "Sorry, I couldn't process that."});
+        _messages.add({'isUser': false, 'text': response.isNotEmpty ? response : "Sorry, I couldn't process that."});
+        if (response.isNotEmpty) {
+          _chatHistory.add({'role': 'assistant', 'content': response});
+        }
         _isLoading = false;
       });
     } catch (e) {

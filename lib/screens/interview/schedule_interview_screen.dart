@@ -7,6 +7,7 @@ import '../../models/interview.dart';
 import '../../providers/ai_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../services/calendar_service.dart';
+import '../../widgets/app_snackbar.dart';
 
 class ScheduleInterviewScreen extends StatefulWidget {
   final Map<String, dynamic> application;
@@ -48,9 +49,7 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
     } catch (e) {
       setState(() => _isGeneratingDetails = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate prep details: $e')),
-        );
+        AppSnackBar.show('Failed to generate prep details: $e', isError: true);
       }
     }
   }
@@ -125,19 +124,12 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Interview scheduled and synced with Calendar!'),
-            backgroundColor: Colors.greenAccent,
-          ),
-        );
+        AppSnackBar.show('Interview scheduled and synced with Calendar! 🗓️');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Scheduling failed: $e')));
+        AppSnackBar.show('Scheduling failed: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isSyncing = false);

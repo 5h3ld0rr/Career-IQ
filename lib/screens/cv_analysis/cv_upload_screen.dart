@@ -1,9 +1,10 @@
-import 'dart:ui';
+import 'dart:typed_data';
+import 'dart:developer' as dev;
+import 'dart:ui'; // Required for ImageFilter
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'dart:developer' as dev;
-import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../providers/ai_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -24,6 +25,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
   bool _isAnalyzed = false;
   String _analysisStep = '';
   double _analysisProgress = 0.0;
+  bool _useProfileResume = false;
 
   Future<void> _startAnalysis() async {
     setState(() {
@@ -32,7 +34,9 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
       _analysisProgress = 0.0;
     });
 
+
     final aiProvider = Provider.of<AIProvider>(context, listen: false);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
 
     // Simulate different steps of analysis
     final steps = [
@@ -53,6 +57,19 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
 
       // 1. REAL PDF TEXT EXTRACTION
       String resumeText = '';
+      
+      if (_useProfileResume && auth.resumeUrl != null && _fileBytes == null) {
+        setState(() {
+          _analysisStep = 'Downloading profile resume...';
+          _analysisProgress = 0.1;
+        });
+        final response = await http.get(Uri.parse(auth.resumeUrl!));
+        if (response.statusCode == 200) {
+          _fileBytes = response.bodyBytes;
+          _fileName = auth.resumeFileName;
+        }
+      }
+
       if (_fileBytes != null) {
         resumeText = await _extractTextFromPdf(_fileBytes!);
       }
@@ -91,6 +108,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
     );
     if (result != null) {
       setState(() {
+        _useProfileResume = false; // Reset if user picks new file
         _fileName = result.files.single.name;
         _fileBytes = result.files.single.bytes;
       });
@@ -176,6 +194,9 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) => _buildProfileResumeToggle(auth),
+                      ),
                       _buildGlassContainer(child: _buildUploadZone()),
                       if (_fileName != null) ...[
                         const SizedBox(height: 16),
@@ -275,59 +296,139 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
     );
   }
 
-  Widget _buildUploadZone() {
-    return GestureDetector(
-      onTap: _pickFile,
-      child: Column(
-        children: [
-          const Text(
-            'Upload CV',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+  Widget _buildProfileResumeToggle(AuthProvider auth) {
+    if (auth.resumeUrl == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(height: 16),
+        ],
+      ),
+      child: Row(
+        children: [
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 40),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.black12,
-                style: BorderStyle.solid,
-              ), // In Flutter solid is easier than dashed for simple impl
+              color: const Color(0xFFE0F2F1),
+              shape: BoxShape.circle,
             ),
+            child: const Icon(Icons.person_pin_rounded, color: Color(0xFF00BFA5), size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.cloud_upload_outlined,
-                    color: Colors.black54,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 16),
                 const Text(
-                  'Upload CV (PDF, DOCX)',
-                  style: TextStyle(
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
+                  'Use Profile Resume',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                Text(
+                  auth.resumeFileName ?? 'Resume.pdf',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.black45, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
           ),
+          Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: _useProfileResume,
+              activeColor: AppTheme.primaryBlue,
+              onChanged: (val) {
+                if (_isUploading) return;
+                setState(() {
+                  _useProfileResume = val;
+                  if (val) {
+                    _fileName = auth.resumeFileName;
+                    _isAnalyzed = false;
+                  } else {
+                    _fileName = null;
+                    _fileBytes = null;
+                    _isAnalyzed = false;
+                    _analysisProgress = 0.0;
+                    _analysisStep = '';
+                  }
+                });
+                if (val) {
+                  _startAnalysis();
+                }
+              },
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUploadZone() {
+    return GestureDetector(
+      onTap: _useProfileResume ? null : _pickFile,
+      child: Opacity(
+        opacity: _useProfileResume ? 0.5 : 1.0,
+        child: Column(
+          children: [
+            const Text(
+              'Upload CV',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 40),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.black12,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.cloud_upload_outlined,
+                      color: Colors.black54,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Upload CV (PDF, DOCX)',
+                    style: TextStyle(
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -339,15 +440,8 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'AI Skill Analysis',
+              'Analysis Progress',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            Text(
-              '${(_analysisProgress * 100).toInt()}%',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
-              ),
             ),
           ],
         ),
@@ -439,38 +533,12 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      skill['skill'],
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      '${skill['match'] ?? 0}% Match',
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: (skill['match'] ?? 0) / 100.0,
-                    minHeight: 8,
-                    backgroundColor: Colors.white,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      (skill['match'] ?? 0) > 90
-                          ? const Color(0xFF039BE5)
-                          : const Color(0xFF81D4FA),
-                    ),
+                Text(
+                  skill['skill'],
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
               ],

@@ -7,11 +7,10 @@ import 'package:careeriq/providers/theme_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:careeriq/providers/job_provider.dart';
-import 'ai_tips_screen.dart';
-import '../tracker/application_tracker_screen.dart';
 import '../recruiter/manage_jobs_screen.dart';
 import 'edit_profile_screen.dart';
 import '../recruiter/billing_subscription_screen.dart';
+import '../../widgets/app_snackbar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -89,13 +88,15 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 32),
                         ],
-                        _buildSectionTitle(context, authProvider.isRecruiter ? 'Hiring Tools' : 'Career Tools'),
-                        _buildGlassBox(
-                          context,
-                          padding: const EdgeInsets.all(8),
-                          child: _buildFeaturesMenu(context, authProvider),
-                        ),
-                        const SizedBox(height: 32),
+                        if (authProvider.isRecruiter) ...[
+                          _buildSectionTitle(context, 'Hiring Tools'),
+                          _buildGlassBox(
+                            context,
+                            padding: const EdgeInsets.all(8),
+                            child: _buildFeaturesMenu(context, authProvider),
+                          ),
+                          const SizedBox(height: 32),
+                        ],
                         _buildSectionTitle(context, 'System'),
                         _buildGlassBox(
                           context,
@@ -630,26 +631,6 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildFeaturesMenu(BuildContext context, AuthProvider auth) {
     return Column(
       children: [
-        if (!auth.isRecruiter) ...[
-          _buildMenuTile(
-            context,
-            Icons.psychology_rounded,
-            'AI Resume Analysis',
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()),
-            ),
-          ),
-          _buildMenuTile(
-            context,
-            Icons.history_rounded,
-            'Application History',
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ApplicationTrackerScreen()),
-            ),
-          ),
-        ],
         if (auth.isRecruiter) ...[
           _buildMenuTile(
             context,
@@ -665,9 +646,7 @@ class ProfileScreen extends StatelessWidget {
             Icons.people_alt_rounded,
             'Saved Candidates',
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Saved Candidates feature coming soon')),
-              );
+              AppSnackBar.show('Saved Candidates feature coming soon');
             },
           ),
           _buildMenuTile(
@@ -686,9 +665,7 @@ class ProfileScreen extends StatelessWidget {
             Icons.business_rounded,
             'Organization Settings',
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Organization Settings coming soon')),
-              );
+              AppSnackBar.show('Organization Settings coming soon');
             },
           ),
         ],
@@ -745,11 +722,7 @@ class ProfileScreen extends StatelessWidget {
             );
             await jobProvider.seedDatabase(auth.userId);
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Database seeded with new categories!'),
-                ),
-              );
+              AppSnackBar.show('Database seeded with new categories!');
             }
           },
         ),

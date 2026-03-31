@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ai_provider.dart';
 import '../../core/theme.dart';
+import 'package:shimmer/shimmer.dart';
 
 class SkillsGapAnalysisScreen extends StatelessWidget {
   const SkillsGapAnalysisScreen({super.key});
@@ -15,27 +16,66 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     if (aiProvider.isLoading) {
       return Scaffold(
         backgroundColor: AppTheme.getScaffoldColor(context),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(color: AppTheme.primaryBlue),
-              const SizedBox(height: 24),
-              const Text(
-                'Deep Scan in progress...',
-                style: TextStyle(
-                  color: AppTheme.mediumSlate,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+        body: Stack(
+          children: [
+            _buildBackgroundDecor(),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 8,
+                          strokeCap: StrokeCap.round,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBlue),
+                        ),
+                      ),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.8, end: 1.2),
+                        duration: const Duration(seconds: 1),
+                        curve: Curves.easeInOut,
+                        builder: (context, value, child) => Transform.scale(
+                          scale: value,
+                          child: Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 36,
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 48),
+                  Shimmer.fromColors(
+                    baseColor: AppTheme.mediumSlate,
+                    highlightColor: AppTheme.primaryBlue,
+                    child: const Text(
+                      'Deep Scan in progress...',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'AI is mapping your skills to industry standards',
+                    style: TextStyle(
+                      color: Colors.black45,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'AI is comparing your skills with industry standards',
-                style: TextStyle(color: Colors.black45, fontSize: 13),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
@@ -69,16 +109,10 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
       );
     }
 
-    final int matchPercentage = gapData['matchPercentage'] ?? 0;
-    final List<String> currentSkills = List<String>.from(
-      gapData['currentSkills'] ?? [],
-    );
-    final List<String> missingSkills = List<String>.from(
-      gapData['missingSkills'] ?? [],
-    );
-    final List<String> recommendations = List<String>.from(
-      gapData['recommendations'] ?? [],
-    );
+    final List<String> currentSkills = List<String>.from(gapData['currentSkills'] ?? []);
+    final List<String> missingSkills = List<String>.from(gapData['missingSkills'] ?? []);
+    final List<String> recommendations = List<String>.from(gapData['recommendations'] ?? []);
+    final String summary = gapData['summary'] ?? "Analyzing how your trajectory aligns with this role's requirements...";
 
     return Scaffold(
       backgroundColor: AppTheme.getScaffoldColor(context),
@@ -109,45 +143,74 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
                 title: const Text('Career Match IQ'),
               ),
               SliverPadding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    _buildGlassBox(child: _buildMatchPercentageSection(matchPercentage)),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('Your Strengths'),
-                    const SizedBox(height: 16),
-                    _buildSkillList(currentSkills, isMissing: false),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('Critical Gaps'),
-                    const SizedBox(height: 16),
-                    _buildSkillList(missingSkills, isMissing: true),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('AI Recommendations'),
-                    const SizedBox(height: 16),
-                    ...recommendations.map(
-                      (rec) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildGlassBox(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
+                    // AI Summary Card
+                    _buildGlassBox(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              const Icon(Icons.auto_awesome, color: Color(0xFF03A9F4), size: 18),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  rec,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.auto_awesome_rounded,
+                                  color: AppTheme.primaryBlue,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Text(
+                                'AI INSIGHT',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 14,
+                                  color: AppTheme.primaryBlue,
+                                  letterSpacing: 2,
                                 ),
                               ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 20),
+                          Text(
+                            summary,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              height: 1.4,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 32),
+
+                    _buildSectionTitle('Your Strengths'),
+                    const SizedBox(height: 16),
+                    _buildSkillList(currentSkills, isMissing: false),
+                    const SizedBox(height: 32),
+
+                    _buildSectionTitle('Critical Gaps'),
+                    const SizedBox(height: 16),
+                    _buildSkillList(missingSkills, isMissing: true),
+                    const SizedBox(height: 48),
+
+                    _buildSectionTitle('AI Strategy Plan'),
+                    const SizedBox(height: 20),
+                    ...recommendations.asMap().entries.map(
+                          (entry) => _buildRecommendationCard(
+                            index: entry.key + 1,
+                            text: entry.value,
+                          ),
+                        ),
                     const SizedBox(height: 100),
                   ]),
                 ),
@@ -159,23 +222,87 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: -100,
-      right: -100,
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              const Color(0xFF03A9F4).withValues(alpha: 0.3),
-              Colors.transparent,
-            ],
-          ),
+  Widget _buildRecommendationCard({required int index, required String text}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: _buildGlassBox(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '0$index',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                  color: Colors.black54,
+                ),
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  height: 1.5,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBackgroundDecor() {
+    return Stack(
+      children: [
+        Positioned(
+          top: -100,
+          right: -100,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF03A9F4).withValues(alpha: 0.15),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 200,
+          left: -40,
+          child: Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFFF9800).withValues(alpha: 0.05),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -191,43 +318,6 @@ class SkillsGapAnalysisScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMatchPercentageSection(int percentage) {
-    return Column(
-      children: [
-        const Text(
-          'Target Role Fit',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black54),
-        ),
-        const SizedBox(height: 16),
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 120,
-              height: 120,
-              child: CircularProgressIndicator(
-                value: percentage / 100,
-                strokeWidth: 10,
-                backgroundColor: Colors.white,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  percentage > 70 ? const Color(0xFF00E676) : const Color(0xFF03A9F4),
-                ),
-                strokeCap: StrokeCap.round,
-              ),
-            ),
-            Text(
-              '$percentage%',
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
   Widget _buildSkillList(List<String> skills, {required bool isMissing}) {
     return Wrap(

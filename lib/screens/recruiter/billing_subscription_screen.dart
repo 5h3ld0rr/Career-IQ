@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../widgets/app_snackbar.dart';
 import 'payment_checkout_screen.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -73,8 +74,8 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Text("Invoice #: \${invoice['invoice']}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text("Date: \${invoice['date']}"),
+                        pw.Text("Invoice #: ${invoice['invoice']}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text("Date: ${invoice['date']}"),
                       ]
                     ),
                   ]
@@ -84,12 +85,12 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
                 pw.SizedBox(height: 10),
                 pw.Container(
                   padding: const pw.EdgeInsets.all(12),
-                  decoration: pw.BoxDecoration(color: PdfColors.grey100, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey100, borderRadius: pw.BorderRadius.all(pw.Radius.circular(8))),
                   child: pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text("Plan: \${invoice['plan']}"),
-                      pw.Text("Status: \${invoice['status']}", style: pw.TextStyle(color: PdfColors.green800, fontWeight: pw.FontWeight.bold)),
+                      pw.Text("Plan: ${invoice['plan']}"),
+                      pw.Text("Status: ${invoice['status']}", style: pw.TextStyle(color: PdfColors.green800, fontWeight: pw.FontWeight.bold)),
                     ]
                   ),
                 ),
@@ -98,7 +99,7 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text('TOTAL DUE', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
-                    pw.Text(invoice['amount'], style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                    pw.Text(invoice['amount'] as String, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
                   ]
                 ),
                 pw.Spacer(),
@@ -112,7 +113,7 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
         },
       ),
     );
-    await Printing.sharePdf(bytes: await pdf.save(), filename: "\${invoice['invoice']}.pdf");
+    await Printing.sharePdf(bytes: await pdf.save(), filename: "${invoice['invoice']}.pdf");
   }
 
   @override
@@ -334,7 +335,7 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add-on store opening...')));
+                AppSnackBar.show('Add-on store opening...');
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -495,7 +496,7 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
                      setState(() {
                        _currentPlanIndex = index;
                      });
-                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully upgraded to $title plan!')));
+                     AppSnackBar.show('Successfully upgraded to $title plan! 🚀');
                    }
                 },
                 style: ElevatedButton.styleFrom(
@@ -544,7 +545,7 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
                   children: [
                     InkWell(
                       onTap: () async {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Preparing \${invoice['invoice']}...")));
+                        AppSnackBar.show("Preparing ${invoice['invoice']}...");
                         await _generateAndDownloadInvoice(invoice);
                       },
                       child: Padding(
@@ -586,7 +587,7 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    "\${invoice['invoice']} • \${invoice['date']}",
+                                    "${invoice['invoice']} • ${invoice['date']}",
                                     style: TextStyle(
                                       color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                                       fontWeight: FontWeight.w600,
@@ -619,7 +620,7 @@ class _BillingSubscriptionScreenState extends State<BillingSubscriptionScreen> {
               Divider(height: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
               InkWell(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening all invoices...')));
+                  AppSnackBar.show('Opening all invoices...');
                 },
                 child: Container(
                   width: double.infinity,

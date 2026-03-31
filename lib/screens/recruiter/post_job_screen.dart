@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../../core/theme.dart';
 import '../../models/job.dart';
+import '../../widgets/app_snackbar.dart';
 
 class PostJobScreen extends StatefulWidget {
   const PostJobScreen({super.key});
@@ -247,15 +248,11 @@ class _PostJobScreenState extends State<PostJobScreen> {
                     await jobProvider.addJob(newJob);
                     if (mounted) {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Job posted successfully!')),
-                      );
+                      AppSnackBar.show('Job posted successfully! 🚀');
                     }
                   } catch (e) {
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to post job: $e')),
-                      );
+                      AppSnackBar.show('Failed to post job: $e', isError: true);
                     }
                   }
                 }

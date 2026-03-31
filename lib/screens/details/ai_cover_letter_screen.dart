@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/ai_provider.dart';
 import 'package:careeriq/core/theme.dart';
 import 'package:flutter/services.dart';
+import '../../widgets/app_snackbar.dart';
 
 class AICoverLetterScreen extends StatefulWidget {
   final String jobTitle;
@@ -269,13 +270,7 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
             borderRadius: 20,
             child: ElevatedButton.icon(
               onPressed: () {
-                Clipboard.setData(ClipboardData(text: aiProvider.coverLetter!));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Copied!'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                AppSnackBar.show('Copied to clipboard! 📋');
               },
               icon: const Icon(
                 Icons.copy_all_rounded,

@@ -7,6 +7,8 @@ import '../../models/job.dart';
 import '../../providers/job_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../widgets/app_snackbar.dart';
+import 'package:careeriq/core/theme.dart';
 
 class ApplyJobScreen extends StatefulWidget {
   final Job job;
@@ -19,6 +21,7 @@ class ApplyJobScreen extends StatefulWidget {
 class _ApplyJobScreenState extends State<ApplyJobScreen> {
   File? _selectedResume;
   String? _resumeName;
+  bool _useProfileResume = false;
   final TextEditingController _coverLetterController = TextEditingController();
 
   Future<void> _pickResume() async {
@@ -32,6 +35,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
         setState(() {
           _selectedResume = File(result.files.single.path!);
           _resumeName = result.files.single.name;
+          _useProfileResume = false;
         });
       }
     } catch (e) {
@@ -40,32 +44,28 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
   }
 
   void _submitApplication() async {
-    if (_selectedResume == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please upload your resume to continue')),
-      );
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (!_useProfileResume && _selectedResume == null) {
+      AppSnackBar.show('Please upload your resume to continue', isError: true);
       return;
     }
 
-    final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.userId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please login to apply')));
+      AppSnackBar.show('Please login to apply', isError: true);
       return;
     }
 
     try {
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
+      
       await jobProvider.submitApplication(
         userId: auth.userId!,
         jobId: widget.job.id,
-        resumeFile:
-            _selectedResume!, // File upload is handled in Provider/Service
+        resumeFile: _useProfileResume ? null : _selectedResume,
+        useProfileResume: _useProfileResume,
         coverLetter: _coverLetterController.text.trim(),
       );
 
-      // Trigger Notification for the Job Seeker
       if (mounted) {
         final notifProvider = Provider.of<NotificationProvider>(context, listen: false);
         await notifProvider.pushService?.simulateNotification(
@@ -77,15 +77,11 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Application submitted successfully! 🎉')),
-      );
-      Navigator.pop(context); // Go back to job details
+      AppSnackBar.show('Application submitted successfully! 🎉');
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to apply: $e')));
+      AppSnackBar.show('Failed to apply: $e', isError: true);
     }
   }
 
@@ -98,19 +94,19 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: AppTheme.getScaffoldColor(context),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        leadingWidth: 70,
         leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _buildGlassBox(
-            borderRadius: 50,
-            padding: EdgeInsets.zero,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
-              onPressed: () => Navigator.pop(context),
-            ),
+          padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
+          child: _buildGlassIconButton(
+            context,
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () => Navigator.pop(context),
           ),
         ),
         title: const Text(
@@ -122,63 +118,140 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
       body: Stack(
         children: [
           _buildBackgroundDecor(),
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildJobSummaryCard(),
-                const SizedBox(height: 32),
-                const Text(
-                  'Upload Resume *',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          Consumer<AuthProvider>(
+            builder: (context, auth, _) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(24, 120, 24, 140),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildJobSummaryCard(context),
+                    const SizedBox(height: 48),
+                    _buildSectionHeader(context, 'Your Resume'),
+                    const SizedBox(height: 16),
+                    if (auth.resumeUrl != null) ...[
+                      _buildProfileResumeOption(auth),
+                      const SizedBox(height: 16),
+                    ],
+                    if (!_useProfileResume) ...[
+                      _buildUploadArea(context),
+                    ],
+                    const SizedBox(height: 40),
+                    _buildSectionHeader(context, 'Cover Letter (Optional)'),
+                    const SizedBox(height: 16),
+                    _buildCoverLetterField(context),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                _buildUploadArea(),
-                const SizedBox(height: 32),
-                const Text(
-                  'Cover Letter (Optional)',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 12),
-                _buildCoverLetterField(),
-                const SizedBox(height: 48),
-              ],
-            ),
+              );
+            },
           ),
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: _buildBottomSubmitAction(),
+            child: _buildBottomSubmitAction(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: -100,
-      left: -50,
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              const Color(0xFF81D4FA).withValues(alpha: 0.3),
-              Colors.transparent,
-            ],
+  Widget _buildGlassIconButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.getGlassColor(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppTheme.getGlassBorderColor(context),
+              width: 1.5,
+            ),
+          ),
+          child: IconButton(
+            icon: Icon(icon, size: 16),
+            onPressed: onTap,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildGlassBox({
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBackgroundDecor() {
+    return Stack(
+      children: [
+        Positioned(
+          top: -100,
+          left: -50,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF03A9F4).withValues(alpha: 0.1),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 200,
+          right: -100,
+          child: Container(
+            width: 400,
+            height: 400,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF81D4FA).withValues(alpha: 0.1),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGlassBox(
+    BuildContext context, {
     required Widget child,
     EdgeInsets? padding,
     double borderRadius = 24,
@@ -186,10 +259,12 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
+        color: AppTheme.getGlassColor(context),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: Colors.white.withValues(alpha: borderOpacity ?? 0.8),
+          color: AppTheme.getGlassBorderColor(context).withValues(
+            alpha: borderOpacity ?? 0.8,
+          ),
           width: 1.5,
         ),
         boxShadow: [
@@ -213,23 +288,30 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
     );
   }
 
-  Widget _buildJobSummaryCard() {
+  Widget _buildJobSummaryCard(BuildContext context) {
     return _buildGlassBox(
+      context,
       borderRadius: 20,
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 54,
+            height: 54,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                ),
+              ],
             ),
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             child: Image.network(
               widget.job.logoUrl,
-              errorBuilder: (_, _, _) => const Icon(Icons.business),
+              errorBuilder: (_, _, _) => const Icon(Icons.business_rounded, color: Colors.grey),
             ),
           ),
           const SizedBox(width: 16),
@@ -242,6 +324,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
+                    height: 1.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -249,8 +332,8 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                 const SizedBox(height: 4),
                 Text(
                   widget.job.companyName,
-                  style: const TextStyle(
-                    color: Colors.black54,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -263,27 +346,89 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
     );
   }
 
-  Widget _buildUploadArea() {
+  Widget _buildProfileResumeOption(AuthProvider auth) {
+    return GestureDetector(
+      onTap: () => setState(() => _useProfileResume = !_useProfileResume),
+      child: _buildGlassBox(
+        context,
+        padding: const EdgeInsets.all(16),
+        borderRadius: 20,
+        borderOpacity: _useProfileResume ? 1.0 : 0.4,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00BFA5).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.person_pin_rounded,
+                color: const Color(0xFF00BFA5),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Use Profile Resume',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                  ),
+                  Text(
+                    auth.resumeFileName ?? 'Resume from your profile',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Transform.scale(
+              scale: 0.8,
+              child: Switch(
+                value: _useProfileResume,
+                onChanged: (val) => setState(() => _useProfileResume = val),
+                activeColor: const Color(0xFF00BFA5),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadArea(BuildContext context) {
     return GestureDetector(
       onTap: _pickResume,
       child: _buildGlassBox(
+        context,
         borderRadius: 20,
         borderOpacity: _selectedResume != null ? 1.0 : 0.4,
-        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
         child: SizedBox(
           width: double.infinity,
           child: Column(
             children: [
-              Icon(
-                _selectedResume != null
-                    ? Icons.description_rounded
-                    : Icons.upload_file_rounded,
-                size: 48,
-                color: _selectedResume != null
-                    ? const Color(0xFF03A9F4)
-                    : Colors.black38,
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: (_selectedResume != null ? const Color(0xFF03A9F4) : Colors.grey).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _selectedResume != null
+                      ? Icons.task_rounded
+                      : Icons.cloud_upload_outlined,
+                  size: 40,
+                  color: _selectedResume != null
+                      ? const Color(0xFF03A9F4)
+                      : Colors.grey,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
                 _selectedResume != null
                     ? _resumeName!
@@ -293,8 +438,8 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                   fontWeight: FontWeight.w800,
                   fontSize: 14,
                   color: _selectedResume != null
-                      ? Colors.black87
-                      : Colors.black54,
+                      ? Theme.of(context).colorScheme.onSurface
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               if (_selectedResume == null) ...[
@@ -302,23 +447,20 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                 const Text(
                   'PDF, DOC, or DOCX (Max 5MB)',
                   style: TextStyle(
-                    color: Colors.black38,
-                    fontSize: 12,
+                    color: Colors.grey,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ] else ...[
                 const SizedBox(height: 16),
-                TextButton.icon(
-                  onPressed: _pickResume,
-                  icon: const Icon(Icons.edit_rounded, size: 16),
-                  label: const Text('Change File'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF03A9F4),
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                    ),
+                Text(
+                  'Tap to change file',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],
@@ -329,18 +471,19 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
     );
   }
 
-  Widget _buildCoverLetterField() {
+  Widget _buildCoverLetterField(BuildContext context) {
     return _buildGlassBox(
+      context,
       borderRadius: 20,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: TextField(
         controller: _coverLetterController,
         maxLines: 6,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        decoration: const InputDecoration(
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
           hintText: 'Write why you are a good fit for this role...',
           hintStyle: TextStyle(
-            color: Colors.black38,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -350,7 +493,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
     );
   }
 
-  Widget _buildBottomSubmitAction() {
+  Widget _buildBottomSubmitAction(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
       color: Colors.transparent,
@@ -361,21 +504,35 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: AppTheme.getGlassColor(context).withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white, width: 1.5),
+              border: Border.all(color: AppTheme.getGlassBorderColor(context), width: 1.5),
             ),
             child: Consumer<JobProvider>(
               builder: (context, jobs, _) {
                 final isSubmitting = jobs.isLoading;
-                return SizedBox(
+                return Container(
                   width: double.infinity,
                   height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF03A9F4), Color(0xFF0288D1)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF03A9F4).withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: isSubmitting ? null : _submitApplication,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shadowColor: Colors.transparent,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -386,7 +543,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
-                              color: Colors.black,
+                              color: Colors.white,
                               strokeWidth: 2,
                             ),
                           )
@@ -395,6 +552,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 16,
+                              letterSpacing: 1.2,
                             ),
                           ),
                   ),

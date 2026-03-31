@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../cv_analysis/cv_upload_screen.dart';
 import '../interview/mock_interview_screen.dart';
 import '../salary_roi/salary_roi_screen.dart';
+import '../../widgets/app_snackbar.dart';
 
 class CareerToolsScreen extends StatelessWidget {
   const CareerToolsScreen({super.key});
@@ -92,9 +93,7 @@ class CareerToolsScreen extends StatelessWidget {
                           context,
                           title: 'Expert AI',
                           icon: Icons.forum_outlined,
-                          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('AI Expert coming soon!')),
-                          ),
+                          onTap: () => AppSnackBar.show('AI Expert coming soon! ✨'),
                         ),
                       ],
                     ),
