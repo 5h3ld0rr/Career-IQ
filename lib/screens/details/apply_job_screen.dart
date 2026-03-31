@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/job.dart';
 import '../../providers/job_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 
 class ApplyJobScreen extends StatefulWidget {
   final Job job;
@@ -63,6 +64,17 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
             _selectedResume!, // File upload is handled in Provider/Service
         coverLetter: _coverLetterController.text.trim(),
       );
+
+      // Trigger Notification for the Job Seeker
+      if (mounted) {
+        final notifProvider = Provider.of<NotificationProvider>(context, listen: false);
+        await notifProvider.pushService?.simulateNotification(
+          'Application Submitted!',
+          'Your application for ${widget.job.title} at ${widget.job.companyName} has been received.',
+          'application',
+          auth.userId!,
+        );
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
