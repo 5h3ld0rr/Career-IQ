@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:careeriq/providers/job_provider.dart';
 import 'ai_tips_screen.dart';
 import '../tracker/application_tracker_screen.dart';
+import '../recruiter/manage_jobs_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -80,11 +81,18 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 32),
                         ],
-                        _buildSectionTitle(context, 'Actions'),
+                        _buildSectionTitle(context, authProvider.isRecruiter ? 'Hiring Tools' : 'Career Tools'),
                         _buildGlassBox(
                           context,
                           padding: const EdgeInsets.all(8),
-                          child: _buildActionsMenu(context, authProvider),
+                          child: _buildFeaturesMenu(context, authProvider),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSectionTitle(context, 'System'),
+                        _buildGlassBox(
+                          context,
+                          padding: const EdgeInsets.all(8),
+                          child: _buildSystemMenu(context, authProvider),
                         ),
                         const SizedBox(height: 120),
                       ]),
@@ -297,7 +305,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          auth.userName ?? 'User Name',
+          auth.userName ?? (auth.isRecruiter ? 'Company Name' : 'User Name'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w900,
             color: Theme.of(context).colorScheme.onSurface,
@@ -359,22 +367,26 @@ class ProfileScreen extends StatelessWidget {
     final bioController = TextEditingController(text: auth.bio);
     final locationController = TextEditingController(text: auth.location);
 
+    final nameLabel = auth.isRecruiter ? 'Company Name' : 'Name';
+    final experienceLabel = auth.isRecruiter ? 'Industry / Sector' : 'Current Role / Experience';
+    final bioLabel = auth.isRecruiter ? 'Company Description' : 'Bio';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Profile'),
+        title: Text(auth.isRecruiter ? 'Edit Company Profile' : 'Edit Profile'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: nameLabel),
               ),
               TextField(
                 controller: experienceController,
-                decoration: const InputDecoration(
-                  labelText: 'Current Role / Experience',
+                decoration: InputDecoration(
+                  labelText: experienceLabel,
                 ),
               ),
               TextField(
@@ -384,7 +396,7 @@ class ProfileScreen extends StatelessWidget {
               TextField(
                 controller: bioController,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Bio'),
+                decoration: InputDecoration(labelText: bioLabel),
               ),
             ],
           ),
@@ -685,7 +697,75 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionsMenu(BuildContext context, AuthProvider auth) {
+  Widget _buildFeaturesMenu(BuildContext context, AuthProvider auth) {
+    return Column(
+      children: [
+        if (!auth.isRecruiter) ...[
+          _buildMenuTile(
+            context,
+            Icons.psychology_rounded,
+            'AI Resume Analysis',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()),
+            ),
+          ),
+          _buildMenuTile(
+            context,
+            Icons.history_rounded,
+            'Application History',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ApplicationTrackerScreen()),
+            ),
+          ),
+        ],
+        if (auth.isRecruiter) ...[
+          _buildMenuTile(
+            context,
+            Icons.cases_rounded,
+            'Manage Job Postings',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ManageJobsScreen()),
+            ),
+          ),
+          _buildMenuTile(
+            context,
+            Icons.people_alt_rounded,
+            'Saved Candidates',
+            () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Saved Candidates feature coming soon')),
+              );
+            },
+          ),
+          _buildMenuTile(
+            context,
+            Icons.credit_card_rounded,
+            'Billing & Subscription',
+            () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Billing page coming soon')),
+              );
+            },
+          ),
+          _buildMenuTile(
+            context,
+            Icons.business_rounded,
+            'Organization Settings',
+            () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Organization Settings coming soon')),
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSystemMenu(BuildContext context, AuthProvider auth) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Column(
       children: [
@@ -722,25 +802,6 @@ class ProfileScreen extends StatelessWidget {
             context,
           ).colorScheme.onSurface.withValues(alpha: 0.05),
           indent: 50,
-        ),
-
-        _buildMenuTile(
-          context,
-          Icons.psychology_rounded,
-          'AI Resume Analysis',
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AIResumeTipsScreen()),
-          ),
-        ),
-        _buildMenuTile(
-          context,
-          Icons.history_rounded,
-          'Application History',
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ApplicationTrackerScreen()),
-          ),
         ),
         _buildMenuTile(
           context,
