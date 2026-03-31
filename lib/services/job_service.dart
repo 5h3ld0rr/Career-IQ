@@ -261,6 +261,45 @@ class JobService {
     return applications;
   }
 
+  Future<void> updateApplicationStatus(String applicationId, String newStatus) async {
+    await _firestore.collection('applications').doc(applicationId).update({
+      'status': newStatus,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchApplicantsForJob(
+    String jobId,
+  ) async {
+    final snapshot = await _firestore
+        .collection('applications')
+        .where('jobId', isEqualTo: jobId)
+        .get();
+
+    List<Map<String, dynamic>> applicants = [];
+
+    for (var doc in snapshot.docs) {
+      final appData = doc.data();
+      final userId = appData['userId'];
+
+      // Fetch user details for each application
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      
+      final userMap = userDoc.exists 
+          ? {'id': userDoc.id, ...userDoc.data()!}
+          : {'id': userId, 'fullName': 'Unknown Applicant', 'currentRole': 'Unknown'};
+
+      applicants.add({
+        'applicationId': doc.id,
+        'status': appData['status'] ?? 'New Applied',
+        'appliedAt': appData['appliedAt'],
+        'resumeUrl': appData['resumeUrl'],
+        'user': userMap,
+      });
+    }
+
+    return applicants;
+  }
+
   Future<void> saveJob(String userId, String jobId) async {
     await _firestore
         .collection('users')

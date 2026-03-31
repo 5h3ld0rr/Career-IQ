@@ -20,6 +20,7 @@ class JobProvider with ChangeNotifier {
   String _selectedWorkMode = 'All';
 
   List<Map<String, dynamic>> _userApplications = [];
+  List<Map<String, dynamic>> _jobApplicants = [];
   List<Job> _postedJobs = [];
 
   List<Job> get jobs => _jobs;
@@ -29,6 +30,7 @@ class JobProvider with ChangeNotifier {
   List<Job> get liveJobs => _liveJobs;
   List<Job> get postedJobs => _postedJobs;
   List<Map<String, dynamic>> get userApplications => _userApplications;
+  List<Map<String, dynamic>> get jobApplicants => _jobApplicants;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get currentQuery => _currentQuery;
@@ -165,6 +167,36 @@ class JobProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> loadApplicantsForJob(String jobId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _jobApplicants = await _jobService.fetchApplicantsForJob(jobId);
+    } catch (e) {
+      _error = 'Failed to load applicants: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateApplicationStatus(String applicationId, String status) async {
+    try {
+      await _jobService.updateApplicationStatus(applicationId, status);
+      // Update locally
+      final index = _jobApplicants.indexWhere((a) => a['applicationId'] == applicationId);
+      if (index != -1) {
+        _jobApplicants[index]['status'] = status;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error updating status: $e');
+      rethrow;
     }
   }
 

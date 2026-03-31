@@ -11,6 +11,7 @@ import 'interview/mock_interview_screen.dart';
 import 'salary_roi/salary_roi_screen.dart';
 import 'chat/expert_ai_chat_screen.dart';
 import 'recruiter/recruiter_dashboard_screen.dart';
+import 'recruiter/ats_dashboard_screen.dart';
 import '../core/theme.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -31,7 +32,7 @@ class _MainWrapperState extends State<MainWrapper> {
     if (isRecruiter) {
       return [
         const RecruiterDashboardScreen(),
-        const Scaffold(body: Center(child: Text('ATS & Applicants Coming Soon', style: TextStyle(fontWeight: FontWeight.bold)))),
+        const ATSDashboardScreen(),
         const Scaffold(body: Center(child: Text('Smart Inbox Coming Soon', style: TextStyle(fontWeight: FontWeight.bold)))),
         const ProfileScreen(),
       ];
@@ -343,16 +344,6 @@ class _AIHubMenuOverlay extends StatelessWidget {
                       () => onToolSelected(const ExpertAIChatScreen()),
                     ),
                   ] else ...[
-                    _buildMenuAction(
-                      context,
-                      'ATS',
-                      Icons.people_alt_rounded,
-                      const Color(0xFF03A9F4),
-                      () {
-                         Navigator.pop(context);
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ATS Coming Soon')));
-                      },
-                    ),
                     _buildMenuAction(
                       context,
                       'Manage Jobs',
