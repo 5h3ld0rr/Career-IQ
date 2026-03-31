@@ -93,11 +93,21 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeaderCard(salaryProvider, isDark),
-                const SizedBox(height: 40),
+                const SizedBox(height: 28),
                 
                 if (salaryProvider.insights.isNotEmpty || salaryProvider.isLoading) ...[
+                  Text(
+                    'Value Trajectory',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   _buildMarketTrendSection(salaryProvider, isDark),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 28),
                   
                   Text(
                     'High-ROI Skills',
@@ -110,7 +120,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildSkillsGrid(salaryProvider, isDark),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 28),
                   _buildRecommendationSection(salaryProvider, isDark),
                 ] else ...[
                   _buildEmptyState(context, isDark),
@@ -246,7 +256,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
 
   Widget _buildHeaderCard(SalaryProvider provider, bool isDark) {
     if (provider.isLoading) {
-      return _buildShimmerHeader();
+      return _buildShimmerHeader(isDark);
     }
 
     final totalGrowth = provider.insights.fold(
@@ -344,26 +354,14 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
 
   Widget _buildMarketTrendSection(SalaryProvider provider, bool isDark) {
     if (provider.isLoading) {
-      return _buildShimmerChart();
+      return _buildShimmerChart(isDark);
     }
 
     if (provider.insights.isEmpty) return const SizedBox.shrink();
 
-    final textColor = isDark ? Colors.white : AppTheme.darkText;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Value Trajectory',
-          style: GoogleFonts.outfit(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 20),
         Container(
           height: 260,
           decoration: BoxDecoration(
@@ -435,17 +433,18 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
 
   Widget _buildSkillsGrid(SalaryProvider provider, bool isDark) {
     if (provider.isLoading) {
-      return _buildShimmerGrid();
+      return _buildShimmerGrid(isDark);
     }
 
     return GridView.builder(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 1.1,
+        childAspectRatio: 0.95,
       ),
       itemCount: provider.insights.length,
       itemBuilder: (context, index) {
@@ -472,7 +471,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -485,7 +484,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
                   ),
                   child: Icon(Icons.bolt_rounded, color: color, size: 20),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
                   insight.skillName,
                   style: GoogleFonts.outfit(
@@ -516,7 +515,11 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
   }
 
   Widget _buildRecommendationSection(SalaryProvider provider, bool isDark) {
-    if (provider.isLoading || provider.insights.isEmpty) {
+    if (provider.isLoading) {
+      return _buildShimmerRecommendation(isDark);
+    }
+    
+    if (provider.insights.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -579,34 +582,82 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
   }
 
   // Shimmer Loaders
-  Widget _buildShimmerHeader() {
-    return Shimmer.fromColors(
-      baseColor: Colors.white12,
-      highlightColor: Colors.white24,
-      child: Container(
-        width: double.infinity,
-        height: 150,
-        decoration: BoxDecoration(
-          color: Colors.white12,
-          borderRadius: BorderRadius.circular(24),
+  Widget _buildShimmerHeader(bool isDark) {
+    final baseColor = isDark ? Colors.white10 : Colors.grey[200]!;
+    final highlightColor = isDark ? Colors.white24 : Colors.grey[100]!;
+    
+    return Container(
+      width: double.infinity,
+      height: 180,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+          width: 1.5,
+        ),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: baseColor,
+        highlightColor: highlightColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(width: 120, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+            const SizedBox(height: 16),
+            Container(width: 200, height: 48, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8))),
+            const Spacer(),
+            Container(width: 180, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildShimmerChart() {
+  Widget _buildShimmerChart(bool isDark) {
+    final baseColor = isDark ? Colors.white10 : Colors.grey[200]!;
+    final highlightColor = isDark ? Colors.white24 : Colors.grey[100]!;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 30),
-        Shimmer.fromColors(
-          baseColor: Colors.white12,
-          highlightColor: Colors.white24,
-          child: Container(
-            height: 250,
-            decoration: BoxDecoration(
-              color: Colors.white12,
-              borderRadius: BorderRadius.circular(20),
+        Container(
+          height: 260,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+              width: 1.5,
+            ),
+          ),
+          child: Shimmer.fromColors(
+            baseColor: baseColor,
+            highlightColor: highlightColor,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: List.generate(5, (index) => Container(
+                      width: 12,
+                      height: (index + 2) * 30.0,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    )),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(4, (index) => Container(width: 40, height: 10, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)))),
+                ),
+              ],
             ),
           ),
         ),
@@ -614,25 +665,87 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
     );
   }
 
-  Widget _buildShimmerGrid() {
+  Widget _buildShimmerGrid(bool isDark) {
+    final baseColor = isDark ? Colors.white10 : Colors.grey[200]!;
+    final highlightColor = isDark ? Colors.white24 : Colors.grey[100]!;
+
     return GridView.count(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      crossAxisSpacing: 15,
-      mainAxisSpacing: 15,
-      childAspectRatio: 1.5,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 0.95,
       children: List.generate(
         4,
-        (index) => Shimmer.fromColors(
-          baseColor: Colors.white12,
-          highlightColor: Colors.white24,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white12,
-              borderRadius: BorderRadius.circular(20),
+        (index) => Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+              width: 1.5,
             ),
           ),
+          child: Shimmer.fromColors(
+            baseColor: baseColor,
+            highlightColor: highlightColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(width: 36, height: 36, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10))),
+                const SizedBox(height: 12),
+                Container(width: double.infinity, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                const SizedBox(height: 4),
+                Container(width: 60, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                const Spacer(),
+                Container(width: 70, height: 24, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerRecommendation(bool isDark) {
+    final baseColor = isDark ? Colors.white10 : Colors.grey[200]!;
+    final highlightColor = isDark ? Colors.white24 : Colors.grey[100]!;
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+          width: 1.5,
+        ),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: baseColor,
+        highlightColor: highlightColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(width: 20, height: 20, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                const SizedBox(width: 10),
+                Container(width: 100, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+              ],
+            ),
+            const SizedBox(height: 15),
+            Container(width: double.infinity, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+            const SizedBox(height: 8),
+            Container(width: double.infinity, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+            const SizedBox(height: 8),
+            Container(width: 150, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+          ],
         ),
       ),
     );
