@@ -174,6 +174,36 @@ class JobService {
     });
   }
 
+  Stream<QuerySnapshot> getUserApplicationsStream(String userId) {
+    return _firestore
+        .collection('applications')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+  }
+
+  Future<Map<String, dynamic>> enrichApplicationData(DocumentSnapshot doc) async {
+    final appData = doc.data() as Map<String, dynamic>;
+    final jobId = appData['jobId'];
+
+    final jobDoc = await _firestore.collection('jobs').doc(jobId).get();
+
+    final jobMap = jobDoc.exists
+        ? {'id': jobDoc.id, ...jobDoc.data()!}
+        : {
+            'id': jobId,
+            'title': 'Unknown Position',
+            'company_name': 'Unknown Company',
+          };
+
+    return {
+      'id': doc.id,
+      'status': appData['status'] ?? 'pending',
+      'appliedAt': appData['appliedAt'],
+      'job': jobMap,
+      ...appData,
+    };
+  }
+
   Future<List<Map<String, dynamic>>> fetchUserApplications(
     String userId,
   ) async {
@@ -185,25 +215,7 @@ class JobService {
     List<Map<String, dynamic>> applications = [];
 
     for (var doc in snapshot.docs) {
-      final appData = doc.data();
-      final jobId = appData['jobId'];
-
-      final jobDoc = await _firestore.collection('jobs').doc(jobId).get();
-
-      final jobMap = jobDoc.exists
-          ? {'id': jobDoc.id, ...jobDoc.data()!}
-          : {
-              'id': jobId,
-              'title': 'Unknown Position',
-              'company_name': 'Unknown Company',
-            };
-
-      applications.add({
-        'id': doc.id,
-        'status': appData['status'] ?? 'pending',
-        'appliedAt': appData['appliedAt'],
-        'job': jobMap,
-      });
+      applications.add(await enrichApplicationData(doc));
     }
 
     applications.sort((a, b) {

@@ -26,6 +26,7 @@ class JobProvider with ChangeNotifier {
   List<Job> _postedJobs = [];
   int _totalApplicantsCount = 0;
   StreamSubscription<QuerySnapshot>? _applicantsSubscription;
+  StreamSubscription<QuerySnapshot>? _userAppsSubscription;
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
@@ -407,9 +408,36 @@ class JobProvider with ChangeNotifier {
     _applicantsSubscription = null;
   }
 
+  void startUserAppsStream(String userId) {
+    stopUserAppsStream();
+    _userAppsSubscription =
+        _jobService.getUserApplicationsStream(userId).listen((snapshot) async {
+          List<Map<String, dynamic>> enrichedApps = [];
+          for (var doc in snapshot.docs) {
+            enrichedApps.add(await _jobService.enrichApplicationData(doc));
+          }
+
+          enrichedApps.sort((a, b) {
+            final aTime = a['appliedAt'] as Timestamp?;
+            final bTime = b['appliedAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          _userApplications = enrichedApps;
+          notifyListeners();
+        });
+  }
+
+  void stopUserAppsStream() {
+    _userAppsSubscription?.cancel();
+    _userAppsSubscription = null;
+  }
+
   @override
   void dispose() {
     stopApplicantsStream();
+    stopUserAppsStream();
     super.dispose();
   }
 }

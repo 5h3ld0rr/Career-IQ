@@ -796,7 +796,7 @@ class JobDetailsScreen extends StatelessWidget {
             Icon(Icons.check_circle_rounded, color: Colors.green),
             SizedBox(width: 8),
             Text(
-              'ALREADY APPLIED',
+              'APPLIED',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 color: Colors.green,

@@ -32,9 +32,18 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         Provider.of<JobProvider>(
           context,
           listen: false,
-        ).loadUserApplications(auth.userId!);
+        ).startUserAppsStream(auth.userId!);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.userId != null) {
+       Provider.of<JobProvider>(context, listen: false).stopUserAppsStream();
+    }
+    super.dispose();
   }
 
   Future<void> _seedMockData() async {
