@@ -65,6 +65,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
         resumeFile: _useProfileResume ? null : _selectedResume,
         useProfileResume: _useProfileResume,
         coverLetter: _coverLetterController.text.trim(),
+        recruiterId: widget.job.postedBy,
       );
 
       if (mounted) {

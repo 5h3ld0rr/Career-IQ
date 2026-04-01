@@ -25,8 +25,21 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
       Provider.of<JobProvider>(
         context,
         listen: false,
-      ).loadPostedJobs(auth.userId!);
+      ).loadPostedJobs(auth.userId!).then((_) {
+         if (mounted) {
+           Provider.of<JobProvider>(context, listen: false).startRecruiterAppsStream(auth.userId!);
+         }
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.userId != null) {
+      Provider.of<JobProvider>(context, listen: false).stopRecruiterAppsStream();
+    }
+    super.dispose();
   }
 
   @override

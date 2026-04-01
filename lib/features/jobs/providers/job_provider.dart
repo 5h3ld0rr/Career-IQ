@@ -27,6 +27,7 @@ class JobProvider with ChangeNotifier {
   int _totalApplicantsCount = 0;
   StreamSubscription<QuerySnapshot>? _applicantsSubscription;
   StreamSubscription<QuerySnapshot>? _userAppsSubscription;
+  StreamSubscription<QuerySnapshot>? _recruiterAppsSubscription;
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
@@ -227,6 +228,7 @@ class JobProvider with ChangeNotifier {
     String jobId, {
     String? resumeUrl,
     String? coverLetter,
+    String? recruiterId,
   }) async {
     try {
       await _jobService.applyForJob(
@@ -234,6 +236,7 @@ class JobProvider with ChangeNotifier {
         jobId,
         resumeUrl: resumeUrl,
         coverLetter: coverLetter,
+        recruiterId: recruiterId,
       );
       await loadUserApplications(userId); // Reload after application
     } catch (e) {
@@ -248,6 +251,7 @@ class JobProvider with ChangeNotifier {
     required dynamic resumeFile,
     bool useProfileResume = false,
     String? coverLetter,
+    String? recruiterId,
   }) async {
     _isLoading = true;
     _error = null;
@@ -266,6 +270,7 @@ class JobProvider with ChangeNotifier {
         jobId,
         resumeUrl: resumeUrl,
         coverLetter: coverLetter,
+        recruiterId: recruiterId,
       );
     } catch (e) {
       _error = 'Failed to submit application';
@@ -434,10 +439,25 @@ class JobProvider with ChangeNotifier {
     _userAppsSubscription = null;
   }
 
+  void startRecruiterAppsStream(String recruiterId) {
+    stopRecruiterAppsStream();
+    _recruiterAppsSubscription =
+        _jobService.getRecruiterApplicationsStream(recruiterId).listen((snapshot) {
+          _totalApplicantsCount = snapshot.docs.length;
+          notifyListeners();
+        });
+  }
+
+  void stopRecruiterAppsStream() {
+    _recruiterAppsSubscription?.cancel();
+    _recruiterAppsSubscription = null;
+  }
+
   @override
   void dispose() {
     stopApplicantsStream();
     stopUserAppsStream();
+    stopRecruiterAppsStream();
     super.dispose();
   }
 }

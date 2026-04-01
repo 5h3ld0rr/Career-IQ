@@ -163,10 +163,12 @@ class JobService {
     String jobId, {
     String? resumeUrl,
     String? coverLetter,
+    String? recruiterId,
   }) async {
     await _firestore.collection('applications').add({
       'userId': userId,
       'jobId': jobId,
+      'recruiter_id': recruiterId,
       'appliedAt': FieldValue.serverTimestamp(),
       'status': 'pending',
       'resumeUrl': resumeUrl,
@@ -260,6 +262,13 @@ class JobService {
       data['id'] = doc.id;
       return Job.fromJson(data);
     }).toList();
+  }
+
+  Stream<QuerySnapshot> getRecruiterApplicationsStream(String recruiterId) {
+    return _firestore
+        .collection('applications')
+        .where('recruiter_id', isEqualTo: recruiterId)
+        .snapshots();
   }
 
   Future<List<Map<String, dynamic>>> fetchApplicantsForJob(String jobId) async {
