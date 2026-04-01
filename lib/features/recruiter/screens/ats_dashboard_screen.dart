@@ -62,7 +62,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
         });
 
         if (_selectedJobId != null) {
-          await jobProvider.loadApplicantsForJob(_selectedJobId!);
+          jobProvider.startApplicantsStream(_selectedJobId!);
         }
       }
     }
@@ -81,15 +81,16 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
         _isInitializing = true;
       });
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
-      jobProvider.loadApplicantsForJob(jobId).then((_) {
-        if (mounted) setState(() => _isInitializing = false);
-      });
+      jobProvider.startApplicantsStream(jobId);
+      setState(() => _isInitializing = false);
     }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    final jobProvider = Provider.of<JobProvider>(context, listen: false);
+    jobProvider.stopApplicantsStream();
     super.dispose();
   }
 

@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:careeriq/core/widgets/app_snackbar.dart';
 import 'dart:math';
 import 'package:careeriq/core/services/twilio_service.dart';
+import 'package:careeriq/features/cv_analysis/data/resume_text_service.dart';
+import 'package:careeriq/features/ai_assistant/data/ai_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -332,11 +334,11 @@ class AuthProvider with ChangeNotifier {
 
       final isExternal = _authService.isExternalProvider;
       final data = <String, dynamic>{
-        'name': ?name,
+        'name': name,
         if (email != null && !isExternal) 'email': email,
-        'bio': ?bio,
-        'experience': ?experience,
-        'location': ?location,
+        'bio': bio,
+        'experience': experience,
+        'location': location,
       };
 
       debugPrint('[updateUserDetails] Writing to Firestore: $data');
@@ -380,6 +382,52 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       showNotification(_error!, isError: true);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> syncSkillsFromResume() async {
+    if (_resumeUrl == null) {
+      showNotification("Please upload a resume first.", isError: true);
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // 1. Extract text from PDF
+      final content = await ResumeTextService.extractTextFromUrl(_resumeUrl!);
+      if (content.isEmpty) {
+        throw "Could not extract text from the resume PDF.";
+      }
+
+      // 2. Extract skills using AI
+      final aiService = AIService();
+      final extracted = await aiService.extractSkillsFromResume(content);
+
+      if (extracted.isEmpty) {
+        throw "AI could not identify specific skills from your resume.";
+      }
+
+      // 3. Update local and remote
+      final List<String> newSkills =
+          extracted
+              .map((e) => e['skill'] as String)
+              .where((s) => s.isNotEmpty)
+              .toList();
+
+      if (newSkills.isEmpty) {
+        throw "No valid skills found.";
+      }
+
+      await updateSkills(newSkills);
+      showNotification("Synced ${newSkills.length} skills from your CV! 🚀");
+    } catch (e) {
+      debugPrint("Sync Error: $e");
+      showNotification("Skill sync failed: $e", isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();

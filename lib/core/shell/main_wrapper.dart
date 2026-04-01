@@ -21,11 +21,17 @@ class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
 
   @override
-  State<MainWrapper> createState() => _MainWrapperState();
+  State<MainWrapper> createState() => MainWrapperState();
 }
 
-class _MainWrapperState extends State<MainWrapper> {
+class MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
+
+  void setSelectedIndex(int index) {
+    if (mounted) {
+      setState(() => _selectedIndex = index);
+    }
+  }
   bool _bottomNavVisible = true;
   bool _isAIHubMenuOpen = false;
 

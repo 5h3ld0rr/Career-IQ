@@ -8,7 +8,8 @@ import 'package:careeriq/features/interview/screens/schedule_interview_screen.da
 import 'package:careeriq/core/widgets/app_snackbar.dart';
 
 class ApplicationTrackerScreen extends StatefulWidget {
-  const ApplicationTrackerScreen({super.key});
+  final String? initialApplicationId;
+  const ApplicationTrackerScreen({super.key, this.initialApplicationId});
 
   @override
   State<ApplicationTrackerScreen> createState() =>

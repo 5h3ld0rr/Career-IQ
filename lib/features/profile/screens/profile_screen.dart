@@ -57,6 +57,9 @@ class ProfileScreen extends StatelessWidget {
                               'Skills',
                               onEdit: () =>
                                   _showEditSkillsDialog(context, authProvider),
+                              onSync: authProvider.resumeUrl != null
+                                  ? () => authProvider.syncSkillsFromResume()
+                                  : null,
                             ),
                             _buildSkillsSection(context, authProvider),
                             const SizedBox(height: 32),
@@ -465,6 +468,7 @@ class ProfileScreen extends StatelessWidget {
     BuildContext context,
     String title, {
     VoidCallback? onEdit,
+    VoidCallback? onSync,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
@@ -479,12 +483,25 @@ class ProfileScreen extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          if (onEdit != null)
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
-              onPressed: onEdit,
-              visualDensity: VisualDensity.compact,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (onSync != null)
+                IconButton(
+                  tooltip: "Sync from CV",
+                  icon: const Icon(Icons.sync_rounded, size: 20),
+                  onPressed: onSync,
+                  visualDensity: VisualDensity.compact,
+                  color: AppTheme.primaryBlue,
+                ),
+              if (onEdit != null)
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+                  onPressed: onEdit,
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
         ],
       ),
     );

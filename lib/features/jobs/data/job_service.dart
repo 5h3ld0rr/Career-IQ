@@ -9,6 +9,21 @@ class JobService {
   final CloudinaryService _cloudinary = CloudinaryService();
   final JSearchService _jsearchService = JSearchService();
 
+  Future<Job?> getJobById(String jobId) async {
+    try {
+      final doc = await _firestore.collection('jobs').doc(jobId).get();
+      if (doc.exists) {
+        final data = Map<String, dynamic>.from(doc.data()!);
+        data['id'] = doc.id;
+        return Job.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('JobService: Error fetching job: $e');
+      return null;
+    }
+  }
+
   Future<List<Job>> fetchJobs({
     String? query,
     String? category,
@@ -280,6 +295,38 @@ class JobService {
     });
   }
 
+  Stream<QuerySnapshot> getApplicantsStream(String jobId) {
+    return _firestore
+        .collection('applications')
+        .where('jobId', isEqualTo: jobId)
+        .orderBy('appliedAt', descending: true)
+        .snapshots();
+  }
+
+  Future<Map<String, dynamic>> enrichApplicant(DocumentSnapshot doc) async {
+    final appData = doc.data() as Map<String, dynamic>;
+    final userId = appData['userId'];
+
+    final userDoc = await _firestore.collection('users').doc(userId).get();
+
+    final userMap = userDoc.exists
+        ? {'id': userDoc.id, ...userDoc.data()!}
+        : {
+            'id': userId,
+            'fullName': 'Unknown Applicant',
+            'currentRole': 'Unknown',
+          };
+
+    return {
+      'applicationId': doc.id,
+      'userId': userId,
+      'status': appData['status'] ?? 'New Applied',
+      'appliedAt': appData['appliedAt'],
+      'resumeUrl': appData['resumeUrl'],
+      'user': userMap,
+    };
+  }
+
   Future<List<Map<String, dynamic>>> fetchApplicantsForJob(String jobId) async {
     final snapshot = await _firestore
         .collection('applications')
@@ -287,31 +334,9 @@ class JobService {
         .get();
 
     List<Map<String, dynamic>> applicants = [];
-
     for (var doc in snapshot.docs) {
-      final appData = doc.data();
-      final userId = appData['userId'];
-
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-
-      final userMap = userDoc.exists
-          ? {'id': userDoc.id, ...userDoc.data()!}
-          : {
-              'id': userId,
-              'fullName': 'Unknown Applicant',
-              'currentRole': 'Unknown',
-            };
-
-      applicants.add({
-        'applicationId': doc.id,
-        'userId': userId, // top-level for easy ATS access
-        'status': appData['status'] ?? 'New Applied',
-        'appliedAt': appData['appliedAt'],
-        'resumeUrl': appData['resumeUrl'],
-        'user': userMap,
-      });
+      applicants.add(await enrichApplicant(doc));
     }
-
     return applicants;
   }
 

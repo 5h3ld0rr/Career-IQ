@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:careeriq/features/jobs/data/job_model.dart';
 import 'package:careeriq/features/jobs/data/job_service.dart';
 import 'package:careeriq/features/ai_assistant/data/ai_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class JobProvider with ChangeNotifier {
   final JobService _jobService = JobService();
@@ -23,6 +25,7 @@ class JobProvider with ChangeNotifier {
   List<Map<String, dynamic>> _jobApplicants = [];
   List<Job> _postedJobs = [];
   int _totalApplicantsCount = 0;
+  StreamSubscription<QuerySnapshot>? _applicantsSubscription;
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
@@ -39,6 +42,10 @@ class JobProvider with ChangeNotifier {
   String? get currentCategory => _currentCategory;
   String get selectedJobType => _selectedJobType;
   String get selectedWorkMode => _selectedWorkMode;
+
+  Future<Job?> getJobById(String jobId) async {
+    return await _jobService.getJobById(jobId);
+  }
 
   Future<void> loadJobs({
     String? query,
@@ -376,5 +383,28 @@ class JobProvider with ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  void startApplicantsStream(String jobId) {
+    stopApplicantsStream();
+    _applicantsSubscription = _jobService.getApplicantsStream(jobId).listen((snapshot) async {
+      List<Map<String, dynamic>> enrichedApplicants = [];
+      for (var doc in snapshot.docs) {
+         enrichedApplicants.add(await _jobService.enrichApplicant(doc));
+      }
+      _jobApplicants = enrichedApplicants;
+      notifyListeners();
+    });
+  }
+
+  void stopApplicantsStream() {
+    _applicantsSubscription?.cancel();
+    _applicantsSubscription = null;
+  }
+
+  @override
+  void dispose() {
+    stopApplicantsStream();
+    super.dispose();
   }
 }
