@@ -6,10 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/features/auth/providers/auth_provider.dart';
 import 'package:careeriq/features/jobs/providers/job_provider.dart';
-import 'package:careeriq/features/chat/providers/chat_provider.dart';
 import 'package:careeriq/features/jobs/data/job_model.dart';
-import 'package:careeriq/features/chat/data/chat_model.dart';
-import 'package:careeriq/features/chat/screens/chat_view_screen.dart';
 import 'package:careeriq/core/widgets/app_snackbar.dart';
 
 class ATSDashboardScreen extends StatefulWidget {
@@ -557,56 +554,15 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                     ),
                     _buildActionButton(
                       context,
-                      Icons.forum_rounded,
-                      'Message',
-                      const Color(0xFF00B0FF),
-                      () async {
-                        final auth = Provider.of<AuthProvider>(
-                          context,
-                          listen: false,
-                        );
-                        final chatProvider = Provider.of<ChatProvider>(
-                          context,
-                          listen: false,
-                        );
-                        final applicantUid = candidateData['userId'];
-                        if (applicantUid != null) {
-                          final roomId = await chatProvider.getOrCreateChatRoom(
-                            userId: applicantUid,
-                            recruiterId: auth.userId!,
-                            companyName: name,
-                          );
-                          if (mounted) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ChatViewScreen(
-                                  chatRoomId: roomId,
-                                  room: ChatRoom(
-                                    id: roomId,
-                                    participants: [applicantUid, auth.userId!],
-                                    lastMessage: '',
-                                    lastMessageTime: DateTime.now(),
-                                    companyName: name,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                        } else {
-                          AppSnackBar.show(
-                            'Applicant ID not found',
-                            isError: true,
-                          );
-                        }
-                      },
-                    ),
-                    _buildActionButton(
-                      context,
                       Icons.calendar_month_rounded,
                       'Schedule',
                       const Color(0xFFFF9100),
-                      () {},
+                      () => _showScheduleModal(
+                        context,
+                        candidateData,
+                        name,
+                        applicationId,
+                      ),
                     ),
                   ],
                 ),
