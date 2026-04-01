@@ -9,6 +9,21 @@ class JobService {
   final CloudinaryService _cloudinary = CloudinaryService();
   final JSearchService _jsearchService = JSearchService();
 
+  Future<Job?> getJobById(String jobId) async {
+    try {
+      final doc = await _firestore.collection('jobs').doc(jobId).get();
+      if (doc.exists) {
+        final data = Map<String, dynamic>.from(doc.data()!);
+        data['id'] = doc.id;
+        return Job.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('JobService: Error fetching job: $e');
+      return null;
+    }
+  }
+
   Future<List<Job>> fetchJobs({
     String? query,
     String? category,
@@ -288,27 +303,27 @@ class JobService {
         .update(updateData);
   }
 
-  Future<List<Map<String, dynamic>>> fetchApplicantsForJob(String jobId) async {
-    final snapshot = await _firestore
+  Stream<QuerySnapshot> getApplicantsStream(String jobId) {
+    return _firestore
         .collection('applications')
         .where('jobId', isEqualTo: jobId)
-        .get();
+        .orderBy('appliedAt', descending: true)
+        .snapshots();
+  }
 
-    List<Map<String, dynamic>> applicants = [];
+  Future<Map<String, dynamic>> enrichApplicant(DocumentSnapshot doc) async {
+    final appData = doc.data() as Map<String, dynamic>;
+    final userId = appData['userId'];
 
-    for (var doc in snapshot.docs) {
-      final appData = doc.data();
-      final userId = appData['userId'];
+    final userDoc = await _firestore.collection('users').doc(userId).get();
 
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-
-      final userMap = userDoc.exists
-          ? {'id': userDoc.id, ...userDoc.data()!}
-          : {
-              'id': userId,
-              'fullName': 'Unknown Applicant',
-              'currentRole': 'Unknown',
-            };
+    final userMap = userDoc.exists
+        ? {'id': userDoc.id, ...userDoc.data()!}
+        : {
+            'id': userId,
+            'fullName': 'Unknown Applicant',
+            'currentRole': 'Unknown',
+          };
 
       // Use resume from application; fall back to user's profile resume.
       final resumeUrl =
@@ -325,7 +340,6 @@ class JobService {
         'user': userMap,
       });
     }
-
     return applicants;
   }
 

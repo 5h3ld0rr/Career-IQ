@@ -5,6 +5,7 @@ class NotificationModel {
   final String title;
   final String body;
   final String type; // 'job', 'application', 'reminder'
+  final String? route;
   final bool isRead;
   final DateTime createdAt;
 
@@ -13,6 +14,7 @@ class NotificationModel {
     required this.title,
     required this.body,
     required this.type,
+    this.route,
     required this.isRead,
     required this.createdAt,
   });
@@ -23,6 +25,7 @@ class NotificationModel {
       title: data['title'] ?? '',
       body: data['body'] ?? '',
       type: data['type'] ?? 'info',
+      route: data['route'],
       isRead: data['isRead'] ?? false,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -33,6 +36,7 @@ class NotificationModel {
       'title': title,
       'body': body,
       'type': type,
+      'route': route,
       'isRead': isRead,
       'createdAt': Timestamp.fromDate(createdAt),
     };

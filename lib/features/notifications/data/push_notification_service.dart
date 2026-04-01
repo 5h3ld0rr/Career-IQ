@@ -138,8 +138,9 @@ class PushNotificationService {
     String title,
     String body,
     String type,
-    String userId,
-  ) async {
+    String userId, {
+    String? route,
+  }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'high_importance_channel',
@@ -153,10 +154,11 @@ class PushNotificationService {
     );
 
     await _localNotifications.show(
-      id: 0,
+      id: DateTime.now().millisecond,
       title: title,
       body: body,
       notificationDetails: platformDetails,
+      payload: route,
     );
 
     await FirebaseFirestore.instance
@@ -167,6 +169,7 @@ class PushNotificationService {
           'title': title,
           'body': body,
           'type': type,
+          'route': route,
           'isRead': false,
           'createdAt': FieldValue.serverTimestamp(),
         });

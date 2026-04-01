@@ -12,7 +12,7 @@ import 'package:careeriq/main.dart';
 void main() {
   testWidgets('App loads smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const CareerIQApp());
+    await tester.pumpWidget(CareerIQApp());
 
     // Verify that the splash screen text appears.
     expect(find.text('CareerIQ'), findsOneWidget);

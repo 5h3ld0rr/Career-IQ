@@ -697,12 +697,12 @@ class JobDetailsScreen extends StatelessWidget {
                 width: 1.5,
               ),
             ),
-            child: Consumer<AuthProvider>(
-              builder: (context, auth, _) {
+            child: Consumer2<AuthProvider, JobProvider>(
+              builder: (context, auth, jobProv, _) {
                 return Row(
                   children: [
                     Expanded(
-                      child: _isApplied(context, auth)
+                      child: _isApplied(context, auth, jobProv)
                           ? _buildAppliedState()
                           : _buildApplyButton(context, auth),
                     ),
@@ -716,11 +716,16 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  bool _isApplied(BuildContext context, AuthProvider auth) {
+  bool _isApplied(
+    BuildContext context,
+    AuthProvider auth,
+    JobProvider jobProv,
+  ) {
     if (auth.userId == null) return false;
-    final jobProvider = Provider.of<JobProvider>(context, listen: false);
-    return jobProvider.userApplications.any(
-      (app) => app['job']['id'] == job.id,
+    return jobProv.userApplications.any(
+      (app) =>
+          app['job'] != null &&
+          (app['job']['id'] == job.id || app['job']['jobId'] == job.id),
     );
   }
 

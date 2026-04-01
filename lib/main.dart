@@ -19,6 +19,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:careeriq/firebase_options.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
+import 'package:careeriq/features/recruiter/screens/ats_dashboard_screen.dart';
+import 'package:careeriq/features/jobs/screens/details/job_details_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -85,13 +87,60 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SalaryProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
-      child: const CareerIQApp(),
+      child: CareerIQApp(),
     ),
   );
 }
 
 class CareerIQApp extends StatelessWidget {
-  const CareerIQApp({super.key});
+  CareerIQApp({super.key});
+
+  final GlobalKey<MainWrapperState> mainWrapperKey =
+      GlobalKey<MainWrapperState>();
+
+  void handleNotificationClick(String? payload) {
+    debugPrint("Notification clicked with payload: $payload");
+    if (payload == null) return;
+
+    if (payload.startsWith('/ats/')) {
+      final jobId = payload.replaceFirst('/ats/', '');
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        if (auth.isRecruiter) {
+          mainWrapperKey.currentState?.setSelectedIndex(1);
+          // Small delay to ensure the screen is built if it wasn't
+          Future.delayed(const Duration(milliseconds: 100), () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ATSDashboardScreen(initialJobId: jobId),
+              ),
+            );
+          });
+        }
+      }
+    } else if (payload == '/tracker') {
+      mainWrapperKey.currentState?.setSelectedIndex(1);
+    } else if (payload.startsWith('/tracker/')) {
+      final appId = payload.replaceFirst('/tracker/', '');
+      debugPrint("Deep linking to application: $appId");
+      mainWrapperKey.currentState?.setSelectedIndex(1);
+    } else if (payload.startsWith('/job/')) {
+      final jobId = payload.replaceFirst('/job/', '');
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        Provider.of<JobProvider>(context, listen: false)
+            .getJobById(jobId)
+            .then((job) {
+          if (job != null && context.mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => JobDetailsScreen(job: job)),
+            );
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

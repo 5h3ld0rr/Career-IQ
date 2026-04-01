@@ -10,6 +10,7 @@ import 'package:careeriq/features/notifications/providers/notification_provider.
 import 'package:careeriq/core/widgets/app_snackbar.dart';
 import 'package:careeriq/core/theme/theme.dart';
 
+
 class ApplyJobScreen extends StatefulWidget {
   final Job job;
   const ApplyJobScreen({super.key, required this.job});
@@ -71,16 +72,21 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
           context,
           listen: false,
         );
-        await notifProvider.pushService?.simulateNotification(
-          'Application Submitted!',
-          'Your application for ${widget.job.title} at ${widget.job.companyName} has been received.',
-          'application',
-          auth.userId!,
-        );
+
+        final recruiterId = widget.job.postedBy;
+        if (recruiterId != null && recruiterId.isNotEmpty) {
+          final applicantName = auth.userName ?? 'A candidate';
+          await notifProvider.pushService?.simulateNotification(
+            'New Application!',
+            '$applicantName applied for ${widget.job.title}',
+            'recruiter_application',
+            recruiterId,
+            route: '/ats/${widget.job.id}',
+          );
+        }
       }
 
       if (!mounted) return;
-      AppSnackBar.show('Application submitted successfully! 🎉');
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
@@ -516,9 +522,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
                 width: 1.5,
               ),
             ),
-            child: Consumer<JobProvider>(
-              builder: (context, jobs, _) {
-                final isSubmitting = jobs.isLoading;
+            child: Consumer2<AuthProvider, JobProvider>(
+              builder: (context, auth, jobProv, _) {
+                final isSubmitting = jobProv.isLoading;
                 return Container(
                   width: double.infinity,
                   height: 56,
