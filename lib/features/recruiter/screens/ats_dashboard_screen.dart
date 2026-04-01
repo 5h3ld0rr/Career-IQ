@@ -606,7 +606,12 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                       Icons.calendar_month_rounded,
                       'Schedule',
                       const Color(0xFFFF9100),
-                      () {},
+                      () => _showScheduleModal(
+                        context,
+                        candidateData,
+                        name,
+                        applicationId,
+                      ),
                     ),
                   ],
                 ),
@@ -769,9 +774,15 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                           icon: Icons.check_circle_rounded,
                           color: Colors.green,
                           onTap: () {
-                            final provider = Provider.of<JobProvider>(context, listen: false);
-                            provider.updateApplicationStatus(applicationId, 'Interviewing');
-                            Navigator.pop(ctx);
+                            final provider = Provider.of<JobProvider>(
+                              context,
+                              listen: false,
+                            );
+                            provider.updateApplicationStatus(
+                              applicationId,
+                              'Interviewing',
+                            );
+                            if (ctx.mounted) Navigator.pop(ctx);
                             AppSnackBar.show(
                               '$name scheduled for ${selectedDate.day}/${selectedDate.month}/${selectedDate.year} at ${selectedTime.format(context)} — moved to Interviewing',
                             );
@@ -786,10 +797,19 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                           icon: Icons.cancel_rounded,
                           color: Colors.red,
                           onTap: () {
-                            final provider = Provider.of<JobProvider>(context, listen: false);
-                            provider.updateApplicationStatus(applicationId, 'Rejected');
-                            Navigator.pop(ctx);
-                            AppSnackBar.show('$name marked as Rejected', isError: true);
+                            final provider = Provider.of<JobProvider>(
+                              context,
+                              listen: false,
+                            );
+                            provider.updateApplicationStatus(
+                              applicationId,
+                              'Rejected',
+                            );
+                            if (ctx.mounted) Navigator.pop(ctx);
+                            AppSnackBar.show(
+                              '$name marked as Rejected',
+                              isError: true,
+                            );
                           },
                         ),
                       ),

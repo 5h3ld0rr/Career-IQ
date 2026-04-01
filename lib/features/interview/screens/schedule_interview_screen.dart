@@ -111,17 +111,15 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
         calendarEventId: calendarEventId,
       );
 
-      final notificationProvider = Provider.of<NotificationProvider>(
-        context,
-        listen: false,
-      );
-      final pushService = notificationProvider.pushService;
-
-      if (pushService != null) {
-        await pushService.scheduleInterviewPrep(finalInterview);
-      }
-
       if (mounted) {
+        final notificationProvider = Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        );
+        final pushService = notificationProvider.pushService;
+        if (pushService != null) {
+          await pushService.scheduleInterviewPrep(finalInterview);
+        }
         AppSnackBar.show('Interview scheduled and synced with Calendar! 🗓️');
         Navigator.pop(context);
       }

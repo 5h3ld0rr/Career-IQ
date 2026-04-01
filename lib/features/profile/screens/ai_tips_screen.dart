@@ -16,7 +16,9 @@ class _AIResumeTipsScreenState extends State<AIResumeTipsScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      Provider.of<AIProvider>(context, listen: false).fetchTips('Design');
+      if (mounted) {
+        Provider.of<AIProvider>(context, listen: false).fetchTips('Design');
+      }
     });
   }
 

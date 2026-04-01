@@ -519,19 +519,33 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final Map<String, dynamic> data = {};
-      if (companyName != null) data['companyName'] = companyName;
-      if (companyWebsite != null) data['companyWebsite'] = companyWebsite;
-      if (companyIndustry != null) data['companyIndustry'] = companyIndustry;
-      if (companyDescription != null)
+      if (companyName != null) {
+        data['companyName'] = companyName;
+      }
+      if (companyWebsite != null) {
+        data['companyWebsite'] = companyWebsite;
+      }
+      if (companyIndustry != null) {
+        data['companyIndustry'] = companyIndustry;
+      }
+      if (companyDescription != null) {
         data['companyDescription'] = companyDescription;
+      }
 
       await _authService.updateOrganizationConfigs(userId!, data);
 
-      if (companyName != null) _companyName = companyName;
-      if (companyWebsite != null) _companyWebsite = companyWebsite;
-      if (companyIndustry != null) _companyIndustry = companyIndustry;
-      if (companyDescription != null)
+      if (companyName != null) {
+        _companyName = companyName;
+      }
+      if (companyWebsite != null) {
+        _companyWebsite = companyWebsite;
+      }
+      if (companyIndustry != null) {
+        _companyIndustry = companyIndustry;
+      }
+      if (companyDescription != null) {
         _companyDescription = companyDescription;
+      }
 
       showNotification("Organization updated successfully!");
     } catch (e) {

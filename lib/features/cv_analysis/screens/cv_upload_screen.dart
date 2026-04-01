@@ -241,7 +241,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
                                 await auth.updateSkills(skillNames);
                               }
 
-                              if (mounted) {
+                              if (context.mounted) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

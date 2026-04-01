@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart' as calendar;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
@@ -53,7 +54,7 @@ class CalendarService {
       final createdEvent = await calendarApi.events.insert(event, "primary");
       return createdEvent.id;
     } catch (e) {
-      print('Error syncing with Calendar: $e');
+      debugPrint('Error syncing with Calendar: $e');
       return null;
     }
   }

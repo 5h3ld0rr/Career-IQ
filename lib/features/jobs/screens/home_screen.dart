@@ -33,9 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
       jobProvider.loadJobs(location: auth.location).then((_) {
+        if (!mounted) return;
         final profileStr =
             "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
         if (auth.skills.isNotEmpty || auth.bio != null) {
@@ -43,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
       jobProvider.loadFeaturedJobs().then((_) {
+        if (!mounted) return;
         final profileStr =
             "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
         if (auth.skills.isNotEmpty || auth.bio != null) {

@@ -40,6 +40,7 @@ class _AICoverLetterScreenState extends State<AICoverLetterScreen> {
     if (_skillsController.text.trim().isEmpty) return;
 
     Future.microtask(() {
+      if (!mounted) return;
       Provider.of<AIProvider>(context, listen: false).generateCoverLetter(
         resumeContent: _skillsController.text.trim(),
         jobDescription: widget.jobDescription,
