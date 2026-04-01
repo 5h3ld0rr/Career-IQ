@@ -48,6 +48,10 @@ class JobService {
       );
     }
 
+    if (location != null && location.isNotEmpty) {
+      queryRef = queryRef.where('location', isEqualTo: location);
+    }
+
     final snapshot = await queryRef.get();
     List<Job> jobs = snapshot.docs.map((doc) {
       final Map<String, dynamic> data = Map<String, dynamic>.from(
@@ -58,99 +62,25 @@ class JobService {
     }).toList();
 
     if (query != null && query.isNotEmpty) {
-      jobs = jobs
-          .where(
-            (j) =>
-                j.title.toLowerCase().contains(query.toLowerCase()) ||
-                j.companyName.toLowerCase().contains(query.toLowerCase()),
-          )
-          .toList();
-    }
-
-    if (location != null && location.isNotEmpty) {
-      jobs = jobs
-          .where(
-            (j) => j.location.toLowerCase().contains(location.toLowerCase()),
-          )
-          .toList();
-    }
-
-    jobs.sort((a, b) => b.postedAt.compareTo(a.postedAt));
-
-    return jobs;
-  }
-
-  /// Fetches real-time job listings from JSearch API for Sri Lanka.
-  ///
-  /// Results are cached to Firestore for offline access.
-  /// Falls back to Firestore-cached jobs if the API call fails.
-  Future<List<Job>> fetchLiveJobs({
-    String? query,
-    String? location,
-    int page = 1,
-  }) async {
-    try {
-      final response = await _jsearchService.searchJobs(
-        query: query,
-        page: page,
-      );
-
-      if (response.jobs.isNotEmpty) {
-        final appJobs = _jsearchService.toAppJobs(response.jobs);
-
-        await _cacheLiveJobs(appJobs);
-
-        return appJobs;
-      }
-    } catch (e) {
-      debugPrint('JobService: JSearch fetch failed, falling back to cache: $e');
-    }
-
-    return _getCachedLiveJobs(query: query);
-  }
-
-  /// Caches live jobs to Firestore for offline access.
-  Future<void> _cacheLiveJobs(List<Job> jobs) async {
-    final batch = _firestore.batch();
-    for (final job in jobs) {
-      final docRef = _firestore.collection('live_jobs_cache').doc(job.id);
-      batch.set(docRef, {
-        ...job.toJson(),
-        'cached_at': FieldValue.serverTimestamp(),
-      });
-    }
-    try {
-      await batch.commit();
-    } catch (e) {
-      debugPrint('JobService: Cache write failed: $e');
-    }
-  }
-
-  /// Retrieves cached live jobs from Firestore.
-  Future<List<Job>> _getCachedLiveJobs({String? query}) async {
-    final snapshot = await _firestore
-        .collection('live_jobs_cache')
-        .orderBy('cached_at', descending: true)
-        .limit(50)
-        .get();
-
-    List<Job> jobs = snapshot.docs.map((doc) {
-      final data = Map<String, dynamic>.from(doc.data());
-      data['id'] = doc.id;
-      return Job.fromJson(data);
-    }).toList();
-
-    if (query != null && query.isNotEmpty) {
-      jobs = jobs
-          .where(
-            (j) =>
-                j.title.toLowerCase().contains(query.toLowerCase()) ||
-                j.companyName.toLowerCase().contains(query.toLowerCase()),
-          )
-          .toList();
+      final q = query.toLowerCase();
+      jobs = jobs.where((job) {
+        return job.title.toLowerCase().contains(q) ||
+            job.companyName.toLowerCase().contains(q) ||
+            job.location.toLowerCase().contains(q) ||
+            job.description.toLowerCase().contains(q);
+      }).toList();
     }
 
     return jobs;
+  }
+
+  Future<List<Job>> fetchLiveJobs({String? query, String? location}) async {
+    final response = await _jsearchService.searchJobs(
+      query: (query != null && query.isNotEmpty)
+          ? '$query in ${location ?? "Sri Lanka"}'
+          : 'jobs in ${location ?? "Sri Lanka"}',
+    );
+    return _jsearchService.toAppJobs(response.jobs);
   }
 
   Future<List<Job>> fetchFeaturedJobs({String? category}) async {
@@ -303,11 +233,40 @@ class JobService {
         .update(updateData);
   }
 
+  Future<void> addJob(Job job) async {
+    await _firestore.collection('jobs').add(job.toJson());
+  }
+
+  Future<List<Job>> fetchJobsByUser(String userId) async {
+    final snapshot = await _firestore
+        .collection('jobs')
+        .where('posted_by', isEqualTo: userId)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      final Map<String, dynamic> data = Map<String, dynamic>.from(doc.data());
+      data['id'] = doc.id;
+      return Job.fromJson(data);
+    }).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchApplicantsForJob(String jobId) async {
+    final snapshot = await _firestore
+        .collection('applications')
+        .where('jobId', isEqualTo: jobId)
+        .get();
+
+    List<Map<String, dynamic>> applicants = [];
+    for (var doc in snapshot.docs) {
+      applicants.add(await enrichApplicant(doc));
+    }
+    return applicants;
+  }
+
   Stream<QuerySnapshot> getApplicantsStream(String jobId) {
     return _firestore
         .collection('applications')
         .where('jobId', isEqualTo: jobId)
-        .orderBy('appliedAt', descending: true)
         .snapshots();
   }
 
@@ -325,22 +284,19 @@ class JobService {
             'currentRole': 'Unknown',
           };
 
-      // Use resume from application; fall back to user's profile resume.
-      final resumeUrl =
-          (appData['resumeUrl'] as String?)?.isNotEmpty == true
-              ? appData['resumeUrl'] as String
-              : userMap['resumeUrl'] as String?;
+    final resumeUrl = (appData['resumeUrl'] as String?)?.isNotEmpty == true
+        ? appData['resumeUrl'] as String
+        : userMap['resumeUrl'] as String?;
 
-      applicants.add({
-        'applicationId': doc.id,
-        'userId': userId,
-        'status': appData['status'] ?? 'New Applied',
-        'appliedAt': appData['appliedAt'],
-        'resumeUrl': resumeUrl,
-        'user': userMap,
-      });
-    }
-    return applicants;
+    return {
+      'applicationId': doc.id,
+      'userId': userId,
+      'status': appData['status'] ?? 'New Applied',
+      'appliedAt': appData['appliedAt'],
+      'resumeUrl': resumeUrl,
+      'user': userMap,
+      ...appData,
+    };
   }
 
   Future<void> saveJob(String userId, String jobId) async {
@@ -378,18 +334,5 @@ class JobService {
       }
     }
     return savedJobs;
-  }
-
-  Future<void> addJob(Job job) async {
-    await _firestore.collection('jobs').doc(job.id).set(job.toJson());
-  }
-
-  Future<List<Job>> fetchJobsByUser(String userId) async {
-    final snapshot = await _firestore
-        .collection('jobs')
-        .where('posted_by', isEqualTo: userId)
-        .get();
-
-    return snapshot.docs.map((doc) => Job.fromFirestore(doc)).toList();
   }
 }
