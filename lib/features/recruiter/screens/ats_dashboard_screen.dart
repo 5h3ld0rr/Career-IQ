@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:careeriq/features/recruiter/screens/applicant_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -325,8 +326,8 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     final Map<String, dynamic> user = candidateData['user'] ?? {};
-    final String name = user['fullName'] ?? 'Unknown Applicant';
-    final String role = user['currentRole'] ?? 'No Headline provided';
+    final String name = user['name'] ?? user['fullName'] ?? 'Unknown Applicant';
+    final String role = user['role'] ?? user['currentRole'] ?? 'No Headline provided';
     final String stage = candidateData['status'] ?? 'New Applied';
     final String applicationId = candidateData['applicationId'];
 
@@ -343,7 +344,14 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
       }
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ApplicantProfileScreen(candidateData: candidateData),
+        ),
+      ),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppTheme.getGlassColor(context).withValues(alpha: 0.4),
@@ -607,6 +615,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
           ),
         ),
       ),
+      ), // GestureDetector
     );
   }
 
@@ -636,6 +645,235 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showScheduleModal(
+    BuildContext context,
+    Map<String, dynamic> candidateData,
+    String name,
+    String applicationId,
+  ) {
+    DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return Container(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(ctx).padding.bottom + 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  Text(
+                    'Schedule Interview',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Date picker row
+                  _buildScheduleRow(
+                    context,
+                    icon: Icons.calendar_today_rounded,
+                    label: 'Interview Date',
+                    value:
+                        '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                    color: const Color(0xFFFF9100),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setModalState(() => selectedDate = picked);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Time picker row
+                  _buildScheduleRow(
+                    context,
+                    icon: Icons.access_time_rounded,
+                    label: 'Interview Time',
+                    value: selectedTime.format(context),
+                    color: const Color(0xFF03A9F4),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: selectedTime,
+                      );
+                      if (picked != null) {
+                        setModalState(() => selectedTime = picked);
+                      }
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+                  const Text(
+                    'INTERVIEW OUTCOME',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.grey,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Pass / Fail buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildOutcomeButton(
+                          context,
+                          label: 'Passed',
+                          icon: Icons.check_circle_rounded,
+                          color: Colors.green,
+                          onTap: () {
+                            final provider = Provider.of<JobProvider>(context, listen: false);
+                            provider.updateApplicationStatus(applicationId, 'Interviewing');
+                            Navigator.pop(ctx);
+                            AppSnackBar.show(
+                              '$name scheduled for ${selectedDate.day}/${selectedDate.month}/${selectedDate.year} at ${selectedTime.format(context)} — moved to Interviewing',
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildOutcomeButton(
+                          context,
+                          label: 'Failed',
+                          icon: Icons.cancel_rounded,
+                          color: Colors.red,
+                          onTap: () {
+                            final provider = Provider.of<JobProvider>(context, listen: false);
+                            provider.updateApplicationStatus(applicationId, 'Rejected');
+                            Navigator.pop(ctx);
+                            AppSnackBar.show('$name marked as Rejected', isError: true);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildScheduleRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: color),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Icon(Icons.edit_rounded, size: 16, color: color.withValues(alpha: 0.6)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOutcomeButton(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 15),
             ),
           ],
         ),

@@ -304,6 +304,7 @@ class JobService {
 
       applicants.add({
         'applicationId': doc.id,
+        'userId': userId, // top-level for easy ATS access
         'status': appData['status'] ?? 'New Applied',
         'appliedAt': appData['appliedAt'],
         'resumeUrl': appData['resumeUrl'],

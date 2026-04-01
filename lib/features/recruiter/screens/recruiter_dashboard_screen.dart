@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:careeriq/features/auth/providers/auth_provider.dart';
 import 'package:careeriq/features/jobs/providers/job_provider.dart';
+import 'package:careeriq/features/jobs/data/job_model.dart';
 import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/features/notifications/screens/notifications_screen.dart';
 import 'package:careeriq/features/recruiter/screens/post_job_screen.dart';
+import 'package:careeriq/features/recruiter/screens/ats_dashboard_screen.dart';
 
 class RecruiterDashboardScreen extends StatefulWidget {
   const RecruiterDashboardScreen({super.key});
@@ -54,7 +56,19 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
                         const SizedBox(height: 32),
                         _buildSectionHeader('Recent Postings'),
                         const SizedBox(height: 16),
-                        _buildEmptyState(context),
+                        if (jobProvider.postedJobs.isEmpty)
+                          _buildEmptyState(context)
+                        else
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            itemCount: jobProvider.postedJobs.length > 3 ? 3 : jobProvider.postedJobs.length,
+                            itemBuilder: (context, index) {
+                              final job = jobProvider.postedJobs[index];
+                              return _buildRecentJobItem(context, job);
+                            },
+                          ),
                         const SizedBox(height: 30),
                       ],
                     ),
@@ -335,6 +349,61 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentJobItem(BuildContext context, Job job) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ATSDashboardScreen(initialJobId: job.id)),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.getGlassColor(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.work_rounded, color: Theme.of(context).colorScheme.primary, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    job.title,
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${job.location} • ${job.jobType}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
           ],
         ),
       ),

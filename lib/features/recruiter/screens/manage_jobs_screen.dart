@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:careeriq/features/jobs/providers/job_provider.dart';
 import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/features/jobs/data/job_model.dart';
-import 'package:careeriq/features/jobs/screens/details/job_details_screen.dart';
 import 'package:careeriq/features/recruiter/screens/edit_job_screen.dart';
 import 'package:careeriq/features/recruiter/screens/ats_dashboard_screen.dart';
 
@@ -82,7 +81,9 @@ class ManageJobsScreen extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => JobDetailsScreen(job: job)),
+          MaterialPageRoute(
+            builder: (context) => ATSDashboardScreen(initialJobId: job.id),
+          ),
         );
       },
       child: Container(
