@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/job_provider.dart';
 import '../../core/theme.dart';
 import '../../models/job.dart';
-import '../details/job_details_screen.dart';
+
 import 'edit_job_screen.dart';
 import 'ats_dashboard_screen.dart';
 
@@ -81,7 +81,7 @@ class ManageJobsScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => JobDetailsScreen(job: job),
+            builder: (context) => ATSDashboardScreen(initialJobId: job.id),
           ),
         );
       },
