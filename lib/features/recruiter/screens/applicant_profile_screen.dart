@@ -1,3 +1,5 @@
+import 'package:careeriq/features/jobs/providers/job_provider.dart';
+import 'package:provider/provider.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -208,14 +210,18 @@ class ApplicantProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+        bottomNavigationBar: (stage.toLowerCase() != 'rejected' &&
+                stage.toLowerCase() != 'hired')
+            ? _buildBottomAction(context, name, stage)
+            : null,
+      );
+    }
 
   // ── Hero profile card ──
   Widget _heroCard(
@@ -308,7 +314,7 @@ class ApplicantProfileScreen extends StatelessWidget {
                     ),
                   ),
                   if (resumeUrl.isNotEmpty) ...[
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () => _launchUrl(resumeUrl),
                       child: Container(
@@ -352,6 +358,59 @@ class ApplicantProfileScreen extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomAction(BuildContext context, String name, String stage) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        14,
+        24,
+        MediaQuery.of(context).padding.bottom + 14,
+      ),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: FilledButton.icon(
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFFFF9100),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        onPressed: () => _showScheduleModal(
+          context,
+          name,
+          stage,
+          candidateData['applicationId'] ?? '',
+        ),
+        icon: const Icon(Icons.fact_check_rounded, size: 20),
+        label: const Text(
+          'Application Outcome',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.4,
           ),
         ),
       ),
@@ -454,18 +513,336 @@ class ApplicantProfileScreen extends StatelessWidget {
   }
 
   Color _stageColor(String stage) {
-    switch (stage) {
-      case 'Hired':
+    switch (stage.toLowerCase()) {
+      case 'hired':
         return Colors.green;
-      case 'Shortlisted':
+      case 'shortlisted':
         return Colors.blue;
-      case 'Interviewing':
+      case 'interviewing':
         return Colors.orange;
-      case 'Rejected':
+      case 'rejected':
         return Colors.red;
+      case 'pending':
+      case 'new applied':
+        return Colors.grey;
       default:
         return Colors.grey;
     }
+  }
+
+  void _showScheduleModal(
+    BuildContext context,
+    String name,
+    String currentStage,
+    String applicationId,
+  ) {
+    DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+    bool? passed; // null = not yet selected
+    final remarksCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final theme = Theme.of(context);
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  16,
+                  24,
+                  MediaQuery.of(ctx).padding.bottom + 24,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Application Outcome',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface
+                            .withValues(alpha: 0.5),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'CV & APPLICATION OUTCOME',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.grey,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildOutcomeToggle(
+                            context,
+                            label: 'Passed',
+                            icon: Icons.check_circle_rounded,
+                            color: Colors.green,
+                            selected: passed == true,
+                            onTap: () => setModalState(() => passed = true),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildOutcomeToggle(
+                            context,
+                            label: 'Failed',
+                            icon: Icons.cancel_rounded,
+                            color: Colors.red,
+                            selected: passed == false,
+                            onTap: () => setModalState(() => passed = false),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (passed == true) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        'SCHEDULE INTERVIEW',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.grey,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildScheduleRow(
+                        context,
+                        icon: Icons.calendar_today_rounded,
+                        label: 'Date',
+                        value:
+                            '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                        color: const Color(0xFFFF9100),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now()
+                                .add(const Duration(days: 365)),
+                          );
+                          if (picked != null) {
+                            setModalState(() => selectedDate = picked);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildScheduleRow(
+                        context,
+                        icon: Icons.access_time_rounded,
+                        label: 'Time',
+                        value: selectedTime.format(context),
+                        color: const Color(0xFF03A9F4),
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: selectedTime,
+                          );
+                          if (picked != null) {
+                            setModalState(() => selectedTime = picked);
+                          }
+                        },
+                      ),
+                    ],
+                    if (passed != null) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        'REMARKS',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.grey,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: remarksCtrl,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          hintText: 'Add screening notes...',
+                          filled: true,
+                          fillColor: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor:
+                                passed! ? Colors.green : Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () {
+                            final provider = Provider.of<JobProvider>(
+                              context,
+                              listen: false,
+                            );
+                            final data = {
+                              if (passed!) ...{
+                                'interviewDate': selectedDate,
+                                'interviewTime':
+                                    '${selectedTime.hour}:${selectedTime.minute}',
+                              },
+                              'remarks': remarksCtrl.text,
+                              'lastResultAt': DateTime.now(),
+                            };
+                            provider.updateApplicationStatus(
+                              applicationId,
+                              passed! ? 'Interviewing' : 'Rejected',
+                              data: data,
+                            );
+                            Navigator.pop(context);
+                            AppSnackBar.show(
+                              passed!
+                                  ? 'Interview scheduled for $name'
+                                  : 'Application rejected',
+                              isError: !passed!,
+                            );
+                          },
+                          child: Text(
+                            passed! ? 'Confirm & Schedule' : 'Confirm Rejection',
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildOutcomeToggle(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: selected
+              ? color.withValues(alpha: 0.18)
+              : color.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? color : color.withValues(alpha: 0.2),
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScheduleRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            const Spacer(),
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _launchUrl(String url) async {

@@ -273,11 +273,19 @@ class JobService {
 
   Future<void> updateApplicationStatus(
     String applicationId,
-    String newStatus,
-  ) async {
-    await _firestore.collection('applications').doc(applicationId).update({
+    String newStatus, {
+    Map<String, dynamic>? data,
+  }) async {
+    final Map<String, dynamic> updateData = {
       'status': newStatus,
-    });
+    };
+    if (data != null) {
+      updateData.addAll(data);
+    }
+    await _firestore
+        .collection('applications')
+        .doc(applicationId)
+        .update(updateData);
   }
 
   Future<List<Map<String, dynamic>>> fetchApplicantsForJob(String jobId) async {
@@ -302,12 +310,18 @@ class JobService {
               'currentRole': 'Unknown',
             };
 
+      // Use resume from application; fall back to user's profile resume.
+      final resumeUrl =
+          (appData['resumeUrl'] as String?)?.isNotEmpty == true
+              ? appData['resumeUrl'] as String
+              : userMap['resumeUrl'] as String?;
+
       applicants.add({
         'applicationId': doc.id,
-        'userId': userId, // top-level for easy ATS access
+        'userId': userId,
         'status': appData['status'] ?? 'New Applied',
         'appliedAt': appData['appliedAt'],
-        'resumeUrl': appData['resumeUrl'],
+        'resumeUrl': resumeUrl,
         'user': userMap,
       });
     }

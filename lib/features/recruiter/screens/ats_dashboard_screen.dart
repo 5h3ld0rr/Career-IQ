@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:careeriq/features/recruiter/screens/applicant_profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import 'package:provider/provider.dart';
 import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/features/auth/providers/auth_provider.dart';
@@ -518,54 +518,35 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildActionButton(
-                      context,
-                      Icons.description_rounded,
-                      'View CV',
-                      theme.colorScheme.secondary,
-                      () async {
-                        final resumeUrl = candidateData['resumeUrl'];
-                        if (resumeUrl != null &&
-                            resumeUrl.toString().isNotEmpty) {
-                          final uri = Uri.parse(resumeUrl.toString());
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          } else {
-                            if (mounted) {
-                              AppSnackBar.show(
-                                'Could not open CV. Invalid URL.',
-                                isError: true,
-                              );
-                            }
-                          }
-                        } else {
-                          AppSnackBar.show(
-                            'No CV Available for this applicant.',
-                            isError: true,
-                          );
-                        }
-                      },
-                    ),
-                    _buildActionButton(
-                      context,
-                      Icons.calendar_month_rounded,
-                      'Schedule',
-                      const Color(0xFFFF9100),
-                      () => _showScheduleModal(
+                if (stage == 'Shortlisted' || stage == 'Interviewing')
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildActionButton(
                         context,
-                        candidateData,
-                        name,
-                        applicationId,
+                        Icons.fact_check_rounded,
+                        'Application Outcome',
+                        const Color(0xFFFF9100),
+                        () => _showScheduleModal(
+                          context,
+                          candidateData,
+                          name,
+                          applicationId,
+                        ),
+                      ),
+                    ],
+                  ),
+                if (stage == 'New Applied')
+                  Center(
+                    child: Text(
+                      'Shortlist candidate to evaluate outcome',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        fontStyle: FontStyle.italic,
                       ),
                     ),
-                  ],
-                ),
+                  ),
               ],
             ),
           ),
@@ -616,6 +597,8 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
   ) {
     DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
     TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+    bool? passed; // null = not yet selected
+    final remarksCtrl = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -623,150 +606,247 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) {
-          return Container(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          final theme = Theme.of(context);
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(ctx).padding.bottom + 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Handle bar
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-
-                  Text(
-                    'Schedule Interview',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Date picker row
-                  _buildScheduleRow(
-                    context,
-                    icon: Icons.calendar_today_rounded,
-                    label: 'Interview Date',
-                    value:
-                        '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
-                    color: const Color(0xFFFF9100),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null) {
-                        setModalState(() => selectedDate = picked);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Time picker row
-                  _buildScheduleRow(
-                    context,
-                    icon: Icons.access_time_rounded,
-                    label: 'Interview Time',
-                    value: selectedTime.format(context),
-                    color: const Color(0xFF03A9F4),
-                    onTap: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: selectedTime,
-                      );
-                      if (picked != null) {
-                        setModalState(() => selectedTime = picked);
-                      }
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-                  const Text(
-                    'INTERVIEW OUTCOME',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.grey,
-                      letterSpacing: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Pass / Fail buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildOutcomeButton(
-                          context,
-                          label: 'Passed',
-                          icon: Icons.check_circle_rounded,
-                          color: Colors.green,
-                          onTap: () {
-                            final provider = Provider.of<JobProvider>(
-                              context,
-                              listen: false,
-                            );
-                            provider.updateApplicationStatus(
-                              applicationId,
-                              'Interviewing',
-                            );
-                            if (ctx.mounted) Navigator.pop(ctx);
-                            AppSnackBar.show(
-                              '$name scheduled for ${selectedDate.day}/${selectedDate.month}/${selectedDate.year} at ${selectedTime.format(context)} — moved to Interviewing',
-                            );
-                          },
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  16,
+                  24,
+                  MediaQuery.of(ctx).padding.bottom + 24,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildOutcomeButton(
-                          context,
-                          label: 'Failed',
-                          icon: Icons.cancel_rounded,
-                          color: Colors.red,
-                          onTap: () {
+                    ),
+                    Text(
+                      'Application Outcome',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface
+                            .withValues(alpha: 0.5),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ── Step 1: Outcome toggle ──────────────────────────
+                    const Text(
+                      'CV & APPLICATION OUTCOME',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.grey,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildOutcomeToggle(
+                            context,
+                            label: 'Passed',
+                            icon: Icons.check_circle_rounded,
+                            color: Colors.green,
+                            selected: passed == true,
+                            onTap: () =>
+                                setModalState(() => passed = true),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildOutcomeToggle(
+                            context,
+                            label: 'Failed',
+                            icon: Icons.cancel_rounded,
+                            color: Colors.red,
+                            selected: passed == false,
+                            onTap: () =>
+                                setModalState(() => passed = false),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // ── Step 2: Date + Time (Pass only) ────────────────
+                    if (passed == true) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        'SCHEDULE NEXT INTERVIEW',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.grey,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildScheduleRow(
+                        context,
+                        icon: Icons.calendar_today_rounded,
+                        label: 'Interview Date',
+                        value:
+                            '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                        color: const Color(0xFFFF9100),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now()
+                                .add(const Duration(days: 365)),
+                          );
+                          if (picked != null) {
+                            setModalState(() => selectedDate = picked);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildScheduleRow(
+                        context,
+                        icon: Icons.access_time_rounded,
+                        label: 'Interview Time',
+                        value: selectedTime.format(context),
+                        color: const Color(0xFF03A9F4),
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: selectedTime,
+                          );
+                          if (picked != null) {
+                            setModalState(() => selectedTime = picked);
+                          }
+                        },
+                      ),
+                    ],
+
+                    // ── Step 3: Remarks (once outcome chosen) ───────────
+                    if (passed != null) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        'REMARKS (OPTIONAL)',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.grey,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: remarksCtrl,
+                        maxLines: 3,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(
+                          hintText:
+                              'e.g. Strong technical skills, needs improvement in communication…',
+                          hintStyle: TextStyle(
+                            fontSize: 13,
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.4),
+                          ),
+                          filled: true,
+                          fillColor: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.05),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ── Confirm button ────────────────────────────────
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor:
+                                passed! ? Colors.green : Colors.red,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          icon: Icon(
+                            passed!
+                                ? Icons.check_rounded
+                                : Icons.close_rounded,
+                            size: 20,
+                          ),
+                          label: Text(
+                            passed!
+                                ? 'Confirm & Schedule'
+                                : 'Confirm Rejection',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          onPressed: () {
                             final provider = Provider.of<JobProvider>(
                               context,
                               listen: false,
                             );
+                            final data = {
+                              if (passed!) ...{
+                                'interviewDate': selectedDate,
+                                'interviewTime':
+                                    '${selectedTime.hour}:${selectedTime.minute}',
+                              },
+                              'remarks': remarksCtrl.text,
+                              'lastResultAt': DateTime.now(),
+                            };
                             provider.updateApplicationStatus(
                               applicationId,
-                              'Rejected',
+                              passed! ? 'Interviewing' : 'Rejected',
+                              data: data,
                             );
                             if (ctx.mounted) Navigator.pop(ctx);
                             AppSnackBar.show(
-                              '$name marked as Rejected',
-                              isError: true,
+                              passed!
+                                  ? 'Interview scheduled for $name'
+                                  : 'Application marked as Rejected',
+                              isError: !passed!,
                             );
                           },
                         ),
                       ),
                     ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -821,21 +901,28 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
     );
   }
 
-  Widget _buildOutcomeButton(
+  Widget _buildOutcomeToggle(
     BuildContext context, {
     required String label,
     required IconData icon,
     required Color color,
+    required bool selected,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: selected
+              ? color.withValues(alpha: 0.18)
+              : color.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: selected ? color : color.withValues(alpha: 0.25),
+            width: selected ? 2 : 1,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -844,7 +931,11 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
             const SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 15),
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w900,
+                fontSize: 15,
+              ),
             ),
           ],
         ),

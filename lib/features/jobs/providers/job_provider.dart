@@ -192,15 +192,20 @@ class JobProvider with ChangeNotifier {
 
   Future<void> updateApplicationStatus(
     String applicationId,
-    String status,
-  ) async {
+    String status, {
+    Map<String, dynamic>? data,
+  }) async {
     try {
-      await _jobService.updateApplicationStatus(applicationId, status);
+      await _jobService.updateApplicationStatus(applicationId, status,
+          data: data);
       final index = _jobApplicants.indexWhere(
         (a) => a['applicationId'] == applicationId,
       );
       if (index != -1) {
         _jobApplicants[index]['status'] = status;
+        if (data != null) {
+          _jobApplicants[index].addAll(data);
+        }
         notifyListeners();
       }
     } catch (e) {
