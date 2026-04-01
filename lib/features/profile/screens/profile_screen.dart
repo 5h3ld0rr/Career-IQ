@@ -10,7 +10,7 @@ import 'package:careeriq/features/jobs/providers/job_provider.dart';
 import 'package:careeriq/features/recruiter/screens/manage_jobs_screen.dart';
 import 'package:careeriq/features/profile/screens/edit_profile_screen.dart';
 import 'package:careeriq/features/recruiter/screens/billing_subscription_screen.dart';
-import '../recruiter/organization_settings_screen.dart';
+import '../../recruiter/screens/organization_settings_screen.dart';
 import 'package:careeriq/core/widgets/app_snackbar.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -688,7 +688,7 @@ class ProfileScreen extends StatelessWidget {
             () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const OrganizationSettingsScreen()),
+                MaterialPageRoute(builder: (_) => OrganizationSettingsScreen()),
               );
             },
           ),
