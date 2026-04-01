@@ -67,7 +67,11 @@ class PushNotificationService {
     });
   }
 
-  Future<void> _showLocalNotification(RemoteMessage message) async {
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? route,
+  }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'high_importance_channel',
@@ -82,11 +86,19 @@ class PushNotificationService {
     );
 
     await _localNotifications.show(
-      id: message.hashCode,
-      title: message.notification?.title ?? 'New Notification',
-      body: message.notification?.body,
+      id: DateTime.now().millisecond,
+      title: title,
+      body: body,
       notificationDetails: platformDetails,
-      payload: message.data['route'],
+      payload: route,
+    );
+  }
+
+  Future<void> _showLocalNotification(RemoteMessage message) async {
+    await showLocalNotification(
+      title: message.notification?.title ?? 'New Notification',
+      body: message.notification?.body ?? '',
+      route: message.data['route'],
     );
   }
 
@@ -141,25 +153,9 @@ class PushNotificationService {
     String userId, {
     String? route,
   }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'high_importance_channel',
-          'High Importance Notifications',
-          importance: Importance.max,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        );
-    const NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
-    );
-
-    await _localNotifications.show(
-      id: DateTime.now().millisecond,
-      title: title,
-      body: body,
-      notificationDetails: platformDetails,
-      payload: route,
-    );
+    // We only add to Firestore here. The recipient will see a local notification
+    // via their NotificationProvider listener if they have the app open in the foreground.
+    // For background notifications, a Cloud Function (not local to app) would be needed.
 
     await FirebaseFirestore.instance
         .collection('users')
@@ -173,5 +169,16 @@ class PushNotificationService {
           'isRead': false,
           'createdAt': FieldValue.serverTimestamp(),
         });
+  }
+
+  Future<void> updateToken(String userId) async {
+    final token = await getToken();
+    if (token != null) {
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'fcmToken': token,
+        'lastTokenUpdate': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      debugPrint("FCM Token updated for user $userId: $token");
+    }
   }
 }

@@ -10,6 +10,7 @@ class NotificationProvider with ChangeNotifier {
   List<NotificationModel> _notifications = [];
   bool _isLoading = false;
   String? _userId;
+  bool _isFirstLoad = true;
 
   List<NotificationModel> get notifications => _notifications;
   bool get isLoading => _isLoading;
@@ -29,7 +30,11 @@ class NotificationProvider with ChangeNotifier {
   void loadUserNotifications(String userId) {
     _userId = userId;
     _isLoading = true;
+    _isFirstLoad = true;
     notifyListeners();
+
+    // Re-register FCM token
+    _pushNotificationService?.updateToken(userId);
 
     _firestore
         .collection('users')
@@ -42,11 +47,27 @@ class NotificationProvider with ChangeNotifier {
             _notifications = snapshot.docs
                 .map((doc) => NotificationModel.fromMap(doc.id, doc.data()))
                 .toList();
+
+            // Show local notification for new items after initial load
+            if (!_isFirstLoad && snapshot.docChanges.isNotEmpty) {
+              for (var change in snapshot.docChanges) {
+                if (change.type == DocumentChangeType.added) {
+                  final data = change.doc.data() as Map<String, dynamic>;
+                  _pushNotificationService?.showLocalNotification(
+                    title: data['title'] ?? 'New Notification',
+                    body: data['body'] ?? '',
+                    route: data['route'],
+                  );
+                }
+              }
+            }
+
+            _isFirstLoad = false;
             _isLoading = false;
             notifyListeners();
           },
           onError: (e) {
-            debugPrint("Error loading notifications: \$e");
+            debugPrint("Error loading notifications: $e");
             _isLoading = false;
             notifyListeners();
           },
