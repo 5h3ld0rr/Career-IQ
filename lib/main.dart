@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'core/theme.dart';
-import 'providers/auth_provider.dart';
-import 'providers/job_provider.dart';
-import 'providers/ai_provider.dart';
-import 'providers/theme_provider.dart';
-import 'providers/notification_provider.dart';
-
-import 'screens/splash/splash_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/signup_screen.dart';
-import 'screens/main_wrapper.dart';
-import 'screens/salary_roi/salary_roi_screen.dart';
-import 'providers/salary_provider.dart';
-import 'providers/chat_provider.dart';
+import 'package:careeriq/core/theme/theme.dart';
+import 'package:careeriq/features/auth/providers/auth_provider.dart';
+import 'package:careeriq/features/jobs/providers/job_provider.dart';
+import 'package:careeriq/features/ai_assistant/providers/ai_provider.dart';
+import 'package:careeriq/core/providers/theme_provider.dart';
+import 'package:careeriq/features/notifications/providers/notification_provider.dart';
+import 'package:careeriq/features/splash/screens/splash_screen.dart';
+import 'package:careeriq/features/auth/screens/login_screen.dart';
+import 'package:careeriq/features/auth/screens/signup_screen.dart';
+import 'package:careeriq/core/shell/main_wrapper.dart';
+import 'package:careeriq/features/salary_roi/screens/salary_roi_screen.dart';
+import 'package:careeriq/features/salary_roi/providers/salary_provider.dart';
+import 'package:careeriq/features/chat/providers/chat_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:careeriq/firebase_options.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 
@@ -63,8 +62,12 @@ void main() async {
 
     debugPrint('Activating App Check...');
     await FirebaseAppCheck.instance.activate(
-      providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
-      providerApple: kDebugMode ? const AppleDebugProvider() : const AppleDeviceCheckProvider(),
+      providerAndroid: kDebugMode
+          ? const AndroidDebugProvider()
+          : const AndroidPlayIntegrityProvider(),
+      providerApple: kDebugMode
+          ? const AppleDebugProvider()
+          : const AppleDeviceCheckProvider(),
     );
     debugPrint('App Check Activated.');
   } catch (e) {
@@ -94,7 +97,6 @@ class CareerIQApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
-    // Initialize notification service once per app startup
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<NotificationProvider>(
         context,
