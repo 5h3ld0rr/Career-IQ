@@ -144,6 +144,92 @@ class AIService {
     }
   }
 
+  // --- Recruiter AI Hub Tools ---
+
+  /// Generates a professional Job Description based on a few keywords/title
+  Future<Map<String, dynamic>> generateJobDescription({
+    required String title,
+    required String company,
+    required String requirements,
+  }) async {
+    final prompt = """
+    Generate a professional Job Description.
+    Title: $title
+    Company: $company
+    Key Requirements: $requirements
+
+    Provide JSON with:
+    - 'description': (String) Professional overview
+    - 'responsibilities': (List<String>)
+    - 'requirements': (List<String>)
+    - 'salaryRange': (String) Estimated market range
+    
+    Return ONLY the JSON.
+    """;
+
+    try {
+      final response = await _openRouter.generateResponse(prompt);
+      return _parseJsonResponse(response);
+    } catch (e) {
+      return {"error": e.toString()};
+    }
+  }
+
+  /// Detailed Resume Scorer for Recruiters
+  Future<Map<String, dynamic>> scoreResume({
+    required String resumeContent,
+    required String jobDescription,
+  }) async {
+    final prompt = """
+    Act as an expert Recruiter ATS. Score this resume against the JD.
+    Resume: $resumeContent
+    JD: $jobDescription
+
+    Provide JSON with:
+    - 'overallScore': (int 0-100)
+    - 'keyMatches': (List<String>)
+    - 'missingCritical': (List<String>)
+    - 'verdict': (String: Short hiring recommendation)
+    
+    Return ONLY the JSON.
+    """;
+
+    try {
+      final response = await _openRouter.generateResponse(prompt);
+      return _parseJsonResponse(response);
+    } catch (e) {
+      return {"error": e.toString()};
+    }
+  }
+
+  /// Dynamic Market Insights for Recruiters
+  Future<Map<String, dynamic>> getMarketInsights({
+    required String jobTitle,
+    required String location,
+  }) async {
+    final prompt = """
+    Provide modern (2026) hiring market insights for:
+    Role: $jobTitle
+    Location: $location
+
+    Provide JSON with:
+    - 'avgSalary': (String)
+    - 'demandLevel': (String: Low/Medium/High)
+    - 'topSkills': (List<String>)
+    - 'hiringDifficulty': (int 1-10)
+    - 'remoteTrends': (String)
+    
+    Return ONLY the JSON.
+    """;
+
+    try {
+      final response = await _openRouter.generateResponse(prompt);
+      return _parseJsonResponse(response);
+    } catch (e) {
+      return {"error": e.toString()};
+    }
+  }
+
   Future<int> calculateJobMatchScore({
     required String resumeContent,
     required String jobDescription,

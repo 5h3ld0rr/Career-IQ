@@ -11,9 +11,13 @@ class AIProvider with ChangeNotifier {
   String? _coverLetter;
   Map<String, dynamic>? _skillsGap;
   List<Map<String, dynamic>> _extractedSkills = [];
+  bool _isGenerating = false;
+  Map<String, dynamic> _recruiterMarketInsights = {};
 
   List<String> get currentTips => _currentTips;
   bool get isLoading => _isLoading;
+  bool get isGenerating => _isGenerating;
+  Map<String, dynamic> get recruiterMarketInsights => _recruiterMarketInsights;
   String? get analysisResult => _analysisResult;
   String? get coverLetter => _coverLetter;
   Map<String, dynamic>? get skillsGap => _skillsGap;
@@ -138,6 +142,61 @@ class AIProvider with ChangeNotifier {
       return result;
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // --- Recruiter AI Hub Wrappers ---
+
+  Future<Map<String, dynamic>> generateJobDescription({
+    required String title,
+    required String company,
+    required String requirements,
+  }) async {
+    _isGenerating = true;
+    notifyListeners();
+    try {
+      return await _aiService.generateJobDescription(
+        title: title,
+        company: company,
+        requirements: requirements,
+      );
+    } finally {
+      _isGenerating = false;
+      notifyListeners();
+    }
+  }
+
+  Future<Map<String, dynamic>> scoreResume({
+    required String resumeContent,
+    required String jobDescription,
+  }) async {
+    _isGenerating = true;
+    notifyListeners();
+    try {
+      return await _aiService.scoreResume(
+        resumeContent: resumeContent,
+        jobDescription: jobDescription,
+      );
+    } finally {
+      _isGenerating = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> getMarketInsights({
+    required String jobTitle,
+    required String location,
+  }) async {
+    _isGenerating = true;
+    notifyListeners();
+    try {
+      _recruiterMarketInsights = await _aiService.getMarketInsights(
+        jobTitle: jobTitle,
+        location: location,
+      );
+    } finally {
+      _isGenerating = false;
       notifyListeners();
     }
   }

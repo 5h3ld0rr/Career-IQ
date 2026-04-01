@@ -12,6 +12,7 @@ import 'chat/expert_ai_chat_screen.dart';
 import 'recruiter/recruiter_dashboard_screen.dart';
 import 'recruiter/ats_dashboard_screen.dart';
 import 'recruiter/manage_jobs_screen.dart';
+import 'recruiter/recruiter_tools_screen.dart';
 import '../core/theme.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -110,6 +111,31 @@ class _MainWrapperState extends State<MainWrapper> {
               label: 'Expert',
               color: const Color(0xFFD500F9),
               onTap: () => _navigateTo(const ExpertAIChatScreen()),
+            ),
+          ] else ...[
+            _buildArcAction(
+              context,
+              index: 0,
+              icon: Icons.auto_awesome_rounded,
+              label: 'JD Gen',
+              color: const Color(0xFFD500F9),
+              onTap: () => _navigateTo(const RecruiterToolsScreen()),
+            ),
+            _buildArcAction(
+              context,
+              index: 1,
+              icon: Icons.rule_rounded,
+              label: 'Scorer',
+              color: const Color(0xFF00E676),
+              onTap: () => _navigateTo(const RecruiterToolsScreen()),
+            ),
+            _buildArcAction(
+              context,
+              index: 2,
+              icon: Icons.analytics_rounded,
+              label: 'Market',
+              color: const Color(0xFFFF9100),
+              onTap: () => _navigateTo(const RecruiterToolsScreen()),
             ),
           ],
         ],
