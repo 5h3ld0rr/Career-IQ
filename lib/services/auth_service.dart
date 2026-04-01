@@ -206,4 +206,11 @@ class AuthService {
       }
     }
   }
+
+  Future<void> updateOrganizationConfigs(String uid, Map<String, dynamic> data) async {
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .set(data, SetOptions(merge: true));
+  }
 }

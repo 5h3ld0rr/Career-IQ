@@ -22,6 +22,10 @@ class AuthProvider with ChangeNotifier {
   String? _experience;
   String? _location;
   String _userRole = 'Job Seeker'; // Default role
+  String? _companyName;
+  String? _companyWebsite;
+  String? _companyIndustry;
+  String? _companyDescription;
 
   bool _isEmailVerified = false;
   bool _isPhoneVerified = false;
@@ -50,6 +54,10 @@ class AuthProvider with ChangeNotifier {
   bool get isEmailVerified => _isEmailVerified;
   bool get isPhoneVerified => _isPhoneVerified;
   String? get phoneNumber => _phoneNumber;
+  String? get companyName => _companyName;
+  String? get companyWebsite => _companyWebsite;
+  String? get companyIndustry => _companyIndustry;
+  String? get companyDescription => _companyDescription;
 
   void showNotification(String message, {bool isError = false}) {
     AppSnackBar.show(message, isError: isError);
@@ -85,6 +93,10 @@ class AuthProvider with ChangeNotifier {
     _isEmailVerified = user.emailVerified;
     _isPhoneVerified = profile?['isPhoneVerified'] ?? false;
     _phoneNumber = profile?['phoneNumber'];
+    _companyName = profile?['companyName'];
+    _companyWebsite = profile?['companyWebsite'];
+    _companyIndustry = profile?['companyIndustry'];
+    _companyDescription = profile?['companyDescription'];
   }
 
   Future<void> checkAuthStatus() async {
@@ -468,6 +480,42 @@ class AuthProvider with ChangeNotifier {
       }
       showNotification("Invalid Verification Code.", isError: true);
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateOrganizationConfigs({
+    String? companyName,
+    String? companyWebsite,
+    String? companyIndustry,
+    String? companyDescription,
+  }) async {
+    if (userId == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final Map<String, dynamic> data = {};
+      if (companyName != null) data['companyName'] = companyName;
+      if (companyWebsite != null) data['companyWebsite'] = companyWebsite;
+      if (companyIndustry != null) data['companyIndustry'] = companyIndustry;
+      if (companyDescription != null)
+        data['companyDescription'] = companyDescription;
+
+      await _authService.updateOrganizationConfigs(userId!, data);
+
+      if (companyName != null) _companyName = companyName;
+      if (companyWebsite != null) _companyWebsite = companyWebsite;
+      if (companyIndustry != null) _companyIndustry = companyIndustry;
+      if (companyDescription != null)
+        _companyDescription = companyDescription;
+
+      showNotification("Organization updated successfully!");
+    } catch (e) {
+      showNotification("Update failed: $e", isError: true);
     } finally {
       _isLoading = false;
       notifyListeners();

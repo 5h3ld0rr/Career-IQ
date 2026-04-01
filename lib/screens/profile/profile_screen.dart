@@ -10,6 +10,7 @@ import 'package:careeriq/providers/job_provider.dart';
 import '../recruiter/manage_jobs_screen.dart';
 import 'edit_profile_screen.dart';
 import '../recruiter/billing_subscription_screen.dart';
+import '../recruiter/organization_settings_screen.dart';
 import '../../widgets/app_snackbar.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -670,7 +671,10 @@ class ProfileScreen extends StatelessWidget {
             Icons.business_rounded,
             'Organization Settings',
             () {
-              AppSnackBar.show('Organization Settings coming soon');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const OrganizationSettingsScreen()),
+              );
             },
           ),
         ],
