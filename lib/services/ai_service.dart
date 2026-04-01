@@ -64,8 +64,8 @@ class AIService {
       """;
       
       final response = await _openRouter.generateResponse(prompt);
-      final list = _parseJsonListResponse(response);
-      return list.map((e) => e as Map<String, dynamic>).toList();
+      final list = _safeParseJson(response);
+      return list is List ? list.map((e) => e as Map<String, dynamic>).toList() : [];
     } catch (e) {
       debugPrint("Error extracting skills: $e");
       return [];
@@ -97,10 +97,18 @@ class AIService {
       """;
 
       final response = await _openRouter.generateResponse(prompt);
-      return _parseJsonResponse(response);
+      final result = _safeParseJson(response);
+      return result is Map<String, dynamic> ? result : {
+        "matchPercentage": 0,
+        "summary": "AI error parsing fit.",
+        "currentSkills": [],
+        "missingSkills": [],
+        "recommendations": [],
+      };
     } catch (e) {
       return {
         "matchPercentage": 0,
+        "summary": "Error: $e",
         "currentSkills": [],
         "missingSkills": [],
         "recommendations": ["Error analyzing skills gap: $e"],
@@ -113,8 +121,7 @@ class AIService {
     required List<String> targetJobTitles,
   }) async {
     try {
-      final prompt =
-          """
+      final prompt = """
       Act as a specialized Career ROI and Market Value Analyst. 
       Analyze the following professional profile data and target roles to provide 3-5 high-impact salary insights.
       
@@ -122,7 +129,7 @@ class AIService {
       Target Career Titles: ${targetJobTitles.isEmpty ? "High-Growth Tech & Business Roles" : targetJobTitles.join(', ')}
 
       For each insight, provide:
-      - 'skillName': A high-value skill (could be one they have or a critical one they are missing according to market trends 2026).
+      - 'skillName': A high-value skill.
       - 'currentMarketValue': Estimated annual salary increase in USD for having this skill.
       - 'potentialIncreasePercentage': Percentage growth in salary if this skill is mastered (e.g., 15.5).
       - 'trendData': A list of exactly 6 monthly data points (representing value trend over last 6 months, normalized 0-100).
@@ -133,11 +140,14 @@ class AIService {
       """;
 
       final response = await _openRouter.generateResponse(prompt);
-      final List<dynamic> jsonList = _parseJsonListResponse(response);
+      final jsonList = _safeParseJson(response);
 
-      return jsonList
-          .map((e) => SalaryInsight.fromJson(e as Map<String, dynamic>))
-          .toList();
+      if (jsonList is List) {
+        return jsonList
+            .map((e) => SalaryInsight.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
     } catch (e) {
       debugPrint("Error in getSalaryInsights: $e");
       return [];
@@ -146,7 +156,6 @@ class AIService {
 
   // --- Recruiter AI Hub Tools ---
 
-  /// Generates a professional Job Description based on a few keywords/title
   Future<Map<String, dynamic>> generateJobDescription({
     required String title,
     required String company,
@@ -159,23 +168,23 @@ class AIService {
     Key Requirements: $requirements
 
     Provide JSON with:
-    - 'description': (String) Professional overview
+    - 'description': Professional overview
     - 'responsibilities': (List<String>)
     - 'requirements': (List<String>)
-    - 'salaryRange': (String) Estimated market range
+    - 'salaryRange': Estimated market range
     
     Return ONLY the JSON.
     """;
 
     try {
       final response = await _openRouter.generateResponse(prompt);
-      return _parseJsonResponse(response);
+      final result = _safeParseJson(response);
+      return result is Map<String, dynamic> ? result : {"error": "Invalid format from AI"};
     } catch (e) {
       return {"error": e.toString()};
     }
   }
 
-  /// Detailed Resume Scorer for Recruiters
   Future<Map<String, dynamic>> scoreResume({
     required String resumeContent,
     required String jobDescription,
@@ -189,20 +198,20 @@ class AIService {
     - 'overallScore': (int 0-100)
     - 'keyMatches': (List<String>)
     - 'missingCritical': (List<String>)
-    - 'verdict': (String: Short hiring recommendation)
+    - 'verdict': (Short hiring recommendation)
     
     Return ONLY the JSON.
     """;
 
     try {
       final response = await _openRouter.generateResponse(prompt);
-      return _parseJsonResponse(response);
+      final result = _safeParseJson(response);
+      return result is Map<String, dynamic> ? result : {"error": "Invalid format from AI"};
     } catch (e) {
       return {"error": e.toString()};
     }
   }
 
-  /// Dynamic Market Insights for Recruiters
   Future<Map<String, dynamic>> getMarketInsights({
     required String jobTitle,
     required String location,
@@ -214,7 +223,7 @@ class AIService {
 
     Provide JSON with:
     - 'avgSalary': (String)
-    - 'demandLevel': (String: Low/Medium/High)
+    - 'demandLevel': (Low/Medium/High)
     - 'topSkills': (List<String>)
     - 'hiringDifficulty': (int 1-10)
     - 'remoteTrends': (String)
@@ -224,9 +233,54 @@ class AIService {
 
     try {
       final response = await _openRouter.generateResponse(prompt);
-      return _parseJsonResponse(response);
+      final result = _safeParseJson(response);
+      return result is Map<String, dynamic> ? result : {"error": "Invalid format from AI"};
     } catch (e) {
       return {"error": e.toString()};
+    }
+  }
+
+  // --- Utility Methods ---
+
+  dynamic _safeParseJson(String text) {
+    if (text.isEmpty) return null;
+    
+    String jsonStr = text;
+    // Extract JSON from markdown blocks if present
+    final jsonBlockMatch = RegExp(r"```(?:json)?\s*([\s\S]*?)\s*```").firstMatch(text);
+    if (jsonBlockMatch != null) {
+      jsonStr = jsonBlockMatch.group(1) ?? text;
+    }
+
+    try {
+      return json.decode(jsonStr.trim());
+    } catch (e) {
+      debugPrint("Primary JSON parse failed: $e. Attempting fallback.");
+      // Fallback: try to find the first '{' or '[' and last '}' or ']'
+      try {
+        int firstBrace = jsonStr.indexOf('{');
+        int firstBracket = jsonStr.indexOf('[');
+        int lastBrace = jsonStr.lastIndexOf('}');
+        int lastBracket = jsonStr.lastIndexOf(']');
+
+        int start = -1;
+        int end = -1;
+
+        if (firstBrace != -1 && (firstBracket == -1 || firstBrace < firstBracket)) {
+          start = firstBrace;
+          end = lastBrace;
+        } else if (firstBracket != -1) {
+          start = firstBracket;
+          end = lastBracket;
+        }
+
+        if (start != -1 && end != -1 && end > start) {
+          return json.decode(jsonStr.substring(start, end + 1));
+        }
+      } catch (e2) {
+        debugPrint("JSON recovery failed: $e2");
+      }
+      return null;
     }
   }
 
@@ -235,22 +289,11 @@ class AIService {
     required String jobDescription,
   }) async {
     if (resumeContent.isEmpty) return 0;
-
     try {
-      final prompt =
-          """
-      Analyze the match between this resume and the job description.
-      Resume: $resumeContent
-      Job Description: $jobDescription
-      
-      Return ONLY a single integer between 0 and 100 representing the percentage match score. Do not add any text.
-      """;
-
+      final prompt = "Return ONLY an integer 0-100 score matching this Resume and JD:\nResume: $resumeContent\nJD: $jobDescription";
       final response = await _openRouter.generateResponse(prompt);
-      final scoreText = response.replaceAll(RegExp(r'[^0-9]'), '');
-      return int.tryParse(scoreText) ?? 0;
-    } catch (e) {
-      debugPrint("Error calculating match score: $e");
+      return int.tryParse(RegExp(r'\d+').firstMatch(response)?.group(0) ?? '0') ?? 0;
+    } catch (_) {
       return 0;
     }
   }
@@ -260,11 +303,10 @@ class AIService {
     required String jobDescription,
   }) async {
     try {
-      final prompt =
-          "Based on the following resume and job description, generate a professional and compelling cover letter:\n\nResume:\n$resumeContent\n\nJob Description:\n$jobDescription";
+      final prompt = "Generate a professional cover letter for this resume and JD:\nResume: $resumeContent\nJD: $jobDescription";
       return await _openRouter.generateResponse(prompt);
     } catch (e) {
-      return "Error generating cover letter: $e";
+      return "Error: $e";
     }
   }
 
@@ -272,30 +314,17 @@ class AIService {
     required String companyName,
     required String jobDescription,
   }) async {
-    final prompt =
-        """
-    Generate interview preparation details for a candidate interviewing at $companyName for the following role:
-    
-    Job Description:
-    $jobDescription
-
-    Provide the response in JSON format with these exact keys:
-    - 'companySummary': A brief, 2-3 sentence overview of what the company does.
-    - 'commonQuestions': A list of 5-7 most likely behavioral or technical interview questions for this specific role.
-    - 'preparationTips': A list of 3-5 specific tips for this interview.
-
-    Return ONLY the JSON.
+    final prompt = """
+    Prep JSON for $companyName:
+    JD: $jobDescription
+    Keys: 'companySummary', 'commonQuestions' (list), 'preparationTips' (list)
     """;
-
     try {
       final response = await _openRouter.generateResponse(prompt);
-      return _parseJsonResponse(response);
+      final result = _safeParseJson(response);
+      return result is Map<String, dynamic> ? result : {"error": "Invalid format"};
     } catch (e) {
-      return {
-        "companySummary": "Could not fetch company details.",
-        "commonQuestions": [],
-        "preparationTips": ["Error generating prep: $e"],
-      };
+      return {"error": e.toString()};
     }
   }
 
@@ -303,104 +332,28 @@ class AIService {
     required String role,
     required String experienceLevel,
   }) async {
-    final prompt =
-        """
-    Generate exactly 5 targeted interview questions for a $experienceLevel $role role. 
-    Mix technical/role-specific questions with behavioral ones.
-    Return only a JSON list of strings.
-    """;
-
+    final prompt = "List exactly 5 mock interview questions for $experienceLevel $role as JSON list of strings.";
     try {
       final response = await _openRouter.generateResponse(prompt);
-      final list = _parseJsonListResponse(response);
-      return list.map((e) => e.toString()).toList();
-    } catch (e) {
-      debugPrint("Error generating mock questions: $e");
-      return [
-        "Tell me about a challenging project you've worked on recently.",
-        "How do you handle disagreements within a technical team?",
-        "What is your approach to learning new technologies?",
-        "Where do you see yourself in the next 3 to 5 years?",
-        "Why do you want for this role?",
-      ];
+      final result = _safeParseJson(response);
+      return result is List ? result.map((e) => e.toString()).toList() : [];
+    } catch (_) {
+      return [];
     }
   }
 
   Future<Map<String, dynamic>> analyzeInterviewSession({
     required List<Map<String, String>> conversation,
   }) async {
-    final conversationStr = conversation
-        .map((e) => "Q: ${e['question']}\nA: ${e['answer']}")
-        .join("\n\n");
-
-    final prompt =
-        """
-    As an expert interviewer and career coach, analyze the following interview conversation. 
-    
-    $conversationStr
-    
-    Provide a score (0-100) and 3-5 high-impact insights into the candidate's performance.
-    Return only JSON with these keys:
-    - 'score': (double)
-    - 'insights': list of objects with {'icon': (Ionicons/Material icon name string), 'title': (String), 'subtitle': (String), 'color': (one of 'blue', 'orange', 'red', 'green', 'indigo')}
-    
-    Return ONLY the JSON.
-    """;
-
+    final conversationStr = conversation.map((e) => "Q: ${e['question']}\nA: ${e['answer']}").join("\n\n");
+    final prompt = "Analyze this interview. JSON keys: 'score' (double), 'insights' (list). Insights have 'icon', 'title', 'subtitle', 'color'.\n$conversationStr";
     try {
       final response = await _openRouter.generateResponse(prompt);
-      return _parseJsonResponse(response);
+      final result = _safeParseJson(response);
+      return result is Map<String, dynamic> ? result : {'score': 0.0, 'insights': []};
     } catch (e) {
       debugPrint("Error analyzing interview: $e");
-      return {
-        'score': 0.0,
-        'insights': [
-          {
-            'icon': 'warning',
-            'title': 'Analysis Error',
-            'subtitle': 'Could not analyze session due to an error.',
-            'color': 'red',
-          },
-        ],
-      };
-    }
-  }
-
-  Map<String, dynamic> _parseJsonResponse(String text) {
-    String jsonStr = text;
-    if (text.contains("```json")) {
-      jsonStr = text.split("```json")[1].split("```")[0];
-    } else if (text.contains("```")) {
-      jsonStr = text.split("```")[1].split("```")[0];
-    }
-
-    try {
-      return json.decode(jsonStr.trim()) as Map<String, dynamic>;
-    } catch (_) {
-      try {
-        return json.decode(text.trim()) as Map<String, dynamic>;
-      } catch (__) {
-        return {};
-      }
-    }
-  }
-
-  List<dynamic> _parseJsonListResponse(String text) {
-    String jsonStr = text;
-    if (text.contains("```json")) {
-      jsonStr = text.split("```json")[1].split("```")[0];
-    } else if (text.contains("```")) {
-      jsonStr = text.split("```")[1].split("```")[0];
-    }
-
-    try {
-      return json.decode(jsonStr.trim()) as List<dynamic>;
-    } catch (_) {
-      try {
-        return json.decode(text.trim()) as List<dynamic>;
-      } catch (__) {
-        return [];
-      }
+      return {'score': 0.0, 'insights': []};
     }
   }
 }

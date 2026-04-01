@@ -29,60 +29,85 @@ class _MainWrapperState extends State<MainWrapper> {
   bool _bottomNavVisible = true;
   bool _isAIHubMenuOpen = false;
 
-  List<Widget> _getScreens(bool isRecruiter) {
-    if (isRecruiter) {
-      return [
-        const RecruiterDashboardScreen(),
-        const ATSDashboardScreen(),
-        const ManageJobsScreen(),
-        const ProfileScreen(),
-      ];
-    }
-    return [
-      const HomeScreen(),
-      const ApplicationTrackerScreen(),
-      const SavedJobsScreen(),
-      const ProfileScreen(),
+  late List<Widget> _userScreens;
+  late List<Widget> _recruiterScreens;
+
+  @override
+  void initState() {
+    super.initState();
+    _userScreens = [
+      const HomeScreen(key: ValueKey('home')),
+      const ApplicationTrackerScreen(key: ValueKey('tracker')),
+      const SavedJobsScreen(key: ValueKey('saved')),
+      const ProfileScreen(key: ValueKey('profile_v')),
+    ];
+    _recruiterScreens = [
+      const RecruiterDashboardScreen(key: ValueKey('rec_dash')),
+      const ATSDashboardScreen(key: ValueKey('ats_dash')),
+      const ManageJobsScreen(key: ValueKey('manage_jobs')),
+      const ProfileScreen(key: ValueKey('rec_profile')),
     ];
   }
+
+  List<Widget> _getScreens(bool isRecruiter) =>
+      isRecruiter ? _recruiterScreens : _userScreens;
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final screens = _getScreens(authProvider.isRecruiter);
+
     return Scaffold(
       backgroundColor: AppTheme.getScaffoldColor(context),
       extendBody: true,
       body: Stack(
         children: [
-          // Main Content
+          // Main Content with Fade Transition (Persistent State)
           NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
-              if (_isAIHubMenuOpen) return true; // Don't hide while menu is open
-              if (notification.direction == ScrollDirection.reverse) {
-                if (_bottomNavVisible) setState(() => _bottomNavVisible = false);
+              if (_isAIHubMenuOpen) return true;
+              final metrics = notification.metrics;
+              if (metrics.axis != Axis.vertical) return true;
+
+              // Hide threshold to prevent jitter
+              if (notification.direction == ScrollDirection.reverse &&
+                  metrics.pixels > 50) {
+                if (_bottomNavVisible)
+                  setState(() => _bottomNavVisible = false);
               } else if (notification.direction == ScrollDirection.forward) {
-                if (!_bottomNavVisible) setState(() => _bottomNavVisible = true);
+                if (!_bottomNavVisible)
+                  setState(() => _bottomNavVisible = true);
               }
               return true;
             },
-            child: IndexedStack(index: _selectedIndex, children: _getScreens(authProvider.isRecruiter)),
+            child: _FadeIndexedStack(index: _selectedIndex, children: screens),
           ),
 
           // Menu Overlay Background (Dim & Blur)
           IgnorePointer(
             ignoring: !_isAIHubMenuOpen,
-            child: AnimatedOpacity(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: _isAIHubMenuOpen ? 1.0 : 0.0),
               duration: const Duration(milliseconds: 400),
-              opacity: _isAIHubMenuOpen ? 1.0 : 0.0,
-              child: GestureDetector(
-                onTap: () => setState(() => _isAIHubMenuOpen = false),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.35),
+              curve: Curves.easeInOutCubic,
+              builder: (context, value, child) {
+                if (value == 0) return const SizedBox.shrink();
+                return Opacity(
+                  opacity: value,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isAIHubMenuOpen = false),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: 5 * value,
+                        sigmaY: 5 * value,
+                      ),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.35 * value),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
 
@@ -93,7 +118,7 @@ class _MainWrapperState extends State<MainWrapper> {
               index: 0,
               icon: Icons.psychology_rounded,
               label: 'Interview',
-              color: const Color(0xFFFF9100),
+              color: const Color(0xFFFF9100), // Vibrant Orange
               onTap: () => _navigateTo(const MockInterviewScreen()),
             ),
             _buildArcAction(
@@ -101,7 +126,7 @@ class _MainWrapperState extends State<MainWrapper> {
               index: 1,
               icon: Icons.insights_rounded,
               label: 'ROI',
-              color: const Color(0xFF00E676),
+              color: const Color(0xFF00E676), // Emerald Green
               onTap: () => _navigateTo(const SalaryROIScreen()),
             ),
             _buildArcAction(
@@ -109,7 +134,7 @@ class _MainWrapperState extends State<MainWrapper> {
               index: 2,
               icon: Icons.forum_rounded,
               label: 'Expert',
-              color: const Color(0xFFD500F9),
+              color: const Color(0xFFD500F9), // AI Purple
               onTap: () => _navigateTo(const ExpertAIChatScreen()),
             ),
           ] else ...[
@@ -140,22 +165,22 @@ class _MainWrapperState extends State<MainWrapper> {
           ],
         ],
       ),
-      bottomNavigationBar: AnimatedOpacity(
+      bottomNavigationBar: AnimatedSlide(
         duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOutQuart,
-        opacity: _bottomNavVisible ? 1.0 : 0.0,
-        child: AnimatedSlide(
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOutQuart,
-          offset: _bottomNavVisible ? Offset.zero : const Offset(0, 1.5),
-          child: _buildBottomNav(),
-        ),
+        curve: Curves.easeOutCubic,
+        offset: _bottomNavVisible ? Offset.zero : const Offset(0, 1.2),
+        child: _buildBottomNav(),
       ),
     );
   }
 
   Widget _buildBottomNav() {
     final theme = Theme.of(context);
+    final isRecruiter = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).isRecruiter;
+
     return Container(
       height: 85,
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 20),
@@ -185,17 +210,52 @@ class _MainWrapperState extends State<MainWrapper> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
-                if (!Provider.of<AuthProvider>(context).isRecruiter)
-                  _buildNavItem(1, Icons.assignment_outlined, Icons.assignment_rounded, 'Tracker')
+                _buildNavItem(
+                  0,
+                  Icons.home_outlined,
+                  Icons.home_rounded,
+                  'Home',
+                ),
+                if (!isRecruiter)
+                  _buildNavItem(
+                    1,
+                    Icons.assignment_outlined,
+                    Icons.assignment_rounded,
+                    'Tracker',
+                  )
                 else
-                  _buildNavItem(1, Icons.people_outline_rounded, Icons.people_alt_rounded, 'ATS'),
-                _buildNavItem(-1, Icons.widgets_outlined, Icons.widgets_rounded, ''), // AI Hub Button (no screen index)
-                if (!Provider.of<AuthProvider>(context).isRecruiter)
-                  _buildNavItem(2, Icons.bookmark_outline_rounded, Icons.bookmark_rounded, 'Saved')
+                  _buildNavItem(
+                    1,
+                    Icons.people_outline_rounded,
+                    Icons.people_alt_rounded,
+                    'ATS',
+                  ),
+                _buildNavItem(
+                  -1,
+                  Icons.widgets_outlined,
+                  Icons.widgets_rounded,
+                  '',
+                ), // AI Hub Button
+                if (!isRecruiter)
+                  _buildNavItem(
+                    2,
+                    Icons.bookmark_outline_rounded,
+                    Icons.bookmark_rounded,
+                    'Saved',
+                  )
                 else
-                  _buildNavItem(2, Icons.work_outline_rounded, Icons.work_rounded, 'Jobs'),
-                _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
+                  _buildNavItem(
+                    2,
+                    Icons.work_outline_rounded,
+                    Icons.work_rounded,
+                    'Jobs',
+                  ),
+                _buildNavItem(
+                  3,
+                  Icons.person_outline_rounded,
+                  Icons.person_rounded,
+                  'Profile',
+                ),
               ],
             ),
           ),
@@ -206,9 +266,9 @@ class _MainWrapperState extends State<MainWrapper> {
 
   void _navigateTo(Widget screen) {
     setState(() => _isAIHubMenuOpen = false);
-    
-    // Smooth transition
-    Future.delayed(const Duration(milliseconds: 100), () {
+
+    // Improved transition delay
+    Future.delayed(const Duration(milliseconds: 250), () {
       if (mounted) {
         Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
       }
@@ -220,15 +280,25 @@ class _MainWrapperState extends State<MainWrapper> {
     setState(() => _isAIHubMenuOpen = !_isAIHubMenuOpen);
   }
 
-  Widget _buildNavItem(int index, IconData outlineIcon, IconData filledIcon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData outlineIcon,
+    IconData filledIcon,
+    String label,
+  ) {
     final bool isAIHub = index == -1;
-    final bool isSelected = isAIHub ? _isAIHubMenuOpen : _selectedIndex == index;
+    final bool isSelected = isAIHub
+        ? _isAIHubMenuOpen
+        : _selectedIndex == index;
     final theme = Theme.of(context);
-    final activeColor = isAIHub ? const Color(0xFF00B0FF) : theme.colorScheme.primary;
+    final activeColor = isAIHub
+        ? theme.colorScheme.primary
+        : theme.colorScheme.primary;
     final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);
 
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
+        // Using InkWell for a more responsive touch feel
         onTap: () {
           if (isAIHub) {
             _showAIHubMenu();
@@ -236,11 +306,11 @@ class _MainWrapperState extends State<MainWrapper> {
             HapticFeedback.mediumImpact();
             setState(() {
               _selectedIndex = index;
-              _isAIHubMenuOpen = false; // Ensure menu closes
+              _isAIHubMenuOpen = false;
             });
           }
         },
-        behavior: HitTestBehavior.opaque,
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -256,19 +326,27 @@ class _MainWrapperState extends State<MainWrapper> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFF00B0FF).withValues(alpha: isSelected ? 0.35 : 0.12),
-                          const Color(0xFF00E5FF).withValues(alpha: isSelected ? 0.2 : 0.05),
+                          theme.colorScheme.primary.withValues(
+                            alpha: isSelected ? 0.35 : 0.12,
+                          ),
+                          theme.colorScheme.secondary.withValues(
+                            alpha: isSelected ? 0.2 : 0.05,
+                          ),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       shape: BoxShape.circle,
-                      boxShadow: isSelected ? [
-                        BoxShadow(
-                          color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-                          blurRadius: 15,
-                        )
-                      ] : null,
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.25,
+                                ),
+                                blurRadius: 15,
+                              ),
+                            ]
+                          : null,
                     ),
                   ),
                 AnimatedSwitcher(
@@ -315,29 +393,32 @@ class _MainWrapperState extends State<MainWrapper> {
   }) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double centerX = screenWidth / 2;
-    
-    // Spread them out
+
     double posX = centerX;
-    double posY = 45; // Start at nav bar height
-    
+    double posY = 45;
+
     if (_isAIHubMenuOpen) {
-      posY = 145 + (index == 1 ? 35 : 0); // Arc height peaks at center
-      if (index == 0) posX = centerX - 90;
-      else if (index == 1) posX = centerX;
-      else posX = centerX + 90;
+      posY = 145 + (index == 1 ? 35 : 0);
+      if (index == 0) {
+        posX = centerX - 90;
+      } else if (index == 1) {
+        posX = centerX;
+      } else {
+        posX = centerX + 90;
+      }
     }
 
     return AnimatedPositioned(
       duration: Duration(milliseconds: 550 + (index * 80)),
       curve: Curves.easeOutBack,
       bottom: posY,
-      left: posX - 32, // centering the 64 width icon
+      left: posX - 32,
       child: AnimatedScale(
         duration: Duration(milliseconds: 450 + (index * 100)),
         curve: Curves.easeOutCubic,
         scale: _isAIHubMenuOpen ? 1.0 : 0.0,
         child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 350),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeIn,
           opacity: _isAIHubMenuOpen ? 1.0 : 0.0,
           child: Column(
@@ -354,7 +435,7 @@ class _MainWrapperState extends State<MainWrapper> {
                     border: Border.all(color: Colors.white, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: color.withValues(alpha: 0.3),
+                        color: color.withValues(alpha: 0.4),
                         blurRadius: 25,
                         offset: const Offset(0, 8),
                       ),
@@ -365,11 +446,24 @@ class _MainWrapperState extends State<MainWrapper> {
               ),
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Colors.black.withValues(alpha: 0.65),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 0.5),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 0.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Text(
                   label,
@@ -385,6 +479,64 @@ class _MainWrapperState extends State<MainWrapper> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A specialized IndexedStack that provides a smooth cross-fade transition
+/// between its children without losing their internal state (scroll position, etc).
+class _FadeIndexedStack extends StatefulWidget {
+  final int index;
+  final List<Widget> children;
+
+  const _FadeIndexedStack({required this.index, required this.children});
+
+  @override
+  _FadeIndexedStackState createState() => _FadeIndexedStackState();
+}
+
+class _FadeIndexedStackState extends State<_FadeIndexedStack>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+  int _prevIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _prevIndex = widget.index;
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(_FadeIndexedStack oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.index != _prevIndex) {
+      _controller.reset();
+      _controller.forward();
+      _prevIndex = widget.index;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _animation,
+      child: IndexedStack(index: widget.index, children: widget.children),
     );
   }
 }
