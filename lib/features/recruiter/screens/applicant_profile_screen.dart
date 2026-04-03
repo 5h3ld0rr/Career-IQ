@@ -16,21 +16,19 @@ class ApplicantProfileScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final user = Map<String, dynamic>.from(candidateData['user'] ?? {});
 
-    // ── Correct Firestore field names ──
     final String name = user['name'] ?? user['fullName'] ?? 'Unknown Applicant';
     final String headline = user['role'] ?? user['currentRole'] ?? '';
     final String email = user['email'] ?? '';
     final String phone = user['phoneNumber'] ?? user['phone'] ?? '';
     final String location = user['location'] ?? '';
     final String bio = user['bio'] ?? user['about'] ?? '';
-    final String exp = user['experience'] ?? ''; // stored as plain text string
+    final String exp = user['experience'] ?? '';
     final String resumeUrl =
         candidateData['resumeUrl'] ?? user['resumeUrl'] ?? '';
     final String stage = candidateData['status'] ?? 'New Applied';
 
     final List<String> skills = List<String>.from(user['skills'] ?? []);
 
-    // Initials
     String initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
     if (name.contains(' ')) {
       final parts = name.trim().split(' ');
@@ -46,7 +44,6 @@ class ApplicantProfileScreen extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── Fixed app bar (no flexible space, no overflow) ──
           SliverAppBar(
             pinned: true,
             backgroundColor: AppTheme.getScaffoldColor(context),
@@ -538,7 +535,7 @@ class ApplicantProfileScreen extends StatelessWidget {
   ) {
     DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
     TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
-    bool? passed; // null = not yet selected
+    bool? passed;
     final remarksCtrl = TextEditingController();
 
     showModalBottomSheet(

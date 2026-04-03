@@ -21,7 +21,6 @@ class _ExpertAIChatScreenState extends State<ExpertAIChatScreen> {
     },
   ];
 
-  /// Chat history for OpenRouter (formatted as role/content maps)
   final List<Map<String, String>> _chatHistory = [
     {
       'role': 'system',

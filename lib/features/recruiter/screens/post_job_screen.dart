@@ -266,11 +266,11 @@ class _PostJobScreenState extends State<PostJobScreen> {
                     description: _descriptionController.text,
                     responsibilities: [
                       _descriptionController.text,
-                    ], // Simplified for now
-                    requirements: ['Requirement 1'], // Default placeholder
+                    ],
+                    requirements: ['Requirement 1'],
                     jobType: _jobType,
                     postedAt: DateTime.now(),
-                    applyUrl: '', // Default placeholder
+                    applyUrl: '',
                     postedBy: auth.userId,
                     companyPhone: _phoneController.text,
                   );

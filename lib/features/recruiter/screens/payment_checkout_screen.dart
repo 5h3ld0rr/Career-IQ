@@ -74,10 +74,10 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // dialog
+                  Navigator.of(context).pop();
                   Navigator.of(
                     context,
-                  ).pop(true); // screen, return true to indicate success
+                  ).pop(true);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,

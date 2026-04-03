@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:careeriq/main.dart'; // To access scaffoldMessengerKey
+import 'package:careeriq/main.dart';
 
 class AppSnackBar {
   static void show(String message, {bool isError = false}) {
     String cleanMessage = _getFriendlyErrorMessage(message);
     if (cleanMessage.isEmpty) {
-      return; // Skip "ghost" notifications (cancellations)
+      return;
     }
 
     scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
@@ -104,7 +104,7 @@ class AppSnackBar {
     if (message.toLowerCase().contains('cancelled') ||
         message.toLowerCase().contains('abort') ||
         message == 'null') {
-      return ""; // Filter these out
+      return "";
     }
     if (message.contains('too-many-requests')) {
       return "Too many attempts. Please try again later.";

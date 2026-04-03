@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryBlue = Color(0xFF03A9F4); // Main Cyan Blue
-  static const Color lightBlue = Color(0xFFE3F2FD); // Background Light Blue
-  static const Color accentBlue = Color(0xFF81D4FA); // Soft Blue Gradient start
+  static const Color primaryBlue = Color(0xFF03A9F4);
+  static const Color lightBlue = Color(0xFFE3F2FD);
+  static const Color accentBlue = Color(0xFF81D4FA);
   static const Color darkBlue = Color(0xFF0288D1);
 
   static const Color darkText = Color(
     0xFF1A1C1E,
-  ); // Deep text color for light mode
-  static const Color darkSurface = Color(0xFF0F172A); // Dark mode background
+  );
+  static const Color darkSurface = Color(0xFF0F172A);
   static const Color glassWhite = Color(
     0xE6FFFFFF,
-  ); // 90% White for glass effect
-  static const Color glassBorder = Color(0x80FFFFFF); // 50% White border
+  );
+  static const Color glassBorder = Color(0x80FFFFFF);
 
   static const Color error = Color(0xFFBA1A1A);
   static const Color success = Color(0xFF388E3C);

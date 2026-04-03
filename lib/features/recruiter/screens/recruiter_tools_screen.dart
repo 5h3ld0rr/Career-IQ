@@ -485,7 +485,7 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
   }
 
   void _showJDResultModal(Map<String, dynamic> data) {
-    if (Navigator.canPop(context)) Navigator.pop(context); // Close input modal
+    if (Navigator.canPop(context)) Navigator.pop(context);
 
     showModalBottomSheet(
       context: context,

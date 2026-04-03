@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (_) => JobDetailsScreen(job: job)),
       ),
       child: _buildGlassBox(
-        disableBlur: true, // Optimizing performance in list
+        disableBlur: true,
         child: Row(
           children: [
             _buildGlassBox(

@@ -101,7 +101,6 @@ class JobService {
     }).toList();
   }
 
-  /// Resets user-specific data (applications and saved jobs).
   Future<void> resetUserData(String userId) async {
     final batch = _firestore.batch();
 
@@ -224,7 +223,7 @@ class JobService {
       final aTime = a['appliedAt'] as Timestamp?;
       final bTime = b['appliedAt'] as Timestamp?;
       if (aTime == null || bTime == null) return 0;
-      return bTime.compareTo(aTime); // Latest first
+      return bTime.compareTo(aTime);
     });
 
     return applications;

@@ -11,7 +11,7 @@ class TwilioService {
   Future<bool> sendOtp(String phoneNumber, String otp) async {
     if (_accountSid.isEmpty || _authToken.isEmpty || _twilioNumber.isEmpty) {
       debugPrint('Twilio configuration missing in .env');
-      return false; // Not configured
+      return false;
     }
 
     final url = Uri.parse(

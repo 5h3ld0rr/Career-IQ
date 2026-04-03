@@ -8,12 +8,10 @@ class CloudinaryService {
   static final String _uploadPreset =
       dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
 
-  /// Uploads a file to Cloudinary and returns the secure URL.
-  /// Supports both image and raw (PDF/Doc) files.
   Future<String?> uploadFile({
-    required dynamic file, // Path (String) or Bytes (Uint8List)
+    required dynamic file,
     required String folder,
-    String? fileName, // Add this
+    String? fileName,
     bool isImage = true,
   }) async {
     if (_cloudName.isEmpty || _uploadPreset.isEmpty) {

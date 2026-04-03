@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'dart:developer' as dev;
-import 'dart:ui'; // Required for ImageFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -102,7 +102,7 @@ class _CVUploadScreenState extends State<CVUploadScreen> {
     );
     if (result != null) {
       setState(() {
-        _useProfileResume = false; // Reset if user picks new file
+        _useProfileResume = false;
         _fileName = result.files.single.name;
         _fileBytes = result.files.single.bytes;
       });

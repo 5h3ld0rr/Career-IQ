@@ -277,7 +277,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
           fontSize: 13,
         ),
         onTap: (_) =>
-            setState(() {}), // trigger rebuild to update filtered items
+            setState(() {}),
         tabs: _stages.map((stage) {
           final count = stage == 'All'
               ? applicants.length
@@ -553,7 +553,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
           ),
         ),
       ),
-      ), // GestureDetector
+      ),
     );
   }
 
@@ -598,7 +598,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
   ) {
     DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
     TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
-    bool? passed; // null = not yet selected
+    bool? passed;
     final remarksCtrl = TextEditingController();
 
     showModalBottomSheet(

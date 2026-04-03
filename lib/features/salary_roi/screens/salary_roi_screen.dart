@@ -31,7 +31,7 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
 
     final targetTitles = jobProvider.jobs.map((j) => j.title).toSet().toList();
     if (targetTitles.isEmpty) {
-      targetTitles.add("Software Engineer"); // Default fallback
+      targetTitles.add("Software Engineer");
     }
 
     context.read<SalaryProvider>().fetchSalaryInsights(
@@ -600,11 +600,11 @@ class _SalaryROIScreenState extends State<SalaryROIScreen> {
 
   Color _getGlowColor(int index) {
     final colors = [
-      const Color(0xFF60A5FA), // Sky Blue
-      const Color(0xFFF472B6), // Pink
-      const Color(0xFF34D399), // Emerald
-      const Color(0xFFFB7185), // Rose
-      const Color(0xFF818CF8), // Indigo
+      const Color(0xFF60A5FA),
+      const Color(0xFFF472B6),
+      const Color(0xFF34D399),
+      const Color(0xFFFB7185),
+      const Color(0xFF818CF8),
     ];
     return colors[index % colors.length];
   }
