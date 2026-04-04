@@ -337,6 +337,7 @@ class AuthProvider with ChangeNotifier {
         'name': name,
         if (email != null && !isExternal) 'email': email,
         'bio': bio,
+        if (isRecruiter) 'companyDescription': bio,
         'experience': experience,
         'location': location,
       };
@@ -346,7 +347,10 @@ class AuthProvider with ChangeNotifier {
 
       if (name != null) _userName = name;
       if (email != null && !isExternal) _userEmail = email;
-      if (bio != null) _bio = bio;
+      if (bio != null) {
+        _bio = bio;
+        if (isRecruiter) _companyDescription = bio;
+      }
       if (experience != null) _experience = experience;
       if (location != null) _location = location;
 
@@ -575,6 +579,7 @@ class AuthProvider with ChangeNotifier {
       }
       if (companyDescription != null) {
         data['companyDescription'] = companyDescription;
+        data['bio'] = companyDescription;
       }
 
       await _authService.updateOrganizationConfigs(userId!, data);
@@ -590,6 +595,7 @@ class AuthProvider with ChangeNotifier {
       }
       if (companyDescription != null) {
         _companyDescription = companyDescription;
+        _bio = companyDescription;
       }
 
       showNotification("Organization updated successfully!");

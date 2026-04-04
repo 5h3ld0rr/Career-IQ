@@ -24,7 +24,7 @@ class _OrganizationSettingsScreenState extends State<OrganizationSettingsScreen>
     _nameController = TextEditingController(text: auth.companyName ?? auth.userName);
     _websiteController = TextEditingController(text: auth.companyWebsite);
     _industryController = TextEditingController(text: auth.companyIndustry);
-    _descriptionController = TextEditingController(text: auth.companyDescription);
+    _descriptionController = TextEditingController(text: auth.companyDescription ?? auth.bio);
   }
 
   @override

@@ -26,7 +26,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(text: auth.userEmail);
     _phoneController = TextEditingController(text: auth.phoneNumber);
     _experienceController = TextEditingController(text: auth.experience);
-    _bioController = TextEditingController(text: auth.bio);
+    _bioController = TextEditingController(
+      text: auth.bio ?? (auth.isRecruiter ? auth.companyDescription : null),
+    );
     _locationController = TextEditingController(text: auth.location);
   }
 

@@ -80,12 +80,19 @@ class ProfileScreen extends StatelessWidget {
                           _buildGlassBox(
                             context,
                             child: Text(
-                              authProvider.bio ??
+                              (isRecruiter
+                                      ? (authProvider.companyDescription ??
+                                          authProvider.bio)
+                                      : authProvider.bio) ??
                                   (isRecruiter
                                       ? 'Add a short description about your company.'
                                       : 'Add a short bio about yourself to stand out to employers.'),
                               style: TextStyle(
-                                color: authProvider.bio != null
+                                color: (isRecruiter
+                                            ? (authProvider.companyDescription ??
+                                                authProvider.bio)
+                                            : authProvider.bio) !=
+                                        null
                                     ? Theme.of(context).colorScheme.onSurface
                                     : Theme.of(
                                         context,
