@@ -158,14 +158,18 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
                     child: Column(
                       children: [
                         _buildInfoTile(
-                          Icons.calendar_today_rounded,
+                          Icons.calendar_month_rounded,
                           'Date',
                           DateFormat('EEEE, MMM d, yyyy').format(_selectedDate),
                           onTap: _selectDate,
                         ),
-                        const Divider(height: 32, color: Colors.white24),
+                        Divider(
+                          height: 32,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                          thickness: 1,
+                        ),
                         _buildInfoTile(
-                          Icons.access_time_rounded,
+                          Icons.access_time_filled_rounded,
                           'Time',
                           _selectedTime.format(context),
                           onTap: _selectTime,
@@ -188,28 +192,56 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: _isSyncing || _isGeneratingDetails
-                          ? null
-                          : _scheduleInterview,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: 0,
+                    height: 62,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                      child: _isSyncing
-                          ? const CircularProgressIndicator(color: Colors.black)
-                          : const Text(
-                              'SYNC TO CALENDAR',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
-                              ),
+                      child: ElevatedButton(
+                        onPressed: _isSyncing || _isGeneratingDetails
+                            ? null
+                            : _scheduleInterview,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 0,
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Theme.of(context).primaryColor,
+                                const Color(0xFF0288D1),
+                              ],
                             ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: _isSyncing
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : const Text(
+                                    'SYNC TO CALENDAR',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 16,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -224,15 +256,34 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
   Widget _buildLoadingPrep() {
     return _buildGlassBox(
       context,
-      padding: const EdgeInsets.all(32),
-      child: const Center(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
+      child: Center(
         child: Column(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+              ),
+            ),
+            const SizedBox(height: 24),
             Text(
-              'Gemini is researching the company...',
-              style: TextStyle(fontSize: 12),
+              'Gemini is researching company insights...',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Gathering interview highlights for you',
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
             ),
           ],
         ),
@@ -241,32 +292,44 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
   }
 
   Widget _buildPrepDetails() {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Column(
       children: [
         _buildGlassBox(
           context,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(
-                    Icons.business_rounded,
-                    size: 20,
-                    color: Colors.blueAccent,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 18,
+                      color: Colors.blueAccent,
+                    ),
                   ),
-                  SizedBox(width: 8),
-                  Text(
+                  const SizedBox(width: 12),
+                  const Text(
                     'Company Summary',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               Text(
-                _prepDetails!['companySummary'] ?? '',
-                style: const TextStyle(fontSize: 14, height: 1.5),
+                _prepDetails!['companySummary'] ?? 'No summary available.',
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: onSurface.withValues(alpha: 0.8),
+                ),
               ),
             ],
           ),
@@ -274,41 +337,58 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
         const SizedBox(height: 16),
         _buildGlassBox(
           context,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(
-                    Icons.help_outline_rounded,
-                    size: 20,
-                    color: Colors.orangeAccent,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orangeAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.lightbulb_outline_rounded,
+                      size: 18,
+                      color: Colors.orangeAccent,
+                    ),
                   ),
-                  SizedBox(width: 8),
-                  Text(
+                  const SizedBox(width: 12),
+                  const Text(
                     'Key Questions',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               ...(List<String>.from(_prepDetails!['commonQuestions'] ?? []))
-                  .take(3)
+                  .take(4)
                   .map(
                     (q) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '• ',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          Container(
+                            margin: const EdgeInsets.only(top: 6),
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Colors.orangeAccent,
+                              shape: BoxShape.circle,
+                            ),
                           ),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               q,
-                              style: const TextStyle(fontSize: 13),
+                              style: TextStyle(
+                                fontSize: 14,
+                                height: 1.4,
+                                color: onSurface.withValues(alpha: 0.8),
+                              ),
                             ),
                           ),
                         ],
@@ -328,69 +408,106 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
     String value, {
     required VoidCallback onTap,
   }) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return InkWell(
       onTap: onTap,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: Colors.white, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                  ],
                 ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 ),
-              ],
+              ),
+              child: Icon(icon, color: Theme.of(context).primaryColor, size: 24),
             ),
-          ),
-          const Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: Colors.white24,
-            size: 16,
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: onSurface.withValues(alpha: 0.5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                      color: onSurface,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: onSurface.withValues(alpha: 0.2),
+              size: 24,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: -100,
-      right: -100,
-      child: Container(
-        width: 400,
-        height: 400,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              Colors.blueAccent.withValues(alpha: 0.2),
-              Colors.transparent,
-            ],
+    return Stack(
+      children: [
+        Positioned(
+          top: -100,
+          right: -100,
+          child: Container(
+            width: 400,
+            height: 400,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Theme.of(context).primaryColor.withValues(alpha: 0.15),
+                  Colors.transparent,
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+        Positioned(
+          bottom: 100,
+          left: -100,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Colors.orangeAccent.withValues(alpha: 0.08),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

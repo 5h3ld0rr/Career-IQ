@@ -154,19 +154,26 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.1),
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                width: 2,
+              ),
             ),
             child: Icon(
-              Icons.assignment_late_outlined,
-              size: 48,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.5),
+              Icons.rocket_launch_rounded,
+              size: 56,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 24),
@@ -222,22 +229,60 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
   }
 
   Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: 100,
-      left: -50,
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              const Color(0xFF81D4FA).withValues(alpha: 0.35),
-              Colors.transparent,
-            ],
+    return Stack(
+      children: [
+        Positioned(
+          top: -100,
+          right: -100,
+          child: Container(
+            width: 400,
+            height: 400,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF03A9F4).withValues(alpha: 0.15),
+                  Colors.transparent,
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+        Positioned(
+          bottom: 200,
+          left: -150,
+          child: Container(
+            width: 500,
+            height: 500,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF81D4FA).withValues(alpha: 0.12),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 300,
+          left: 50,
+          child: Container(
+            width: 250,
+            height: 250,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFE1F5FE).withValues(alpha: 0.1),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -293,22 +338,31 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     String nextCompany = 'None';
     String status = 'N/A';
     if (apps.isNotEmpty) {
-      nextCompany = apps.first['job']['company_name'];
+      nextCompany = _capitalize(apps.first['job']['company_name']);
       status = apps.first['status'] ?? 'Submitted';
     }
 
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                Colors.blueAccent.withValues(alpha: 0.1),
+                Colors.blueAccent.withValues(alpha: 0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.blueAccent.withValues(alpha: 0.1),
+              width: 1.5,
+            ),
           ),
           child: const Icon(
-            Icons.event_available_rounded,
+            Icons.auto_awesome_rounded,
             color: Colors.blueAccent,
-            size: 28,
+            size: 24,
           ),
         ),
         const SizedBox(width: 16),
@@ -325,11 +379,11 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                 ),
               ),
               Text(
-                nextCompany,
+                _capitalize(nextCompany),
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
-                  letterSpacing: -0.5,
+                  letterSpacing: -0.8,
                 ),
               ),
             ],
@@ -344,10 +398,13 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.blueAccent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  color: Colors.blueAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.blueAccent.withValues(alpha: 0.1),
+                  ),
                 ),
                 child: Text(
                   status.toUpperCase(),
@@ -355,6 +412,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                     color: Colors.blueAccent,
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
@@ -406,32 +464,62 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
   Widget _buildStatItem(String label, String count, Color color) {
     return _buildGlassBox(
       context,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      borderRadius: 20,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      borderRadius: 22,
       disableBlur: true,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _getIconForLabel(label),
+              size: 14,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
             count,
             style: TextStyle(
               fontWeight: FontWeight.w900,
-              fontSize: 22,
+              fontSize: 20,
               color: color,
+              height: 1,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            label,
+            label.toUpperCase(),
             style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              letterSpacing: 0.5,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              letterSpacing: 0.8,
             ),
           ),
         ],
       ),
     );
+  }
+
+  IconData _getIconForLabel(String label) {
+    switch (label.toLowerCase()) {
+      case 'total':
+        return Icons.all_inbox_rounded;
+      case 'pending':
+        return Icons.access_time_filled_rounded;
+      case 'hired':
+        return Icons.check_circle_rounded;
+      case 'rejected':
+        return Icons.cancel_rounded;
+      default:
+        return Icons.bar_chart_rounded;
+    }
   }
 
   Widget _buildApplicationList(
@@ -481,20 +569,22 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            job['title'],
+                            _capitalize(job['title']),
                             style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 16,
+                              letterSpacing: -0.3,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             job['company_name'],
                             style: TextStyle(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurfaceVariant,
+                              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                               fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -561,12 +651,17 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                       ),
                     ),
                     style: TextButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.5),
-                      foregroundColor: Colors.black,
+                      backgroundColor: Theme.of(context).brightness == Brightness.light
+                          ? Colors.white.withValues(alpha: 0.7)
+                          : Colors.white.withValues(alpha: 0.05),
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                 ),
@@ -578,16 +673,30 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     );
   }
 
+  String _capitalize(dynamic value) {
+    if (value == null) return '';
+    final String text = value.toString();
+    if (text.isEmpty) return text;
+    return text.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
   Widget _buildStatusPill(String status) {
     Color color = Colors.blueAccent;
     if (status == 'accepted') color = Colors.green;
     if (status == 'rejected') color = Colors.red;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Text(
         status.toUpperCase(),
@@ -595,6 +704,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           fontSize: 9,
           fontWeight: FontWeight.w900,
           color: color,
+          letterSpacing: 0.5,
         ),
       ),
     );
