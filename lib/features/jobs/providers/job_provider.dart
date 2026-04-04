@@ -451,6 +451,31 @@ class JobProvider with ChangeNotifier {
     _recruiterAppsSubscription = null;
   }
 
+  Future<void> deleteJob(String jobId, String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _jobService.deleteJob(jobId);
+      _postedJobs.removeWhere((job) => job.id == jobId);
+      _jobs.removeWhere((job) => job.id == jobId);
+      _liveJobs.removeWhere((job) => job.id == jobId);
+      _featuredJobs.removeWhere((job) => job.id == jobId);
+      _suggestedJobs.removeWhere((job) => job.id == jobId);
+      _savedJobs.removeWhere((job) => job.id == jobId);
+
+      // Refresh recruiter state (counts etc)
+      await loadPostedJobs(userId);
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     stopApplicantsStream();

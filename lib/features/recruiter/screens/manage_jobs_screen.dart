@@ -5,6 +5,8 @@ import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/features/jobs/data/job_model.dart';
 import 'package:careeriq/features/recruiter/screens/edit_job_screen.dart';
 import 'package:careeriq/features/recruiter/screens/ats_dashboard_screen.dart';
+import 'package:careeriq/features/auth/providers/auth_provider.dart';
+import 'package:careeriq/core/widgets/app_snackbar.dart';
 
 class ManageJobsScreen extends StatelessWidget {
   const ManageJobsScreen({super.key});
@@ -36,17 +38,23 @@ class ManageJobsScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: jobs.isEmpty
-          ? _buildEmptyState(context)
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              physics: const BouncingScrollPhysics(),
-              itemCount: jobs.length,
-              itemBuilder: (context, index) {
-                final job = jobs[index];
-                return _buildJobItem(context, job);
-              },
-            ),
+      body: jobProvider.isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            )
+          : jobs.isEmpty
+              ? _buildEmptyState(context)
+              : ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: jobs.length,
+                  itemBuilder: (context, index) {
+                    final job = jobs[index];
+                    return _buildJobItem(context, job);
+                  },
+                ),
     );
   }
 
@@ -161,7 +169,9 @@ class ManageJobsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
                       _buildSmallButton(
                         context,
@@ -175,7 +185,6 @@ class ManageJobsScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
                       _buildSmallButton(
                         context,
                         Icons.people_alt_rounded,
@@ -188,6 +197,13 @@ class ManageJobsScreen extends StatelessWidget {
                                 ATSDashboardScreen(initialJobId: job.id),
                           ),
                         ),
+                      ),
+                      _buildSmallButton(
+                        context,
+                        Icons.delete_outline_rounded,
+                        'Delete',
+                        Colors.red,
+                        () => _showDeleteConfirmation(context, job),
                       ),
                     ],
                   ),
@@ -253,6 +269,59 @@ class ManageJobsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Job job) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Delete Job?',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${job.title}"? This will also remove all associated applications and cannot be undone.',
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final auth = Provider.of<AuthProvider>(context, listen: false);
+              final jobProvider =
+                  Provider.of<JobProvider>(context, listen: false);
+
+              try {
+                await jobProvider.deleteJob(job.id, auth.userId!);
+                AppSnackBar.show('Job deleted successfully');
+              } catch (e) {
+                AppSnackBar.show('Failed to delete job: $e', isError: true);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+        ],
       ),
     );
   }

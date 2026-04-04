@@ -393,4 +393,23 @@ class JobService {
     }
     return savedJobs;
   }
+
+  Future<void> deleteJob(String jobId) async {
+    final batch = _firestore.batch();
+
+    // 1. Delete all applications for this job
+    final apps = await _firestore
+        .collection('applications')
+        .where('jobId', isEqualTo: jobId)
+        .get();
+    for (var doc in apps.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // 2. Delete the job itself
+    final jobRef = _firestore.collection('jobs').doc(jobId);
+    batch.delete(jobRef);
+
+    await batch.commit();
+  }
 }
