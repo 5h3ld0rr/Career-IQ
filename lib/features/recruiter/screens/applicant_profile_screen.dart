@@ -29,6 +29,7 @@ class ApplicantProfileScreen extends StatelessWidget {
 
     final List<String> skills = List<String>.from(user['skills'] ?? []);
 
+    final String? photoUrl = user['photoUrl'] ?? user['profilePictureUrl'];
     String initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
     if (name.contains(' ')) {
       final parts = name.trim().split(' ');
@@ -74,6 +75,7 @@ class ApplicantProfileScreen extends StatelessWidget {
                     stageColor,
                     resumeUrl,
                     theme,
+                    photoUrl: photoUrl,
                   ),
                   const SizedBox(height: 20),
 
@@ -229,8 +231,9 @@ class ApplicantProfileScreen extends StatelessWidget {
     String stage,
     Color stageColor,
     String resumeUrl,
-    ThemeData theme,
-  ) {
+    ThemeData theme, {
+    String? photoUrl,
+  }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
@@ -249,14 +252,18 @@ class ApplicantProfileScreen extends StatelessWidget {
                 backgroundColor: theme.colorScheme.primary.withValues(
                   alpha: 0.15,
                 ),
-                child: Text(
-                  initials,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
+                backgroundImage:
+                    photoUrl != null ? NetworkImage(photoUrl) : null,
+                child: photoUrl == null
+                    ? Text(
+                        initials,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.primary,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(height: 12),
               Text(
