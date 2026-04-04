@@ -91,6 +91,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   SliverAppBar(
                     backgroundColor: Colors.transparent,
                     elevation: 0,
+                    pinned: true,
                     title: const Text(
                       'Application Tracker',
                       style: TextStyle(fontWeight: FontWeight.w900),
@@ -103,40 +104,74 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                       ),
                     ],
                   ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        _buildGlassBox(
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                      child: RepaintBoundary(
+                        child: _buildGlassBox(
                           context,
                           child: _buildQuickActions(context, apps),
                         ),
-                        const SizedBox(height: 32),
-                        _buildStatsRow(context, apps),
-                        const SizedBox(height: 32),
-                        const Text(
-                          'Active Applications',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 20,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        if (jobProvider.isLoading || _isSeeding)
-                          const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(40.0),
-                              child: CircularProgressIndicator(),
-                            ),
-                          )
-                        else if (apps.isEmpty)
-                          _buildEmptyState(context)
-                        else
-                          _buildApplicationList(context, apps),
-                        const SizedBox(height: 120),
-                      ]),
+                      ),
                     ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                      child: RepaintBoundary(
+                        child: _buildStatsRow(context, apps),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(24, 0, 24, 16),
+                      child: Text(
+                        'Active Applications',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (jobProvider.isLoading || _isSeeding)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(40.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    )
+                  else if (apps.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _buildEmptyState(context),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: RepaintBoundary(
+                                child: _buildApplicationCard(context, apps[index]),
+                              ),
+                            );
+                          },
+                          childCount: apps.length,
+                        ),
+                      ),
+                    ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 120),
                   ),
                 ],
               );
@@ -229,60 +264,38 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
   }
 
   Widget _buildBackgroundDecor() {
-    return Stack(
-      children: [
-        Positioned(
-          top: -100,
-          right: -100,
-          child: Container(
-            width: 400,
-            height: 400,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF03A9F4).withValues(alpha: 0.15),
-                  Colors.transparent,
-                ],
-              ),
+    return const RepaintBoundary(
+      child: Stack(
+        children: [
+          Positioned(
+            top: -100,
+            right: -100,
+            child: BackgroundCircle(
+              size: 400,
+              color: Color(0xFF03A9F4),
+              alpha: 0.15,
             ),
           ),
-        ),
-        Positioned(
-          bottom: 200,
-          left: -150,
-          child: Container(
-            width: 500,
-            height: 500,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF81D4FA).withValues(alpha: 0.12),
-                  Colors.transparent,
-                ],
-              ),
+          Positioned(
+            bottom: 200,
+            left: -150,
+            child: BackgroundCircle(
+              size: 500,
+              color: Color(0xFF81D4FA),
+              alpha: 0.12,
             ),
           ),
-        ),
-        Positioned(
-          top: 300,
-          left: 50,
-          child: Container(
-            width: 250,
-            height: 250,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFFE1F5FE).withValues(alpha: 0.1),
-                  Colors.transparent,
-                ],
-              ),
+          Positioned(
+            top: 300,
+            left: 50,
+            child: BackgroundCircle(
+              size: 250,
+              color: Color(0xFFE1F5FE),
+              alpha: 0.1,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -321,7 +334,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                 child: child,
               )
             : BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Padding(
                   padding: padding ?? const EdgeInsets.all(20),
                   child: child,
@@ -522,154 +535,142 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     }
   }
 
-  Widget _buildApplicationList(
+  Widget _buildApplicationCard(
     BuildContext context,
-    List<Map<String, dynamic>> apps,
+    Map<String, dynamic> app,
   ) {
-    return Column(
-      children: apps.map((app) {
-        final job = app['job'];
-        final status = app['status'] as String;
-        double progress = status == 'pending'
-            ? 0.4
-            : (status == 'accepted' ? 1.0 : 0.6);
+    final job = app['job'];
+    final status = app['status'] as String;
+    double progress = status == 'pending'
+        ? 0.4
+        : (status == 'accepted' ? 1.0 : 0.6);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildGlassBox(
-            context,
-            disableBlur: true,
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        job['company_name'] != null &&
-                                job['company_name'].toString().isNotEmpty
-                            ? job['company_name'].toString().substring(0, 1)
-                            : '?',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 20,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _capitalize(job['title']),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 16,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            job['company_name'],
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildStatusPill(status),
-                  ],
+    return _buildGlassBox(
+      context,
+      disableBlur: true,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 20),
-                Stack(
-                  children: [
-                    Container(
-                      height: 6,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    FractionallySizedBox(
-                      widthFactor: progress,
-                      child: Container(
-                        height: 6,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              status == 'accepted'
-                                  ? Colors.greenAccent
-                                  : (status == 'rejected'
-                                        ? Colors.redAccent
-                                        : Colors.blueAccent),
-                              status == 'accepted'
-                                  ? Colors.green
-                                  : (status == 'rejected'
-                                        ? Colors.red
-                                        : Colors.lightBlueAccent),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ScheduleInterviewScreen(application: app),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.calendar_month_rounded, size: 18),
-                    label: const Text(
-                      'SCHEDULE INTERVIEW',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Theme.of(context).brightness == Brightness.light
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : Colors.white.withValues(alpha: 0.05),
-                      foregroundColor: Theme.of(context).colorScheme.onSurface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
+                alignment: Alignment.center,
+                child: Text(
+                  job['company_name'] != null &&
+                          job['company_name'].toString().isNotEmpty
+                      ? job['company_name'].toString().substring(0, 1)
+                      : '?',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    color: Colors.black,
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _capitalize(job['title']),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _capitalize(job['company_name']),
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildStatusPill(status),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Stack(
+            children: [
+              Container(
+                height: 6,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: progress,
+                child: Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        status == 'accepted'
+                            ? Colors.greenAccent
+                            : (status == 'rejected'
+                                  ? Colors.redAccent
+                                  : Colors.blueAccent),
+                        status == 'accepted'
+                            ? Colors.green
+                            : (status == 'rejected'
+                                  ? Colors.red
+                                  : Colors.lightBlueAccent),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ScheduleInterviewScreen(application: app),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.calendar_month_rounded, size: 18),
+              label: const Text(
+                'SCHEDULE INTERVIEW',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ),
-        );
-      }).toList(),
+        ],
+      ),
     );
   }
 
@@ -705,6 +706,36 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           fontWeight: FontWeight.w900,
           color: color,
           letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+class BackgroundCircle extends StatelessWidget {
+  final double size;
+  final Color color;
+  final double alpha;
+
+  const BackgroundCircle({
+    super.key,
+    required this.size,
+    required this.color,
+    required this.alpha,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withValues(alpha: alpha),
+            Colors.transparent,
+          ],
         ),
       ),
     );

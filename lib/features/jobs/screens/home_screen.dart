@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          _buildBackgroundDecor(),
+          RepaintBoundary(child: _buildBackgroundDecor()),
           SafeArea(
             bottom: false,
             child: RefreshIndicator(
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildHeader(auth, context),
+                          RepaintBoundary(child: _buildHeader(auth, context)),
                           const SizedBox(height: 24),
                           _buildSearchArea(context, jobs),
                           const SizedBox(height: 24),
@@ -163,7 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               final job = jobs.jobs[i];
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildJobListItem(job, context),
+                                child: RepaintBoundary(
+                                  child: _buildJobListItem(job, context),
+                                ),
                               );
                             }, childCount: jobs.jobs.length),
                           ),
@@ -341,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: child,
               )
             : BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Padding(
                   padding: padding ?? const EdgeInsets.all(16),
                   child: child,
