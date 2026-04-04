@@ -153,10 +153,6 @@ class PushNotificationService {
     String userId, {
     String? route,
   }) async {
-    // We only add to Firestore here. The recipient will see a local notification
-    // via their NotificationProvider listener if they have the app open in the foreground.
-    // For background notifications, a Cloud Function (not local to app) would be needed.
-
     await FirebaseFirestore.instance
         .collection('users')
         .doc(userId)

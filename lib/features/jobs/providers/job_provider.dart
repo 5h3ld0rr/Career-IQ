@@ -238,7 +238,7 @@ class JobProvider with ChangeNotifier {
         coverLetter: coverLetter,
         recruiterId: recruiterId,
       );
-      await loadUserApplications(userId); // Reload after application
+      await loadUserApplications(userId);
     } catch (e) {
       debugPrint('Error applying for job: $e');
       rethrow;

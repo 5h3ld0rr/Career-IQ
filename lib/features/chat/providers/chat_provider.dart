@@ -24,7 +24,7 @@ class ChatProvider extends ChangeNotifier {
     String content,
   ) async {
     final message = ChatMessage(
-      id: '', // Will be set by Firestore
+      id: '',
       senderId: senderId,
       content: content,
       timestamp: DateTime.now(),

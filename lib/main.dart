@@ -109,7 +109,6 @@ class CareerIQApp extends StatelessWidget {
         final auth = Provider.of<AuthProvider>(context, listen: false);
         if (auth.isRecruiter) {
           mainWrapperKey.currentState?.setSelectedIndex(1);
-          // Small delay to ensure the screen is built if it wasn't
           Future.delayed(const Duration(milliseconds: 100), () {
             Navigator.of(context).push(
               MaterialPageRoute(

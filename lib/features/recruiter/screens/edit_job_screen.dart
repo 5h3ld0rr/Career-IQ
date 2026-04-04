@@ -310,7 +310,7 @@ class _EditJobScreenState extends State<EditJobScreen> {
                   try {
                     await jobProvider.addJob(
                       updatedJob,
-                    ); // Using addJob as it sets by ID (upsert)
+                    );
                     if (mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(

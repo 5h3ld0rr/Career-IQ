@@ -7,10 +7,8 @@ class OpenRouterService {
   static final String _apiKey = dotenv.env['OPENROUTER_API_KEY'] ?? '';
   static const String _baseUrl = 'https://openrouter.ai/api/v1';
 
-  /// The primary model used across the app (Gemini 2.0 Flash via OpenRouter)
   static const String defaultModel = 'google/gemini-2.0-flash-001';
 
-  /// Generates a non-streaming response for a single prompt
   Future<String> generateResponse(String prompt, {String? model}) async {
     if (_apiKey.isEmpty || _apiKey == 'your_openrouter_api_key_here') {
       return "Error: OpenRouter API Key is missing. Please add it to your .env file.";
@@ -23,7 +21,7 @@ class OpenRouterService {
           'Authorization': 'Bearer $_apiKey',
           'Content-Type': 'application/json',
           'HTTP-Referer':
-              'https://careeriq.app', // Required for OpenRouter rankings
+              'https://careeriq.app',
           'X-Title': 'CareerIQ App',
         },
         body: jsonEncode({
@@ -48,7 +46,6 @@ class OpenRouterService {
     }
   }
 
-  /// Sends a full chat history for multi-turn conversations
   Future<String> sendChatMessage(
     List<Map<String, String>> messages, {
     String? model,

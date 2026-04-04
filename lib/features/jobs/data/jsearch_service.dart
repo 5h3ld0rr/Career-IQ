@@ -4,26 +4,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:careeriq/features/jobs/data/job_model.dart';
 
-/// Service for fetching real-time Sri Lankan job listings via JSearch API.
-///
-/// JSearch aggregates from Google for Jobs (LinkedIn, Indeed, local boards).
-/// Free tier: 200 requests/month on RapidAPI.
-///
-/// Get your key at: https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
 class JSearchService {
   static const String _baseUrl = 'https://jsearch.p.rapidapi.com';
   static const String _host = 'jsearch.p.rapidapi.com';
-  static const String _defaultCountry = 'lk'; // Sri Lanka
+  static const String _defaultCountry = 'lk';
 
   String get _apiKey => dotenv.env['RAPIDAPI_KEY'] ?? '';
 
-  /// Fetches live job listings for Sri Lanka from Google for Jobs.
-  ///
-  /// [query] - Search keywords (e.g., "Software Engineer in Colombo")
-  /// [page] - Pagination (1-based, max 50)
-  /// [datePosted] - Filter: "today", "3days", "week", "month", or "all"
-  /// [employmentTypes] - Comma-separated: "FULLTIME,PARTTIME,CONTRACTOR,INTERN"
-  /// [remoteOnly] - If true, return only remote positions
   Future<JSearchResponse> searchJobs({
     String? query,
     int page = 1,
@@ -81,7 +68,6 @@ class JSearchService {
     }
   }
 
-  /// Converts JSearch job data into the app's [Job] model.
   List<Job> toAppJobs(List<JSearchJob> jsearchJobs) {
     return jsearchJobs.map((j) {
       return Job(
@@ -146,7 +132,6 @@ class JSearchService {
   }
 }
 
-/// Top-level API response from JSearch.
 class JSearchResponse {
   final List<JSearchJob> jobs;
   final String status;
@@ -166,7 +151,6 @@ class JSearchResponse {
   }
 }
 
-/// Represents a single job listing from the JSearch API.
 class JSearchJob {
   final String jobId;
   final String jobTitle;
@@ -227,7 +211,6 @@ class JSearchJob {
   }
 }
 
-/// Job highlights containing responsibilities and qualifications.
 class JobHighlights {
   final List<String> responsibilities;
   final List<String> qualifications;

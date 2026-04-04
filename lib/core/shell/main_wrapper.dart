@@ -122,7 +122,7 @@ class MainWrapperState extends State<MainWrapper> {
               index: 0,
               icon: Icons.psychology_rounded,
               label: 'Interview',
-              color: const Color(0xFFFF9100), // Vibrant Orange
+              color: const Color(0xFFFF9100),
               onTap: () => _navigateTo(const MockInterviewScreen()),
             ),
             _buildArcAction(
@@ -130,7 +130,7 @@ class MainWrapperState extends State<MainWrapper> {
               index: 1,
               icon: Icons.insights_rounded,
               label: 'ROI',
-              color: const Color(0xFF00E676), // Emerald Green
+              color: const Color(0xFF00E676),
               onTap: () => _navigateTo(const SalaryROIScreen()),
             ),
             _buildArcAction(
@@ -138,7 +138,7 @@ class MainWrapperState extends State<MainWrapper> {
               index: 2,
               icon: Icons.forum_rounded,
               label: 'Expert',
-              color: const Color(0xFFD500F9), // AI Purple
+              color: const Color(0xFFD500F9),
               onTap: () => _navigateTo(const ExpertAIChatScreen()),
             ),
           ] else ...[
@@ -239,7 +239,7 @@ class MainWrapperState extends State<MainWrapper> {
                   Icons.widgets_outlined,
                   Icons.widgets_rounded,
                   '',
-                ), // AI Hub Button
+                ),
                 if (!isRecruiter)
                   _buildNavItem(
                     2,
@@ -485,8 +485,6 @@ class MainWrapperState extends State<MainWrapper> {
   }
 }
 
-/// A specialized IndexedStack that provides a smooth cross-fade transition
-/// between its children without losing their internal state (scroll position, etc).
 class _FadeIndexedStack extends StatefulWidget {
   final int index;
   final List<Widget> children;

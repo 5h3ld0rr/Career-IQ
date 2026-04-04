@@ -181,7 +181,7 @@ class CareerToolsScreen extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFFFC107), // Gold/Amber accent
+                      color: Color(0xFFFFC107),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -191,7 +191,7 @@ class CareerToolsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            title.split(' ').join('\n'), // Multi-line title
+            title.split(' ').join('\n'),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 11,

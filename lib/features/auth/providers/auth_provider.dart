@@ -23,7 +23,7 @@ class AuthProvider with ChangeNotifier {
   String? _bio;
   String? _experience;
   String? _location;
-  String _userRole = 'Job Seeker'; // Default role
+  String _userRole = 'Job Seeker';
   String? _companyName;
   String? _companyWebsite;
   String? _companyIndustry;
@@ -398,13 +398,11 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Extract text from PDF
       final content = await ResumeTextService.extractTextFromUrl(_resumeUrl!);
       if (content.isEmpty) {
         throw "Could not extract text from the resume PDF.";
       }
 
-      // 2. Extract skills using AI
       final aiService = AIService();
       final extracted = await aiService.extractSkillsFromResume(content);
 
@@ -412,7 +410,6 @@ class AuthProvider with ChangeNotifier {
         throw "AI could not identify specific skills from your resume.";
       }
 
-      // 3. Update local and remote
       final List<String> newSkills =
           extracted
               .map((e) => e['skill'] as String)
