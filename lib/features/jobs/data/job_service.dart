@@ -101,9 +101,10 @@ class JobService {
     }).toList();
   }
 
-  Future<void> resetUserData(String userId) async {
+  Future<void> resetUserData(String userId, {bool isRecruiter = false}) async {
     final batch = _firestore.batch();
 
+    // 1. Delete user applications (as an applicant)
     final apps = await _firestore
         .collection('applications')
         .where('userId', isEqualTo: userId)
@@ -112,6 +113,7 @@ class JobService {
       batch.delete(doc.reference);
     }
 
+    // 2. Delete user saved jobs
     final savedJobs = await _firestore
         .collection('users')
         .doc(userId)
@@ -119,6 +121,42 @@ class JobService {
         .get();
     for (var doc in savedJobs.docs) {
       batch.delete(doc.reference);
+    }
+
+    // 3. Reset profile fields in user document
+    final userRef = _firestore.collection('users').doc(userId);
+    batch.update(userRef, {
+      'bio': null,
+      'skills': [],
+      'experience': null,
+      'location': null,
+      'resumeUrl': null,
+      'resumeFileName': null,
+      'resumeUploadedAt': null,
+      // If recruiter, we might want to keep company basic info but clear description
+      'companyDescription': null,
+    });
+
+    // 4. If recruiter, handle posted jobs and received applications
+    if (isRecruiter) {
+      final postedJobs = await _firestore
+          .collection('jobs')
+          .where('posted_by', isEqualTo: userId)
+          .get();
+      
+      for (var jobDoc in postedJobs.docs) {
+        // Find and delete all applications for THIS job
+        final jobApps = await _firestore
+            .collection('applications')
+            .where('jobId', isEqualTo: jobDoc.id)
+            .get();
+        for (var appDoc in jobApps.docs) {
+          batch.delete(appDoc.reference);
+        }
+        
+        // Delete the job itself
+        batch.delete(jobDoc.reference);
+      }
     }
 
     await batch.commit();

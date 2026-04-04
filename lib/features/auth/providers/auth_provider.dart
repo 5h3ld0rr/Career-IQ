@@ -601,9 +601,26 @@ class AuthProvider with ChangeNotifier {
       showNotification("Organization updated successfully!");
     } catch (e) {
       showNotification("Update failed: $e", isError: true);
-    } finally {
-      _isLoading = false;
+    }
+  }
+
+  Future<void> refreshProfile() async {
+    if (userId != null) {
+      final user = _authService.currentUser;
+      await _populateUserData(user);
       notifyListeners();
     }
+  }
+
+  void resetLocalData() {
+    _skills = [];
+    _bio = null;
+    _experience = null;
+    _location = null;
+    _resumeUrl = null;
+    _resumeFileName = null;
+    _resumeUploadedAt = null;
+    _companyDescription = null;
+    notifyListeners();
   }
 }

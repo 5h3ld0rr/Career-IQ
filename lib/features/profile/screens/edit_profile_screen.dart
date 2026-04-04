@@ -363,6 +363,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 return;
               }
 
+              final navigator = Navigator.of(context);
               await auth.updateUserDetails(
                 name: _nameController.text.trim(),
                 email: _emailController.text.trim(),
@@ -379,7 +380,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 await jobProvider.loadJobs(
                   location: _locationController.text.trim(),
                 );
-                Navigator.pop(context);
+                navigator.pop();
               }
             },
             child: auth.isLoading

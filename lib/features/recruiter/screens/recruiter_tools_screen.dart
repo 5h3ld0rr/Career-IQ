@@ -7,6 +7,7 @@ import 'package:careeriq/features/auth/providers/auth_provider.dart';
 import 'package:careeriq/features/jobs/data/job_service.dart';
 import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/core/widgets/app_snackbar.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class RecruiterToolsScreen extends StatefulWidget {
   const RecruiterToolsScreen({super.key});
@@ -16,6 +17,17 @@ class RecruiterToolsScreen extends StatefulWidget {
 }
 
 class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
+  String _selectedRole = "Senior Software Engineer";
+  final List<String> _popularRoles = [
+    "Senior Software Engineer",
+    "Flutter Developer",
+    "AI/ML Engineer",
+    "Product Manager",
+    "UI/UX Designer",
+    "Data Scientist",
+    "Backend Developer",
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -27,13 +39,12 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final ai = Provider.of<AIProvider>(context, listen: false);
 
-      String jobTitle = "Senior Software Engineer"; // Default
 
       try {
         if (auth.userId != null) {
           final jobs = await JobService().fetchJobsByUser(auth.userId!);
           if (jobs.isNotEmpty) {
-            jobTitle = jobs.first.title;
+            _selectedRole = jobs.first.title;
           }
         }
       } catch (e) {
@@ -42,11 +53,23 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
 
       if (ai.recruiterMarketInsights.isEmpty) {
         ai.getMarketInsights(
-          jobTitle: jobTitle,
+          jobTitle: _selectedRole,
           location: auth.location ?? "Global / Remote",
         );
       }
     });
+  }
+
+  void _onRoleSelected(String role) {
+    setState(() {
+      _selectedRole = role;
+    });
+    final ai = Provider.of<AIProvider>(context, listen: false);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    ai.getMarketInsights(
+      jobTitle: role,
+      location: auth.location ?? "Global",
+    );
   }
 
   @override
@@ -322,7 +345,47 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
                   ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: _popularRoles.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final role = _popularRoles[index];
+                  final isSelected = _selectedRole == role;
+                  return ChoiceChip(
+                    label: Text(role),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) _onRoleSelected(role);
+                    },
+                    selectedColor: const Color(0xFF03A9F4).withValues(alpha: 0.1),
+                    checkmarkColor: const Color(0xFF03A9F4),
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? const Color(0xFF03A9F4)
+                          : const Color(0xFF94A3B8),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    backgroundColor: Colors.white,
+                    side: BorderSide(
+                      color: isSelected
+                          ? const Color(0xFF03A9F4).withValues(alpha: 0.5)
+                          : Colors.grey.withValues(alpha: 0.1),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildMarketTrendChart(context),
+            const SizedBox(height: 24),
             _buildMarketInsightCard(
               title: 'Avg. Salary',
               value: insights['avgSalary'] ?? '\$120k - \$185k',
@@ -343,6 +406,16 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
             ),
             const SizedBox(height: 16),
             _buildMarketInsightCard(
+              title: 'Hiring Difficulty',
+              value: insights['hiringDifficulty'] != null
+                  ? '${insights['hiringDifficulty']}/10'
+                  : '7/10',
+              trend: 'Moderately difficult to find niche talent.',
+              icon: Icons.psychology_rounded,
+              color: const Color(0xFF00E676),
+            ),
+            const SizedBox(height: 16),
+            _buildMarketInsightCard(
               title: 'Top AI Skill',
               value: (insights['topSkills'] is List &&
                       (insights['topSkills'] as List).isNotEmpty)
@@ -355,6 +428,117 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildMarketTrendChart(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Market Demand Trend',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      color: Color(0xFF334155),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Last 6 months velocity',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.arrow_upward_rounded,
+                      size: 14,
+                      color: Colors.green,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      '12.4%',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 60,
+            child: LineChart(
+              LineChartData(
+                gridData: const FlGridData(show: false),
+                titlesData: const FlTitlesData(show: false),
+                borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: 7,
+                minY: 0,
+                maxY: 6,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: const [
+                      FlSpot(0, 3),
+                      FlSpot(1, 1),
+                      FlSpot(2, 4),
+                      FlSpot(3, 3),
+                      FlSpot(4, 5),
+                      FlSpot(5, 4),
+                      FlSpot(6, 5),
+                    ],
+                    isCurved: true,
+                    color: const Color(0xFF03A9F4),
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: const Color(0xFF03A9F4).withValues(alpha: 0.1),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
