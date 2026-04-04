@@ -169,11 +169,13 @@ class MainWrapperState extends State<MainWrapper> {
           ],
         ],
       ),
-      bottomNavigationBar: AnimatedSlide(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOutCubic,
-        offset: _bottomNavVisible ? Offset.zero : const Offset(0, 1.2),
-        child: _buildBottomNav(),
+      bottomNavigationBar: RepaintBoundary(
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic,
+          offset: _bottomNavVisible ? Offset.zero : const Offset(0, 1.2),
+          child: _buildBottomNav(),
+        ),
       ),
     );
   }
@@ -208,7 +210,7 @@ class MainWrapperState extends State<MainWrapper> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
