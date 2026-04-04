@@ -7,7 +7,7 @@ import 'package:careeriq/core/providers/theme_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:careeriq/features/jobs/providers/job_provider.dart';
-import 'package:careeriq/features/recruiter/screens/manage_jobs_screen.dart';
+
 import 'package:careeriq/features/profile/screens/edit_profile_screen.dart';
 import 'package:careeriq/features/recruiter/screens/billing_subscription_screen.dart';
 import '../../recruiter/screens/organization_settings_screen.dart';
@@ -677,23 +677,6 @@ class ProfileScreen extends StatelessWidget {
         if (auth.isRecruiter) ...[
           _buildMenuTile(
             context,
-            Icons.cases_rounded,
-            'Manage Job Postings',
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ManageJobsScreen()),
-            ),
-          ),
-          _buildMenuTile(
-            context,
-            Icons.people_alt_rounded,
-            'Saved Candidates',
-            () {
-              AppSnackBar.show('Saved Candidates feature coming soon');
-            },
-          ),
-          _buildMenuTile(
-            context,
             Icons.credit_card_rounded,
             'Billing & Subscription',
             () {
@@ -764,13 +747,39 @@ class ProfileScreen extends StatelessWidget {
           Icons.refresh_rounded,
           'Reset System Data',
           () async {
-            final jobProvider = Provider.of<JobProvider>(
-              context,
-              listen: false,
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Reset Everything?'),
+                content: const Text(
+                  'This will clear your applications, saved jobs, CV and profile details. This cannot be undone.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Reset', style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
             );
-            await jobProvider.seedDatabase(auth.userId);
-            if (context.mounted) {
-              AppSnackBar.show('Database seeded with new categories!');
+
+            if (confirmed == true && auth.userId != null) {
+              final jobProvider = Provider.of<JobProvider>(
+                context,
+                listen: false,
+              );
+              await jobProvider.seedDatabase(
+                auth.userId!,
+                isRecruiter: auth.isRecruiter,
+              );
+              auth.resetLocalData();
+              if (context.mounted) {
+                AppSnackBar.show('System data reset successfully!');
+              }
             }
           },
         ),

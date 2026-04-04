@@ -282,16 +282,14 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  Future<void> seedDatabase([String? userId]) async {
+  Future<void> seedDatabase(String userId, {bool isRecruiter = false}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      if (userId != null) {
-        await _jobService.resetUserData(userId);
-        await loadUserApplications(userId);
-        await loadSavedJobs(userId);
-      }
+      await _jobService.resetUserData(userId, isRecruiter: isRecruiter);
+      await loadUserApplications(userId);
+      await loadSavedJobs(userId);
       await loadJobs();
     } catch (e) {
       _error = 'Failed to reset data: $e';
