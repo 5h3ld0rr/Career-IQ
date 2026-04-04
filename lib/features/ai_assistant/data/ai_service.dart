@@ -230,16 +230,18 @@ class AIService {
   }) async {
     final prompt =
         """
-    Provide modern (2026) hiring market insights for:
+    Provide modern, high-accuracy (2026 Q1-Q2) hiring market insights for:
     Role: $jobTitle
-    Location: $location
+    Location: $location (Adjust values if location is Global/Remote vs specific)
 
-    Provide JSON with:
-    - 'avgSalary': (String)
+    Provide JSON with these EXACT keys:
+    - 'avgSalary': (String, e.g. "\$140k - \$195k")
+    - 'salaryReasoning': (String, a short 1-sentence explanation of why this range exists in 2026, e.g. "Driven by high demand for specialized AI architects.")
     - 'demandLevel': (Low/Medium/High)
-    - 'topSkills': (List<String>)
+    - 'demandReasoning': (String, a short 1-sentence explanation of current demand trends)
+    - 'topSkills': (List<String>, top 3 trending skills for this role)
     - 'hiringDifficulty': (int 1-10)
-    - 'remoteTrends': (String)
+    - 'remoteTrends': (String, current status of remote/hybrid for this specific role)
     
     Return ONLY the JSON.
     """;

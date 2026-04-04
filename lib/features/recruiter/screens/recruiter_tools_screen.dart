@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:careeriq/features/ai_assistant/providers/ai_provider.dart';
+import 'package:careeriq/features/auth/providers/auth_provider.dart';
+import 'package:careeriq/features/jobs/data/job_service.dart';
 import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/core/widgets/app_snackbar.dart';
 
@@ -17,12 +19,31 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _loadInitialInsights();
+  }
+
+  Future<void> _loadInitialInsights() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
       final ai = Provider.of<AIProvider>(context, listen: false);
+
+      String jobTitle = "Senior Software Engineer"; // Default
+
+      try {
+        if (auth.userId != null) {
+          final jobs = await JobService().fetchJobsByUser(auth.userId!);
+          if (jobs.isNotEmpty) {
+            jobTitle = jobs.first.title;
+          }
+        }
+      } catch (e) {
+        debugPrint("Error fetching recruiter jobs for insights: $e");
+      }
+
       if (ai.recruiterMarketInsights.isEmpty) {
         ai.getMarketInsights(
-          jobTitle: "Senior Software Engineer",
-          location: "Global / Remote",
+          jobTitle: jobTitle,
+          location: auth.location ?? "Global / Remote",
         );
       }
     });
@@ -127,18 +148,19 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
           'Hiring Intelligence',
           style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF00B0FF),
             letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         const Text(
           'Scale your talent acquisition with AI',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 26,
             fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
+            letterSpacing: -0.8,
+            height: 1.1,
           ),
         ),
       ],
@@ -152,7 +174,7 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
       crossAxisCount: 2,
       mainAxisSpacing: 20,
       crossAxisSpacing: 20,
-      childAspectRatio: 0.85,
+      childAspectRatio: 0.82,
       children: [
         _buildToolCard(
           title: 'JD Generator',
@@ -164,7 +186,7 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
         _buildToolCard(
           title: 'AI Scorer',
           subtitle: 'Rank candidates instantly',
-          icon: Icons.rule_rounded,
+          icon: Icons.checklist_rtl_rounded,
           color: const Color(0xFF00E676),
           onTap: () => _showResumeScorerModal(),
         ),
@@ -259,57 +281,76 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
                   'MARKET INSIGHTS 2026',
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.grey,
-                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF94A3B8),
+                    letterSpacing: 2.0,
                   ),
                 ),
                 if (ai.isGenerating)
                   const SizedBox(
-                    width: 12,
-                    height: 12,
+                    width: 14,
+                    height: 14,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 else
-                  GestureDetector(
-                    onTap: () => ai.getMarketInsights(
-                      jobTitle: "Senior Developer",
-                      location: "Global",
-                    ),
-                    child: Icon(
-                      Icons.refresh_rounded,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
+                  InkWell(
+                    onTap: () async {
+                      final auth =
+                          Provider.of<AuthProvider>(context, listen: false);
+                      String title = "Senior Software Engineer";
+                      try {
+                        final jobs = await JobService().fetchJobsByUser(
+                          auth.userId!,
+                        );
+                        if (jobs.isNotEmpty) title = jobs.first.title;
+                      } catch (_) {}
+
+                      ai.getMarketInsights(
+                        jobTitle: title,
+                        location: auth.location ?? "Global",
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      child: const Icon(
+                        Icons.refresh_rounded,
+                        size: 18,
+                        color: Color(0xFF03A9F4),
+                      ),
                     ),
                   ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             _buildMarketInsightCard(
               title: 'Avg. Salary',
               value: insights['avgSalary'] ?? '\$120k - \$185k',
-              trend: 'Based on 2026 Q1 tech market data.',
-              icon: Icons.payments_rounded,
-              color: Colors.blue,
+              trend: insights['salaryReasoning'] ??
+                  'Based on latest 2026 tech market data.',
+              icon: Icons.account_balance_wallet_rounded,
+              color: const Color(0xFF03A9F4),
             ),
             const SizedBox(height: 16),
             _buildMarketInsightCard(
               title: 'Demand Level',
               value: insights['demandLevel'] ?? 'High Demand',
-              trend:
-                  insights['remoteTrends'] ?? 'Remote-first hiring is peaking.',
+              trend: insights['demandReasoning'] ??
+                  insights['remoteTrends'] ??
+                  'Remote-first hiring is peaking.',
               icon: Icons.trending_up_rounded,
-              color: Colors.orange,
+              color: const Color(0xFFFF9100),
             ),
             const SizedBox(height: 16),
             _buildMarketInsightCard(
               title: 'Top AI Skill',
-              value: (insights['topSkills'] as List?)?.isNotEmpty == true
+              value: (insights['topSkills'] is List &&
+                      (insights['topSkills'] as List).isNotEmpty)
                   ? (insights['topSkills'] as List).first
-                  : 'Agentic AI',
-              trend: 'Highest growth in recruiter demand.',
-              icon: Icons.workspace_premium_rounded,
-              color: Colors.purple,
+                  : (insights['topSkills']?.toString() ?? 'Agentic AI'),
+              trend: 'Highest growth in current recruiter demand.',
+              icon: Icons.verified_rounded,
+              color: const Color(0xFFD500F9),
             ),
           ],
         );
@@ -325,23 +366,29 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
       decoration: BoxDecoration(
-        color: AppTheme.getGlassColor(context).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.getGlassBorderColor(context)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(40),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              color: color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,8 +399,9 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: Color(0xFF334155),
                       ),
                     ),
                     Text(
@@ -361,15 +409,20 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         color: color,
-                        fontSize: 13,
+                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   trend,
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ],
             ),
