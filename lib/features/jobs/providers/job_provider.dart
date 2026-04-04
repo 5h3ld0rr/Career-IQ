@@ -28,6 +28,8 @@ class JobProvider with ChangeNotifier {
   StreamSubscription<QuerySnapshot>? _applicantsSubscription;
   StreamSubscription<QuerySnapshot>? _userAppsSubscription;
   StreamSubscription<QuerySnapshot>? _recruiterAppsSubscription;
+  StreamSubscription<List<Job>>? _jobsSubscription;
+  StreamSubscription<List<Job>>? _featuredJobsSubscription;
 
   List<Job> get jobs => _jobs;
   List<Job> get featuredJobs => _featuredJobs;
@@ -65,52 +67,82 @@ class JobProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    startJobsStream(
+      query: _currentQuery,
+      category: _currentCategory,
+      jobType: _selectedJobType,
+      workMode: _selectedWorkMode,
+      location: location,
+    );
+
+    // Live jobs are external (JSearch), so they remain as a Future fetch
     try {
-      _jobs = await _jobService.fetchJobs(
+      final live = await _jobService.fetchLiveJobs(
         query: _currentQuery,
-        category: _currentCategory,
-        jobType: _selectedJobType == 'All' ? null : _selectedJobType,
-        workMode: _selectedWorkMode == 'All' ? null : _selectedWorkMode,
         location: location,
       );
+      _liveJobs = live;
+      // We don't merge them here to keep real-time UI clean, 
+      // the UI can combine them or we can merge in stream listener.
+    } catch (e) {
+      debugPrint('Live jobs fetch failed (non-blocking): $e');
+    }
 
-      try {
-        final live = await _jobService.fetchLiveJobs(
-          query: _currentQuery,
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  void startJobsStream({
+    String? query,
+    String? category,
+    String? jobType,
+    String? workMode,
+    String? location,
+  }) {
+    stopJobsStream();
+    _jobsSubscription = _jobService
+        .getJobsStream(
+          category: category,
+          jobType: jobType,
+          workMode: workMode,
           location: location,
-        );
-        final existingIds = _jobs.map((j) => j.id).toSet();
-        final newLive = live.where((j) => !existingIds.contains(j.id)).toList();
-        _liveJobs = newLive;
-        _jobs = [..._jobs, ...newLive];
-      } catch (e) {
-        debugPrint('Live jobs fetch failed (non-blocking): $e');
+        )
+        .listen((allJobs) {
+      List<Job> filtered = allJobs;
+
+      if (query != null && query.isNotEmpty) {
+        final q = query.toLowerCase();
+        filtered = filtered.where((job) {
+          return job.title.toLowerCase().contains(q) ||
+              job.companyName.toLowerCase().contains(q) ||
+              job.location.toLowerCase().contains(q) ||
+              job.description.toLowerCase().contains(q);
+        }).toList();
       }
 
+      // Sync saved status
+      for (var job in filtered) {
+        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+      }
+
+      _jobs = filtered;
+      
+      // Update suggested jobs if location is set
       if (location != null && location.isNotEmpty) {
         _suggestedJobs = _jobs
-            .where(
-              (j) =>
-                  j.location.toLowerCase().contains(location.toLowerCase()) ||
-                  location.toLowerCase().contains(j.location.toLowerCase()),
-            )
+            .where((j) =>
+                j.location.toLowerCase().contains(location.toLowerCase()) ||
+                location.toLowerCase().contains(j.location.toLowerCase()))
             .toList();
-      } else {
-        _suggestedJobs = [];
       }
 
-      for (var job in _jobs) {
-        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
-      }
-      for (var job in _suggestedJobs) {
-        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
       notifyListeners();
-    }
+    });
+  }
+
+  void stopJobsStream() {
+    _jobsSubscription?.cancel();
+    _jobsSubscription = null;
   }
 
   Future<void> loadPostedJobs(String userId) async {
@@ -158,15 +190,25 @@ class JobProvider with ChangeNotifier {
   }
 
   Future<void> loadFeaturedJobs({String? category}) async {
-    try {
-      _featuredJobs = await _jobService.fetchFeaturedJobs(category: category);
-      for (var job in _featuredJobs) {
+    startFeaturedJobsStream(category: category);
+  }
+
+  void startFeaturedJobsStream({String? category}) {
+    stopFeaturedJobsStream();
+    _featuredJobsSubscription = _jobService
+        .getFeaturedJobsStream(category: category)
+        .listen((jobs) {
+      for (var job in jobs) {
         job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
       }
+      _featuredJobs = jobs;
       notifyListeners();
-    } catch (e) {
-      debugPrint('Error loading featured jobs: $e');
-    }
+    });
+  }
+
+  void stopFeaturedJobsStream() {
+    _featuredJobsSubscription?.cancel();
+    _featuredJobsSubscription = null;
   }
 
   Future<void> loadUserApplications(String userId) async {
@@ -456,6 +498,8 @@ class JobProvider with ChangeNotifier {
     stopApplicantsStream();
     stopUserAppsStream();
     stopRecruiterAppsStream();
+    stopJobsStream();
+    stopFeaturedJobsStream();
     super.dispose();
   }
 }

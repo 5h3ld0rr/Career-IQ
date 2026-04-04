@@ -74,6 +74,60 @@ class JobService {
     return jobs;
   }
 
+  Stream<List<Job>> getJobsStream({
+    String? category,
+    String? jobType,
+    String? workMode,
+    String? location,
+  }) {
+    Query queryRef = _firestore.collection('jobs');
+
+    if (category != null && category != 'All') {
+      queryRef = queryRef.where('category', isEqualTo: category);
+    }
+
+    if (jobType != null && jobType != 'All') {
+      queryRef = queryRef.where('job_type', isEqualTo: jobType);
+    }
+
+    if (workMode != null && workMode != 'All') {
+      queryRef = queryRef.where(
+        'location',
+        isEqualTo: workMode == 'Remote' ? 'Remote' : workMode,
+      );
+    }
+
+    if (location != null && location.isNotEmpty) {
+      queryRef = queryRef.where('location', isEqualTo: location);
+    }
+
+    return queryRef.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data['id'] = doc.id;
+        return Job.fromJson(data);
+      }).toList();
+    });
+  }
+
+  Stream<List<Job>> getFeaturedJobsStream({String? category}) {
+    Query query = _firestore.collection('jobs');
+
+    if (category != null && category != 'All') {
+      query = query.where('category', isEqualTo: category);
+    }
+
+    return query.limit(5).snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data['id'] = doc.id;
+        return Job.fromJson(data);
+      }).toList();
+    });
+  }
+
   Future<List<Job>> fetchLiveJobs({String? query, String? location}) async {
     final response = await _jsearchService.searchJobs(
       query: (query != null && query.isNotEmpty)

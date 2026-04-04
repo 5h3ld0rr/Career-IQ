@@ -5,7 +5,7 @@ import 'package:careeriq/core/theme/theme.dart';
 import 'package:careeriq/features/auth/providers/auth_provider.dart';
 import 'package:careeriq/features/jobs/providers/job_provider.dart';
 import 'package:careeriq/features/interview/screens/schedule_interview_screen.dart';
-import 'package:careeriq/core/widgets/app_snackbar.dart';
+import 'package:careeriq/core/shell/main_wrapper.dart';
 
 class ApplicationTrackerScreen extends StatefulWidget {
   final String? initialApplicationId;
@@ -17,7 +17,6 @@ class ApplicationTrackerScreen extends StatefulWidget {
 }
 
 class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
-  bool _isSeeding = false;
 
   @override
   void initState() {
@@ -44,35 +43,6 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
        Provider.of<JobProvider>(context, listen: false).stopUserAppsStream();
     }
     super.dispose();
-  }
-
-  Future<void> _seedMockData() async {
-    setState(() => _isSeeding = true);
-    try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      final jobProvider = Provider.of<JobProvider>(context, listen: false);
-
-      if (auth.userId != null) {
-        await jobProvider.seedDatabase(auth.userId!);
-
-        if (jobProvider.jobs.isNotEmpty) {
-          final topJobs = jobProvider.jobs.take(3).toList();
-          for (var job in topJobs) {
-            await jobProvider.applyForJob(auth.userId!, job.id);
-          }
-        }
-
-        if (mounted) {
-          AppSnackBar.show('Mock data seeded successfully! 🚀');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        AppSnackBar.show('Failed to seed data: $e', isError: true);
-      }
-    } finally {
-      if (mounted) setState(() => _isSeeding = false);
-    }
   }
 
   @override
@@ -136,7 +106,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                       ),
                     ),
                   ),
-                  if (jobProvider.isLoading || _isSeeding)
+                  if (jobProvider.isLoading)
                     const SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
@@ -226,36 +196,31 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             ),
           ),
           const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _seedMockData,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'SEED MOCK DATA',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
-                  ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                context
+                    .findAncestorStateOfType<MainWrapperState>()
+                    ?.setSelectedIndex(0);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'DISCOVER JOBS',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 14,
+                  letterSpacing: 0.5,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () {
-              AppSnackBar.show('Navigate to the Search tab to find jobs!');
-            },
-            child: const Text(
-              'DISCOVER JOBS',
-              style: TextStyle(fontWeight: FontWeight.w900),
             ),
           ),
         ],
