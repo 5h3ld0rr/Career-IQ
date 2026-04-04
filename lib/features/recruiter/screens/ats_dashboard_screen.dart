@@ -332,6 +332,8 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
     int score = 85;
     Color scoreColor = Colors.green;
 
+    final String? photoUrl = user['photoUrl'] ?? user['profilePictureUrl'];
+
     String initials = name.isNotEmpty
         ? name.substring(0, 1).toUpperCase()
         : '?';
@@ -383,14 +385,18 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                       backgroundColor: theme.colorScheme.primary.withValues(
                         alpha: 0.2,
                       ),
-                      child: Text(
-                        initials,
-                        style: TextStyle(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
+                      backgroundImage:
+                          photoUrl != null ? NetworkImage(photoUrl) : null,
+                      child: photoUrl == null
+                          ? Text(
+                              initials,
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
