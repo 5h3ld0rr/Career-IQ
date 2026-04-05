@@ -24,6 +24,7 @@ class JobProvider with ChangeNotifier {
   List<Map<String, dynamic>> _userApplications = [];
   List<Map<String, dynamic>> _jobApplicants = [];
   List<Job> _postedJobs = [];
+  Set<String> _appliedJobIds = {};
   int _totalApplicantsCount = 0;
   StreamSubscription<QuerySnapshot>? _applicantsSubscription;
   StreamSubscription<QuerySnapshot>? _userAppsSubscription;
@@ -39,6 +40,8 @@ class JobProvider with ChangeNotifier {
   List<Job> get postedJobs => _postedJobs;
   List<Map<String, dynamic>> get userApplications => _userApplications;
   List<Map<String, dynamic>> get jobApplicants => _jobApplicants;
+  Set<String> get appliedJobIds => _appliedJobIds;
+  bool isJobApplied(String jobId) => _appliedJobIds.contains(jobId);
   int get totalApplicantsCount => _totalApplicantsCount;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -218,6 +221,7 @@ class JobProvider with ChangeNotifier {
 
     try {
       _userApplications = await _jobService.fetchUserApplications(userId);
+      _appliedJobIds = _userApplications.map((app) => (app['jobId'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
     } catch (e) {
       _error = 'Failed to load applications: $e';
     } finally {
@@ -457,6 +461,14 @@ class JobProvider with ChangeNotifier {
     stopUserAppsStream();
     _userAppsSubscription =
         _jobService.getUserApplicationsStream(userId).listen((snapshot) async {
+          // Immediately update job IDs for UI reactivity
+          _appliedJobIds = snapshot.docs
+              .map((doc) => (doc.data() as Map<String, dynamic>)['jobId']?.toString())
+              .where((id) => id != null && id.isNotEmpty)
+              .cast<String>()
+              .toSet();
+          notifyListeners();
+
           List<Map<String, dynamic>> enrichedApps = [];
           for (var doc in snapshot.docs) {
             enrichedApps.add(await _jobService.enrichApplicationData(doc));
@@ -470,6 +482,8 @@ class JobProvider with ChangeNotifier {
           });
 
           _userApplications = enrichedApps;
+          // Re-sync after enrichment to be sure
+          _appliedJobIds = _userApplications.map((app) => (app['jobId'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
           notifyListeners();
         });
   }

@@ -21,27 +21,20 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
   }
 
   void _loadData() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      if (auth.userId != null) {
-        Provider.of<JobProvider>(
-          context,
-          listen: false,
-        ).startUserAppsStream(auth.userId!);
-      }
-    });
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.userId != null) {
+      Provider.of<JobProvider>(
+        context,
+        listen: false,
+      ).startUserAppsStream(auth.userId!);
+    }
   }
 
   @override
   void dispose() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    if (auth.userId != null) {
-       Provider.of<JobProvider>(context, listen: false).stopUserAppsStream();
-    }
     super.dispose();
   }
 

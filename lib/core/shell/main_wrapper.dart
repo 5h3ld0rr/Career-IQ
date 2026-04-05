@@ -16,6 +16,7 @@ import 'package:careeriq/features/recruiter/screens/recruiter_tools_screen.dart'
 import 'package:careeriq/core/theme/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:careeriq/features/auth/providers/auth_provider.dart';
+import 'package:careeriq/features/jobs/providers/job_provider.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -53,6 +54,24 @@ class MainWrapperState extends State<MainWrapper> {
       const ManageJobsScreen(key: ValueKey('manage_jobs')),
       const ProfileScreen(key: ValueKey('rec_profile')),
     ];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initGlobalStreams();
+    });
+  }
+
+  void _initGlobalStreams() {
+    if (!mounted) return;
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final jobProv = Provider.of<JobProvider>(context, listen: false);
+
+    if (auth.userId != null) {
+      if (!auth.isRecruiter) {
+        jobProv.startUserAppsStream(auth.userId!);
+      } else {
+        jobProv.startRecruiterAppsStream(auth.userId!);
+      }
+    }
   }
 
   List<Widget> _getScreens(bool isRecruiter) =>

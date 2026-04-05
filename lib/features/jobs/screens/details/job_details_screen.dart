@@ -722,11 +722,7 @@ class JobDetailsScreen extends StatelessWidget {
     JobProvider jobProv,
   ) {
     if (auth.userId == null) return false;
-    return jobProv.userApplications.any(
-      (app) =>
-          app['job'] != null &&
-          (app['job']['id'] == job.id || app['job']['jobId'] == job.id),
-    );
+    return jobProv.isJobApplied(job.id);
   }
 
   Widget _buildApplyButton(BuildContext context, AuthProvider auth) {
