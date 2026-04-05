@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:careeriq/features/auth/providers/auth_provider.dart';
 import 'package:careeriq/core/theme/theme.dart';
+import 'package:careeriq/core/widgets/app_snackbar.dart';
 import 'package:careeriq/core/widgets/google_sign_in_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -148,6 +149,47 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          if (authProvider.error != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              margin: const EdgeInsets.only(bottom: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline_rounded,
+                                    color: Colors.red,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      AppSnackBar.getFriendlyErrorMessage(
+                                        authProvider.error!,
+                                      ),
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           _buildPrimaryButton(isLoading, _handleLogin, 'LOGIN'),
                           if (_selectedRole != 'Recruiter') ...[
                             const SizedBox(height: 24),
@@ -314,6 +356,7 @@ class _LoginScreenState extends State<LoginScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
+        onChanged: (_) => Provider.of<AuthProvider>(context, listen: false).clearError(),
         obscureText: isPassword && _obscurePassword,
         style: TextStyle(
           fontWeight: FontWeight.w600,

@@ -604,6 +604,13 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  void clearError() {
+    if (_error != null) {
+      _error = null;
+      notifyListeners();
+    }
+  }
+
   Future<void> refreshProfile() async {
     if (userId != null) {
       final user = _authService.currentUser;

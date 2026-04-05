@@ -4,7 +4,7 @@ import 'package:careeriq/main.dart';
 
 class AppSnackBar {
   static void show(String message, {bool isError = false}) {
-    String cleanMessage = _getFriendlyErrorMessage(message);
+    String cleanMessage = getFriendlyErrorMessage(message);
     if (cleanMessage.isEmpty) {
       return;
     }
@@ -87,7 +87,7 @@ class AppSnackBar {
     );
   }
 
-  static String _getFriendlyErrorMessage(String message) {
+  static String getFriendlyErrorMessage(String message) {
     if (message.contains('invalid-credential') ||
         message.contains('wrong-password')) {
       return "Invalid email or password. Please try again.";
