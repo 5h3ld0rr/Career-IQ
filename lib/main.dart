@@ -110,11 +110,13 @@ class CareerIQApp extends StatelessWidget {
         if (auth.isRecruiter) {
           mainWrapperKey.currentState?.setSelectedIndex(1);
           Future.delayed(const Duration(milliseconds: 100), () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ATSDashboardScreen(initialJobId: jobId),
-              ),
-            );
+            if (context.mounted) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ATSDashboardScreen(initialJobId: jobId),
+                ),
+              );
+            }
           });
         }
       }

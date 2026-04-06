@@ -768,17 +768,19 @@ class ProfileScreen extends StatelessWidget {
             );
 
             if (confirmed == true && auth.userId != null) {
-              final jobProvider = Provider.of<JobProvider>(
-                context,
-                listen: false,
-              );
-              await jobProvider.seedDatabase(
-                auth.userId!,
-                isRecruiter: auth.isRecruiter,
-              );
-              auth.resetLocalData();
               if (context.mounted) {
-                AppSnackBar.show('System data reset successfully!');
+                final jobProvider = Provider.of<JobProvider>(
+                  context,
+                  listen: false,
+                );
+                await jobProvider.seedDatabase(
+                  auth.userId!,
+                  isRecruiter: auth.isRecruiter,
+                );
+                auth.resetLocalData();
+                if (context.mounted) {
+                  AppSnackBar.show('System data reset successfully!');
+                }
               }
             }
           },

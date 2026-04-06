@@ -20,7 +20,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -37,9 +37,20 @@ android {
 
     buildTypes {
         release {
+            // Enable R8 for code shrinking and obfuscation
+            isMinifyEnabled = true
+            isShrinkResources = true
+            
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            // Debug builds are larger to support hot reload; no shrinking here.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

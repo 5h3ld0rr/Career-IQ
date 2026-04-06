@@ -128,11 +128,17 @@ class JobService {
     });
   }
 
-  Future<List<Job>> fetchLiveJobs({String? query, String? location}) async {
+  Future<List<Job>> fetchLiveJobs({
+    String? query,
+    String? location,
+    int page = 1,
+  }) async {
+    final effectiveLocation = location ?? "Sri Lanka";
     final response = await _jsearchService.searchJobs(
       query: (query != null && query.isNotEmpty)
-          ? '$query in ${location ?? "Sri Lanka"}'
-          : 'jobs in ${location ?? "Sri Lanka"}',
+          ? '$query in $effectiveLocation'
+          : 'jobs in $effectiveLocation',
+      page: page,
     );
     return _jsearchService.toAppJobs(response.jobs);
   }

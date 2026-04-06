@@ -32,26 +32,26 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
+    Future.microtask(() async {
       if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
-      jobProvider.loadJobs(location: auth.location).then((_) {
-        if (!mounted) return;
+
+      // Load all data first
+      await Future.wait([
+        jobProvider.loadJobs(userLocation: auth.location),
+        jobProvider.loadFeaturedJobs(),
+      ]);
+
+      if (!mounted) return;
+
+      // Run AI match score calculation ONCE for all loaded jobs
+      if (auth.skills.isNotEmpty || auth.bio != null) {
         final profileStr =
             "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
-        if (auth.skills.isNotEmpty || auth.bio != null) {
-          jobProvider.calculateMatchScores(profileStr);
-        }
-      });
-      jobProvider.loadFeaturedJobs().then((_) {
-        if (!mounted) return;
-        final profileStr =
-            "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
-        if (auth.skills.isNotEmpty || auth.bio != null) {
-          jobProvider.calculateMatchScores(profileStr);
-        }
-      });
+        jobProvider.calculateMatchScores(profileStr);
+      }
+
       if (auth.userId != null) {
         jobProvider.loadSavedJobs(auth.userId!);
       }
@@ -60,9 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final jobs = Provider.of<JobProvider>(context);
-
     return Scaffold(
       body: Stack(
         children: [
@@ -70,7 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             bottom: false,
             child: RefreshIndicator(
-              onRefresh: () => jobs.loadJobs(),
+              onRefresh: () {
+                final auth = Provider.of<AuthProvider>(context, listen: false);
+                return Provider.of<JobProvider>(context, listen: false)
+                    .loadJobs(userLocation: auth.location);
+              },
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
@@ -80,59 +81,110 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          RepaintBoundary(child: _buildHeader(auth, context)),
+                          RepaintBoundary(
+                            child: Consumer<AuthProvider>(
+                              builder: (context, auth, _) =>
+                                  _buildHeader(auth, context),
+                            ),
+                          ),
                           const SizedBox(height: 24),
-                          _buildSearchArea(context, jobs),
-                          const SizedBox(height: 24),
-                          _buildCategoryFilters(jobs),
+                          // Use a Consumer specifically for search/category filters if they change rarely
+                          Consumer<JobProvider>(
+                            builder: (context, jobs, _) => Column(
+                              children: [
+                                _buildSearchArea(context, jobs),
+                                const SizedBox(height: 24),
+                                _buildCategoryFilters(jobs),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 32),
-                          if (jobs.isLoading ||
-                              jobs.featuredJobs.isNotEmpty) ...[
-                            _buildSectionTitle(
-                              'Featured Jobs',
-                              showSeeAll: true,
-                              onSeeAll: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => SeeAllJobsScreen(
-                                    title: 'Featured Jobs',
-                                    initialJobs: jobs.featuredJobs,
-                                  ),
-                                ),
-                              ),
+                          Selector<JobProvider, (bool, int)>(
+                            selector: (_, p) =>
+                                (p.isLoading, p.featuredJobs.length),
+                            builder: (context, data, _) {
+                              final isLoading = data.$1;
+                              final count = data.$2;
+                              if (isLoading || count > 0) {
+                                final jobs = Provider.of<JobProvider>(
+                                  context,
+                                  listen: false,
+                                );
+                                return Column(
+                                  children: [
+                                    _buildSectionTitle(
+                                      'Featured Jobs',
+                                      showSeeAll: true,
+                                      onSeeAll: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => SeeAllJobsScreen(
+                                            title: 'Featured Jobs',
+                                            initialJobs: jobs.featuredJobs,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    _buildFeaturedJobs(jobs),
+                                    const SizedBox(height: 32),
+                                  ],
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                          Consumer<AuthProvider>(
+                            builder: (context, auth, _) =>
+                                Selector<JobProvider, int>(
+                              selector: (_, p) => p.suggestedJobs.length,
+                              builder: (context, count, _) {
+                                if (count > 0) {
+                                  final jobs = Provider.of<JobProvider>(
+                                    context,
+                                    listen: false,
+                                  );
+                                  return Column(
+                                    children: [
+                                      _buildSectionTitle(
+                                        'Suggested Near ${auth.location ?? ""}',
+                                        showSeeAll: true,
+                                        onSeeAll: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => SeeAllJobsScreen(
+                                              title: 'Jobs Near You',
+                                              initialJobs: jobs.suggestedJobs,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      _buildSuggestedJobs(jobs),
+                                      const SizedBox(height: 32),
+                                    ],
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
                             ),
-                            _buildFeaturedJobs(jobs),
-                            const SizedBox(height: 32),
-                          ],
-                          if (jobs.suggestedJobs.isNotEmpty) ...[
-                            _buildSectionTitle(
-                              'Suggested Near ${auth.location ?? ""}',
-                              showSeeAll: true,
-                              onSeeAll: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => SeeAllJobsScreen(
-                                    title: 'Jobs Near You',
-                                    initialJobs: jobs.suggestedJobs,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            _buildSuggestedJobs(jobs),
-                            const SizedBox(height: 32),
-                          ],
+                          ),
                           _buildSectionTitle(
                             'Latest Job Listings',
                             showSeeAll: true,
-                            onSeeAll: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => SeeAllJobsScreen(
-                                  title: 'Latest Job Listings',
-                                  initialJobs: jobs.jobs,
+                            onSeeAll: () {
+                              final jobs = Provider.of<JobProvider>(
+                                context,
+                                listen: false,
+                              );
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SeeAllJobsScreen(
+                                    title: 'Latest Job Listings',
+                                    initialJobs: jobs.jobs,
+                                  ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -140,35 +192,54 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    sliver: jobs.isLoading
-                        ? SliverList(
-                            delegate: SliverChildBuilderDelegate((context, i) {
+                    sliver: Selector<JobProvider, (bool, int)>(
+                      selector: (_, p) => (p.isLoading, p.jobs.length),
+                      builder: (context, data, _) {
+                        final isLoading = data.$1;
+                        final jobsCount = data.$2;
+
+                        if (isLoading) {
+                          return SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              i,
+                            ) {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
                                 child: _buildVerticalShimmerItem(),
                               );
                             }, childCount: 5),
-                          )
-                        : jobs.jobs.isEmpty
-                        ? const SliverToBoxAdapter(
+                          );
+                        }
+
+                        if (jobsCount == 0) {
+                          return const SliverToBoxAdapter(
                             child: Center(
                               child: Padding(
                                 padding: EdgeInsets.symmetric(vertical: 40),
                                 child: Text('No jobs found'),
                               ),
                             ),
-                          )
-                        : SliverList(
-                            delegate: SliverChildBuilderDelegate((context, i) {
-                              final job = jobs.jobs[i];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: RepaintBoundary(
-                                  child: _buildJobListItem(job, context),
-                                ),
-                              );
-                            }, childCount: jobs.jobs.length),
-                          ),
+                          );
+                        }
+
+                        return SliverList(
+                          delegate: SliverChildBuilderDelegate((context, i) {
+                            return Selector<JobProvider, Job>(
+                              selector: (_, p) => p.jobs[i],
+                              builder: (context, job, _) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: RepaintBoundary(
+                                    child: _buildJobListItem(job, context),
+                                  ),
+                                );
+                              },
+                            );
+                          }, childCount: jobsCount > 5 ? 5 : jobsCount),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -215,6 +286,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     job.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -314,6 +387,8 @@ class _HomeScreenState extends State<HomeScreen> {
     double borderRadius = 24,
     bool disableBlur = false,
   }) {
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+
     return Container(
       width: width,
       decoration: BoxDecoration(
@@ -337,7 +412,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: disableBlur
+        child: (disableBlur || isAndroid)
             ? Padding(
                 padding: padding ?? const EdgeInsets.all(16),
                 child: child,
@@ -492,6 +567,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showFilterModal(BuildContext context, JobProvider jobs) {
     String tempJobType = jobs.selectedJobType;
     String tempWorkMode = jobs.selectedWorkMode;
+    String tempLocation = jobs.currentQuery?.split(' in ').last ?? "";
+    final locationController = TextEditingController(text: tempLocation);
 
     showModalBottomSheet(
       context: context,
@@ -500,112 +577,133 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setState) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(32),
-                ),
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.black26,
-                        borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.black12,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Advanced Filters',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Job Type',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: ['All', 'Full-time', 'Part-time', 'Contract'].map(
-                      (type) {
-                        final isSelected = tempJobType == type;
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Search Filters',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Location',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: locationController,
+                      decoration: InputDecoration(
+                        hintText: 'City, Country or Remote',
+                        prefixIcon: const Icon(Icons.location_on_rounded),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Job Type',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ['All', 'Full-time', 'Part-time', 'Contract'].map(
+                        (type) {
+                          final isSelected = tempJobType == type;
+                          return ChoiceChip(
+                            label: Text(type),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) setState(() => tempJobType = type);
+                            },
+                          );
+                        },
+                      ).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Work Mode',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ['All', 'Remote', 'On-site', 'Hybrid'].map((
+                        mode,
+                      ) {
+                        final isSelected = tempWorkMode == mode;
                         return ChoiceChip(
-                          label: Text(type),
+                          label: Text(mode),
                           selected: isSelected,
                           onSelected: (val) {
-                            if (val) setState(() => tempJobType = type);
+                            if (val) setState(() => tempWorkMode = mode);
                           },
-                          selectedColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.2),
                         );
-                      },
-                    ).toList(),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Work Mode',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: ['All', 'Remote', 'On-site', 'Hybrid'].map((
-                      mode,
-                    ) {
-                      final isSelected = tempWorkMode == mode;
-                      return ChoiceChip(
-                        label: Text(mode),
-                        selected: isSelected,
-                        onSelected: (val) {
-                          if (val) setState(() => tempWorkMode = mode);
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 48),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final loc = locationController.text.trim();
+                          jobs.loadJobs(
+                            query: loc.isNotEmpty ? "jobs in $loc" : null,
+                            jobType: tempJobType,
+                            workMode: tempWorkMode,
+                            userLocation: loc.isNotEmpty ? loc : null,
+                          );
+                          Navigator.pop(ctx);
                         },
-                        selectedColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.2),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 48),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        jobs.loadJobs(
-                          jobType: tempJobType,
-                          workMode: tempWorkMode,
-                        );
-                        Navigator.pop(ctx);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'APPLY FILTERS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                        child: const Text(
+                          'APPLY FILTERS',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             );
           },
@@ -829,12 +927,12 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
               Text(
                 job.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 14,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Row(

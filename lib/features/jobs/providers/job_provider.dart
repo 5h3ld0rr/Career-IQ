@@ -20,6 +20,10 @@ class JobProvider with ChangeNotifier {
   String? _currentCategory = 'All';
   String _selectedJobType = 'All';
   String _selectedWorkMode = 'All';
+  String? _userLocation;
+  int _currentPage = 1;
+  bool _isMoreLoading = false;
+  bool get isMoreLoading => _isMoreLoading;
 
   List<Map<String, dynamic>> _userApplications = [];
   List<Map<String, dynamic>> _jobApplicants = [];
@@ -32,7 +36,14 @@ class JobProvider with ChangeNotifier {
   StreamSubscription<List<Job>>? _jobsSubscription;
   StreamSubscription<List<Job>>? _featuredJobsSubscription;
 
-  List<Job> get jobs => _jobs;
+  List<Job> get jobs {
+    // Combine local database jobs and external API jobs
+    final combined = [..._jobs, ..._liveJobs];
+    // Sort by postedAt descending to show latest first
+    combined.sort((a, b) => b.postedAt.compareTo(a.postedAt));
+    return combined;
+  }
+
   List<Job> get featuredJobs => _featuredJobs;
   List<Job> get suggestedJobs => _suggestedJobs;
   List<Job> get savedJobs => _savedJobs;
@@ -60,33 +71,39 @@ class JobProvider with ChangeNotifier {
     String? jobType,
     String? workMode,
     String? location,
+    String? userLocation,
+    bool resetPage = true,
   }) async {
+    if (resetPage) _currentPage = 1;
     _currentQuery = query ?? _currentQuery;
     _currentCategory = category ?? _currentCategory;
     _selectedJobType = jobType ?? _selectedJobType;
     _selectedWorkMode = workMode ?? _selectedWorkMode;
+    _userLocation = userLocation ?? _userLocation;
 
     _isLoading = true;
     _error = null;
     notifyListeners();
+
+    final effectiveLocation = location ?? _userLocation;
 
     startJobsStream(
       query: _currentQuery,
       category: _currentCategory,
       jobType: _selectedJobType,
       workMode: _selectedWorkMode,
-      location: location,
+      location: effectiveLocation,
+      userLocation: _userLocation,
     );
 
     // Live jobs are external (JSearch), so they remain as a Future fetch
     try {
       final live = await _jobService.fetchLiveJobs(
         query: _currentQuery,
-        location: location,
+        location: effectiveLocation,
       );
       _liveJobs = live;
-      // We don't merge them here to keep real-time UI clean, 
-      // the UI can combine them or we can merge in stream listener.
+      notifyListeners();
     } catch (e) {
       debugPrint('Live jobs fetch failed (non-blocking): $e');
     }
@@ -101,6 +118,7 @@ class JobProvider with ChangeNotifier {
     String? jobType,
     String? workMode,
     String? location,
+    String? userLocation,
   }) {
     stopJobsStream();
     _jobsSubscription = _jobService
@@ -111,36 +129,43 @@ class JobProvider with ChangeNotifier {
           location: location,
         )
         .listen((allJobs) {
-      List<Job> filtered = allJobs;
+          List<Job> filtered = allJobs;
 
-      if (query != null && query.isNotEmpty) {
-        final q = query.toLowerCase();
-        filtered = filtered.where((job) {
-          return job.title.toLowerCase().contains(q) ||
-              job.companyName.toLowerCase().contains(q) ||
-              job.location.toLowerCase().contains(q) ||
-              job.description.toLowerCase().contains(q);
-        }).toList();
-      }
+          if (query != null && query.isNotEmpty) {
+            final q = query.toLowerCase();
+            filtered = filtered.where((job) {
+              return job.title.toLowerCase().contains(q) ||
+                  job.companyName.toLowerCase().contains(q) ||
+                  job.location.toLowerCase().contains(q) ||
+                  job.description.toLowerCase().contains(q);
+            }).toList();
+          }
 
-      // Sync saved status
-      for (var job in filtered) {
-        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
-      }
+          // Sync saved status
+          for (var job in filtered) {
+            job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+          }
 
-      _jobs = filtered;
-      
-      // Update suggested jobs if location is set
-      if (location != null && location.isNotEmpty) {
-        _suggestedJobs = _jobs
-            .where((j) =>
-                j.location.toLowerCase().contains(location.toLowerCase()) ||
-                location.toLowerCase().contains(j.location.toLowerCase()))
-            .toList();
-      }
+          _jobs = filtered;
 
-      notifyListeners();
-    });
+          // Update suggested jobs if userLocation is set
+          // We use the full available list (filtered only by category/type/mode) to pick suggestions
+          final targetLocation = userLocation ?? location;
+          if (targetLocation != null && targetLocation.isNotEmpty) {
+            final loc = targetLocation.toLowerCase();
+            _suggestedJobs = _jobs
+                .where(
+                  (j) =>
+                      j.location.toLowerCase().contains(loc) ||
+                      loc.contains(j.location.toLowerCase()),
+                )
+                .toList();
+          } else {
+            _suggestedJobs = [];
+          }
+
+          notifyListeners();
+        });
   }
 
   void stopJobsStream() {
@@ -201,12 +226,12 @@ class JobProvider with ChangeNotifier {
     _featuredJobsSubscription = _jobService
         .getFeaturedJobsStream(category: category)
         .listen((jobs) {
-      for (var job in jobs) {
-        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
-      }
-      _featuredJobs = jobs;
-      notifyListeners();
-    });
+          for (var job in jobs) {
+            job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+          }
+          _featuredJobs = jobs;
+          notifyListeners();
+        });
   }
 
   void stopFeaturedJobsStream() {
@@ -221,7 +246,10 @@ class JobProvider with ChangeNotifier {
 
     try {
       _userApplications = await _jobService.fetchUserApplications(userId);
-      _appliedJobIds = _userApplications.map((app) => (app['jobId'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
+      _appliedJobIds = _userApplications
+          .map((app) => (app['jobId'] ?? '').toString())
+          .where((id) => id.isNotEmpty)
+          .toSet();
     } catch (e) {
       _error = 'Failed to load applications: $e';
     } finally {
@@ -251,8 +279,11 @@ class JobProvider with ChangeNotifier {
     Map<String, dynamic>? data,
   }) async {
     try {
-      await _jobService.updateApplicationStatus(applicationId, status,
-          data: data);
+      await _jobService.updateApplicationStatus(
+        applicationId,
+        status,
+        data: data,
+      );
       final index = _jobApplicants.indexWhere(
         (a) => a['applicationId'] == applicationId,
       );
@@ -394,22 +425,31 @@ class JobProvider with ChangeNotifier {
     }
   }
 
-  Future<void> calculateMatchScores(String userProfile) async {
-    if (userProfile.isEmpty || (_jobs.isEmpty && _featuredJobs.isEmpty)) return;
+  bool _isCalculatingMatchScores = false;
 
+  Future<void> calculateMatchScores(String userProfile) async {
+    if (userProfile.isEmpty ||
+        _isCalculatingMatchScores ||
+        (_jobs.isEmpty && _featuredJobs.isEmpty)) {
+      return;
+    }
+
+    _isCalculatingMatchScores = true;
     final processedIds = <String>{};
 
     final targetJobs = [
-      ..._jobs.take(5),
-      ..._featuredJobs.take(3),
-      ..._suggestedJobs.take(3),
+      ..._jobs.take(10), // Limit to top 10 for performance
+      ..._featuredJobs.take(5),
+      ..._suggestedJobs.take(5),
     ];
 
+    int updateCount = 0;
     for (var job in targetJobs) {
       if (processedIds.contains(job.id) || job.matchScore != null) continue;
 
       job.isAnalyzing = true;
-      notifyListeners();
+      // Only notify every few items or if it's important to keep UI responsive without jank
+      if (updateCount % 3 == 0) notifyListeners();
 
       try {
         final score = await _aiService.calculateJobMatchScore(
@@ -421,6 +461,7 @@ class JobProvider with ChangeNotifier {
         job.matchScore = score;
         processedIds.add(job.id);
 
+        // Sync score across lists
         for (var lJob in _jobs) {
           if (lJob.id == job.id) lJob.matchScore = score;
         }
@@ -430,22 +471,28 @@ class JobProvider with ChangeNotifier {
         for (var sJob in _suggestedJobs) {
           if (sJob.id == job.id) sJob.matchScore = score;
         }
+        updateCount++;
       } catch (e) {
         debugPrint('Error calculating score for ${job.id}: $e');
         job.matchScore = 0;
       } finally {
         job.isAnalyzing = false;
-        notifyListeners();
+        // Batch notification after each set
+        if (updateCount % 2 == 0) notifyListeners();
       }
     }
+    _isCalculatingMatchScores = false;
+    notifyListeners();
   }
 
   void startApplicantsStream(String jobId) {
     stopApplicantsStream();
-    _applicantsSubscription = _jobService.getApplicantsStream(jobId).listen((snapshot) async {
+    _applicantsSubscription = _jobService.getApplicantsStream(jobId).listen((
+      snapshot,
+    ) async {
       List<Map<String, dynamic>> enrichedApplicants = [];
       for (var doc in snapshot.docs) {
-         enrichedApplicants.add(await _jobService.enrichApplicant(doc));
+        enrichedApplicants.add(await _jobService.enrichApplicant(doc));
       }
       _jobApplicants = enrichedApplicants;
       notifyListeners();
@@ -459,11 +506,15 @@ class JobProvider with ChangeNotifier {
 
   void startUserAppsStream(String userId) {
     stopUserAppsStream();
-    _userAppsSubscription =
-        _jobService.getUserApplicationsStream(userId).listen((snapshot) async {
+    _userAppsSubscription = _jobService
+        .getUserApplicationsStream(userId)
+        .listen((snapshot) async {
           // Immediately update job IDs for UI reactivity
           _appliedJobIds = snapshot.docs
-              .map((doc) => (doc.data() as Map<String, dynamic>)['jobId']?.toString())
+              .map(
+                (doc) =>
+                    (doc.data() as Map<String, dynamic>)['jobId']?.toString(),
+              )
               .where((id) => id != null && id.isNotEmpty)
               .cast<String>()
               .toSet();
@@ -483,7 +534,10 @@ class JobProvider with ChangeNotifier {
 
           _userApplications = enrichedApps;
           // Re-sync after enrichment to be sure
-          _appliedJobIds = _userApplications.map((app) => (app['jobId'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
+          _appliedJobIds = _userApplications
+              .map((app) => (app['jobId'] ?? '').toString())
+              .where((id) => id.isNotEmpty)
+              .toSet();
           notifyListeners();
         });
   }
@@ -495,8 +549,9 @@ class JobProvider with ChangeNotifier {
 
   void startRecruiterAppsStream(String recruiterId) {
     stopRecruiterAppsStream();
-    _recruiterAppsSubscription =
-        _jobService.getRecruiterApplicationsStream(recruiterId).listen((snapshot) {
+    _recruiterAppsSubscription = _jobService
+        .getRecruiterApplicationsStream(recruiterId)
+        .listen((snapshot) {
           _totalApplicantsCount = snapshot.docs.length;
           notifyListeners();
         });
@@ -528,6 +583,33 @@ class JobProvider with ChangeNotifier {
       rethrow;
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMoreJobs() async {
+    if (_isMoreLoading || _isLoading) return;
+
+    _isMoreLoading = true;
+    notifyListeners();
+
+    try {
+      _currentPage++;
+      final effectiveLocation = _userLocation;
+      final moreLive = await _jobService.fetchLiveJobs(
+        query: _currentQuery,
+        location: effectiveLocation,
+        page: _currentPage,
+      );
+
+      if (moreLive.isNotEmpty) {
+        _liveJobs.addAll(moreLive);
+      }
+    } catch (e) {
+      debugPrint('Load more failed: $e');
+      _currentPage--;
+    } finally {
+      _isMoreLoading = false;
       notifyListeners();
     }
   }

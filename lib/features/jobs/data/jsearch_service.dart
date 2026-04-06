@@ -23,9 +23,7 @@ class JSearchService {
       return JSearchResponse(jobs: [], status: 'NO_KEY');
     }
 
-    final searchQuery = query != null && query.isNotEmpty
-        ? '$query in Sri Lanka'
-        : 'jobs in Sri Lanka';
+    final searchQuery = query ?? 'jobs';
 
     final queryParams = <String, String>{
       'query': searchQuery,

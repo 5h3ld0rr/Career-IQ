@@ -120,8 +120,10 @@ class _ScheduleInterviewScreenState extends State<ScheduleInterviewScreen> {
         if (pushService != null) {
           await pushService.scheduleInterviewPrep(finalInterview);
         }
-        AppSnackBar.show('Interview scheduled and synced with Calendar! 🗓️');
-        Navigator.pop(context);
+        if (mounted) {
+          AppSnackBar.show('Interview scheduled and synced with Calendar! 🗓️');
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (mounted) {

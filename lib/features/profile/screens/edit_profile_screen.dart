@@ -342,6 +342,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               await auth.reloadUser();
 
+              if (!context.mounted) return;
+
               final emailChanged =
                   _emailController.text.trim() != (auth.userEmail ?? '');
               final phoneChanged =
