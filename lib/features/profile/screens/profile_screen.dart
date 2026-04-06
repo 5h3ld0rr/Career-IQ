@@ -583,12 +583,11 @@ class ProfileScreen extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () async {
-                      FilePickerResult? result = await FilePicker.platform
-                          .pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: ['pdf', 'doc', 'docx'],
-                            withData: true,
-                          );
+                      FilePickerResult? result = await FilePicker.pickFiles(
+                        type: FileType.custom,
+                        allowedExtensions: ['pdf', 'doc', 'docx'],
+                        withData: true,
+                      );
                       if (result != null && result.files.single.bytes != null) {
                         await auth.uploadResume(
                           result.files.single.bytes,

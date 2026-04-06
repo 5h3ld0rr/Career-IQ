@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:careeriq/features/auth/providers/auth_provider.dart';
+import 'package:careeriq/core/theme/theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -51,33 +52,51 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Full Screen Image
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: Image.asset(
-              'assets/images/splash_logo.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Optional: Overlay a loading indicator at the bottom
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  strokeWidth: 2,
+      backgroundColor: AppTheme.primaryBlue,
+      body: Center(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.work_rounded,
+                      size: 60,
+                      color: AppTheme.primaryBlue,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 24),
+              Text(
+                'CareerIQ',
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                  color: Colors.white,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Propel Your Career',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

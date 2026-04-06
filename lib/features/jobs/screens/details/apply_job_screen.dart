@@ -27,7 +27,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen> {
 
   Future<void> _pickResume() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx'],
       );
