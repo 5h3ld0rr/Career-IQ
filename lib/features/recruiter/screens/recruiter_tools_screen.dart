@@ -580,20 +580,26 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: Color(0xFF334155),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: Color(0xFF334155),
+                        ),
                       ),
                     ),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: color,
-                        fontSize: 16,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: color,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
