@@ -102,6 +102,10 @@ class JobProvider with ChangeNotifier {
         query: _currentQuery,
         location: effectiveLocation,
       );
+      // Sync saved status for live jobs
+      for (var job in live) {
+        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+      }
       _liveJobs = live;
       notifyListeners();
     } catch (e) {
@@ -380,11 +384,12 @@ class JobProvider with ChangeNotifier {
   Future<void> loadSavedJobs(String userId) async {
     try {
       _savedJobs = await _jobService.fetchSavedJobs(userId);
-      for (var job in _jobs) {
-        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
-      }
-      for (var job in _featuredJobs) {
-        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+      // Sync across all job lists
+      final allLists = [_jobs, _featuredJobs, _liveJobs, _suggestedJobs];
+      for (var list in allLists) {
+        for (var job in list) {
+          job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+        }
       }
       notifyListeners();
     } catch (e) {
@@ -398,29 +403,41 @@ class JobProvider with ChangeNotifier {
       if (job.isSaved) {
         job.isSaved = false;
         _savedJobs.removeWhere((j) => j.id == job.id);
-        notifyListeners();
-        await _jobService.unsaveJob(userId, job.id);
       } else {
         job.isSaved = true;
         _savedJobs.add(job);
-        notifyListeners();
-        await _jobService.saveJob(userId, job.id);
       }
-      for (var j in _jobs) {
-        if (j.id == job.id) j.isSaved = job.isSaved;
-      }
-      for (var j in _featuredJobs) {
-        if (j.id == job.id) j.isSaved = job.isSaved;
+
+      // Optimistic update for all lists immediately
+      final allLists = [_jobs, _featuredJobs, _liveJobs, _suggestedJobs];
+      for (var list in allLists) {
+        for (var j in list) {
+          if (j.id == job.id) j.isSaved = job.isSaved;
+        }
       }
       notifyListeners();
+
+      if (originalStatus) {
+        await _jobService.unsaveJob(userId, job.id);
+      } else {
+        await _jobService.saveJob(userId, job.id);
+      }
     } catch (e) {
+      debugPrint('Error toggling save job: $e');
+      // Revert status on failure
       job.isSaved = originalStatus;
       if (originalStatus) {
         if (!_savedJobs.any((j) => j.id == job.id)) _savedJobs.add(job);
       } else {
         _savedJobs.removeWhere((j) => j.id == job.id);
       }
-      debugPrint('Error toggling save job: $e');
+
+      final allLists = [_jobs, _featuredJobs, _liveJobs, _suggestedJobs];
+      for (var list in allLists) {
+        for (var j in list) {
+          if (j.id == job.id) j.isSaved = originalStatus;
+        }
+      }
       notifyListeners();
     }
   }

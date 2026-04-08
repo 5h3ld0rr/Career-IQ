@@ -225,13 +225,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         return SliverList(
                           delegate: SliverChildBuilderDelegate((context, i) {
-                            return Selector<JobProvider, Job>(
-                              selector: (_, p) => p.jobs[i],
-                              builder: (context, job, _) {
+                            return Selector<JobProvider, (Job, bool, int?, bool)>(
+                              selector: (_, p) {
+                                final job = p.jobs[i];
+                                return (job, job.isSaved, job.matchScore, job.isAnalyzing);
+                              },
+                              builder: (context, data, _) {
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: RepaintBoundary(
-                                    child: _buildJobListItem(job, context),
+                                    child: _buildJobListItem(data.$1, context),
                                   ),
                                 );
                               },
@@ -876,8 +879,15 @@ class _HomeScreenState extends State<HomeScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         itemCount: jobs.suggestedJobs.length,
-        itemBuilder: (context, i) =>
-            _buildSuggestedCard(jobs.suggestedJobs[i], context),
+        itemBuilder: (context, i) {
+          return Selector<JobProvider, (Job, bool, int?, bool)>(
+            selector: (_, p) {
+              final job = p.suggestedJobs[i];
+              return (job, job.isSaved, job.matchScore, job.isAnalyzing);
+            },
+            builder: (context, data, _) => _buildSuggestedCard(data.$1, context),
+          );
+        },
       ),
     );
   }
@@ -1000,8 +1010,15 @@ class _HomeScreenState extends State<HomeScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         itemCount: jobs.featuredJobs.length,
-        itemBuilder: (context, i) =>
-            _buildFeaturedCard(jobs.featuredJobs[i], context),
+        itemBuilder: (context, i) {
+          return Selector<JobProvider, (Job, bool, int?, bool)>(
+            selector: (_, p) {
+              final job = p.featuredJobs[i];
+              return (job, job.isSaved, job.matchScore, job.isAnalyzing);
+            },
+            builder: (context, data, _) => _buildFeaturedCard(data.$1, context),
+          );
+        },
       ),
     );
   }
