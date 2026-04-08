@@ -324,7 +324,12 @@ class MainWrapperState extends State<MainWrapper> {
       child: InkWell(
         onTap: () {
           if (isAIHub) {
-            _showAIHubMenu();
+            final auth = Provider.of<AuthProvider>(context, listen: false);
+            if (auth.isRecruiter) {
+              _navigateTo(const RecruiterToolsScreen());
+            } else {
+              _showAIHubMenu();
+            }
           } else if (!isSelected) {
             HapticFeedback.mediumImpact();
             setState(() {
