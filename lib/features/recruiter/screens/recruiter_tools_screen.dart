@@ -88,8 +88,7 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
                   padding: const EdgeInsets.all(24),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      _buildHeader(),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
                       _buildToolsGrid(),
                       const SizedBox(height: 40),
                       _buildMarketInsightsSection(),
@@ -147,48 +146,33 @@ class _RecruiterToolsScreenState extends State<RecruiterToolsScreen> {
   }
 
   Widget _buildAppBar() {
-    return SliverAppBar(
-      floating: true,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: false,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: const Text(
-        'Recruiter AI',
-        style: TextStyle(fontWeight: FontWeight.w900),
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ARTIFICIAL INTELLIGENCE',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF03A9F4),
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Recruiter Tools',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1.0),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Hiring Intelligence',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w900,
-            color: const Color(0xFF00B0FF),
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Scale your talent acquisition with AI',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.8,
-            height: 1.1,
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildToolsGrid() {
     return GridView.count(

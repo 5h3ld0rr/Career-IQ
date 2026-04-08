@@ -28,13 +28,33 @@ class ProfileScreen extends StatelessWidget {
               CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverAppBar(
-                    floating: true,
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    automaticallyImplyLeading: false,
-                    title: const Text('Profile'),
-                    actions: const [],
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ACCOUNT & SETTINGS',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: Theme.of(context).colorScheme.primary,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Profile',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.all(24),
@@ -259,30 +279,57 @@ class ProfileScreen extends StatelessWidget {
           onTap: () => _showImagePickerOptions(context, auth),
           child: Stack(
             children: [
-              _buildGlassBox(
-                context,
-                borderRadius: 100,
-                padding: const EdgeInsets.all(4),
-                child: auth.isLoading && auth.profilePictureUrl == null
-                    ? const CircularProgressIndicator(strokeWidth: 2)
-                    : CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        backgroundImage: auth.profilePictureUrl != null
-                            ? NetworkImage(auth.profilePictureUrl!)
-                            : null,
-                        child: auth.profilePictureUrl == null
-                            ? Text(
-                                auth.userName?.substring(0, 1).toUpperCase() ??
-                                    'U',
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w900,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            : null,
-                      ),
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      const Color(0xFF00B0FF),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).colorScheme.surface,
+                  ),
+                  child: auth.isLoading && auth.profilePictureUrl == null
+                      ? const SizedBox(
+                          width: 100,
+                          height: 100,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          backgroundImage: auth.profilePictureUrl != null
+                              ? NetworkImage(auth.profilePictureUrl!)
+                              : null,
+                          child: auth.profilePictureUrl == null
+                              ? Text(
+                                  auth.userName?.substring(0, 1).toUpperCase() ??
+                                      'U',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w900,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                )
+                              : null,
+                        ),
+                ),
               ),
               if (auth.isLoading && auth.profilePictureUrl != null)
                 Positioned.fill(

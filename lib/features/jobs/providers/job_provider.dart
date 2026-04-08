@@ -14,7 +14,8 @@ class JobProvider with ChangeNotifier {
   List<Job> _suggestedJobs = [];
   List<Job> _savedJobs = [];
   List<Job> _liveJobs = [];
-  bool _isLoading = false;
+  List<Job>? _cachedJobs; // memoized combined+sorted list
+  bool _isLoading = true; // start true so shimmer shows on first build
   String? _error;
   String? _currentQuery;
   String? _currentCategory = 'All';
@@ -37,11 +38,18 @@ class JobProvider with ChangeNotifier {
   StreamSubscription<List<Job>>? _featuredJobsSubscription;
 
   List<Job> get jobs {
-    // Combine local database jobs and external API jobs
+    _cachedJobs ??= _buildSortedJobs();
+    return _cachedJobs!;
+  }
+
+  List<Job> _buildSortedJobs() {
     final combined = [..._jobs, ..._liveJobs];
-    // Sort by postedAt descending to show latest first
     combined.sort((a, b) => b.postedAt.compareTo(a.postedAt));
     return combined;
+  }
+
+  void _invalidateJobsCache() {
+    _cachedJobs = null;
   }
 
   List<Job> get featuredJobs => _featuredJobs;
@@ -81,12 +89,14 @@ class JobProvider with ChangeNotifier {
     _selectedWorkMode = workMode ?? _selectedWorkMode;
     _userLocation = userLocation ?? _userLocation;
 
+    // Keep isLoading=true until first stream event — shimmer shows until data arrives
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     final effectiveLocation = location ?? _userLocation;
 
+    // Start stream — loading flag is cleared inside listener on first event
     startJobsStream(
       query: _currentQuery,
       category: _currentCategory,
@@ -96,24 +106,28 @@ class JobProvider with ChangeNotifier {
       userLocation: _userLocation,
     );
 
-    // Live jobs are external (JSearch), so they remain as a Future fetch
-    try {
-      final live = await _jobService.fetchLiveJobs(
-        query: _currentQuery,
-        location: effectiveLocation,
-      );
-      // Sync saved status for live jobs
-      for (var job in live) {
-        job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
-      }
-      _liveJobs = live;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Live jobs fetch failed (non-blocking): $e');
-    }
+    // Fetch external live jobs in background — won't block the UI
+    _fetchLiveJobsInBackground(effectiveLocation);
+  }
 
-    _isLoading = false;
-    notifyListeners();
+  void _fetchLiveJobsInBackground(String? location) {
+    _jobService
+        .fetchLiveJobs(query: _currentQuery, location: location)
+        .timeout(const Duration(seconds: 10)) // never block shimmer forever
+        .then((live) {
+          for (var job in live) {
+            job.isSaved = _savedJobs.any((saved) => saved.id == job.id);
+          }
+          _liveJobs = live;
+          _isLoading = false; // shimmer ends after live jobs arrive
+          _invalidateJobsCache();
+          notifyListeners();
+        })
+        .catchError((e) {
+          debugPrint('Live jobs fetch failed (background): $e');
+          _isLoading = false; // shimmer ends even if API fails
+          notifyListeners();
+        });
   }
 
   void startJobsStream({
@@ -153,7 +167,6 @@ class JobProvider with ChangeNotifier {
           _jobs = filtered;
 
           // Update suggested jobs if userLocation is set
-          // We use the full available list (filtered only by category/type/mode) to pick suggestions
           final targetLocation = userLocation ?? location;
           if (targetLocation != null && targetLocation.isNotEmpty) {
             final loc = targetLocation.toLowerCase();
@@ -168,6 +181,13 @@ class JobProvider with ChangeNotifier {
             _suggestedJobs = [];
           }
 
+          // Only update data here — isLoading cleared by _fetchLiveJobsInBackground
+          _invalidateJobsCache();
+          notifyListeners();
+        }, onError: (e) {
+          debugPrint('Jobs stream error: $e');
+          _isLoading = false; // clear shimmer if Firestore itself errors
+          _error = 'Failed to load jobs';
           notifyListeners();
         });
   }

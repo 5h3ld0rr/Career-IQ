@@ -101,20 +101,22 @@ class _RecruiterDashboardScreenState extends State<RecruiterDashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Recruiter',
+                'RECRUITER WORKSPACE',
                 style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03A9F4),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF03A9F4),
+                  letterSpacing: 1.5,
                 ),
               ),
-              Text(
+              const SizedBox(height: 8),
+              const Text(
                 'Dashboard',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1.0),
               ),
             ],
           ),

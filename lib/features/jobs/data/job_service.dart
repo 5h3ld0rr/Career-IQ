@@ -79,6 +79,7 @@ class JobService {
     String? jobType,
     String? workMode,
     String? location,
+    int limit = 50,
   }) {
     Query queryRef = _firestore.collection('jobs');
 
@@ -101,7 +102,7 @@ class JobService {
       queryRef = queryRef.where('location', isEqualTo: location);
     }
 
-    return queryRef.snapshots().map((snapshot) {
+    return queryRef.limit(limit).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final Map<String, dynamic> data =
             Map<String, dynamic>.from(doc.data() as Map);
@@ -442,11 +443,24 @@ class JobService {
         .collection('saved_jobs')
         .get();
 
-    List<Job> savedJobs = [];
-    for (var doc in snapshot.docs) {
-      final jobDoc = await _firestore.collection('jobs').doc(doc.id).get();
-      if (jobDoc.exists) {
-        final job = Job.fromFirestore(jobDoc);
+    if (snapshot.docs.isEmpty) return [];
+
+    final savedIds = snapshot.docs.map((d) => d.id).toList();
+    final List<Job> savedJobs = [];
+
+    // Firestore whereIn limit is 10 — batch into chunks
+    for (int i = 0; i < savedIds.length; i += 10) {
+      final chunk = savedIds.sublist(
+        i,
+        i + 10 > savedIds.length ? savedIds.length : i + 10,
+      );
+      final jobsSnap = await _firestore
+          .collection('jobs')
+          .where(FieldPath.documentId, whereIn: chunk)
+          .get();
+
+      for (var doc in jobsSnap.docs) {
+        final job = Job.fromFirestore(doc);
         job.isSaved = true;
         savedJobs.add(job);
       }

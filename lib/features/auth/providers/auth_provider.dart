@@ -65,52 +65,63 @@ class AuthProvider with ChangeNotifier {
     AppSnackBar.show(message, isError: isError);
   }
 
-  Future<void> _populateUserData(dynamic user) async {
+  void _populateFromAuthUser(dynamic user) {
     if (user == null) return;
-
     _isAuthenticated = true;
     _userEmail = user.email;
     _profilePictureUrl = user.photoURL;
-
-    final profile = await _authService.getUserProfile(user.uid);
-    _userName =
-        profile?['name'] ?? user.displayName ?? _userEmail?.split('@')[0];
-
-    if (profile?['photoUrl'] != null) {
-      _profilePictureUrl = profile!['photoUrl'];
-    }
-
-    _resumeFileName = profile?['resumeFileName'];
-    _resumeUrl = profile?['resumeUrl'];
-
-    if (profile?['resumeUploadedAt'] != null) {
-      _resumeUploadedAt = (profile!['resumeUploadedAt'] as Timestamp).toDate();
-    }
-
-    _skills = List<String>.from(profile?['skills'] ?? []);
-    _bio = profile?['bio'];
-    _experience = profile?['experience'];
-    _location = profile?['location'];
-    _userRole = profile?['role'] ?? 'Job Seeker';
+    _userName = user.displayName ?? _userEmail?.split('@')[0];
     _isEmailVerified = user.emailVerified;
-    _isPhoneVerified = profile?['isPhoneVerified'] ?? false;
-    _phoneNumber = profile?['phoneNumber'];
-    _companyName = profile?['companyName'];
-    _companyWebsite = profile?['companyWebsite'];
-    _companyIndustry = profile?['companyIndustry'];
-    _companyDescription = profile?['companyDescription'];
+  }
+
+  Future<void> _loadFirestoreProfile(dynamic user) async {
+    if (user == null) return;
+    try {
+      final profile = await _authService.getUserProfile(user.uid);
+      if (profile == null) return;
+
+      _userName = profile['name'] ?? _userName;
+      if (profile['photoUrl'] != null) {
+        _profilePictureUrl = profile['photoUrl'];
+      }
+      _resumeFileName = profile['resumeFileName'];
+      _resumeUrl = profile['resumeUrl'];
+      if (profile['resumeUploadedAt'] != null) {
+        _resumeUploadedAt =
+            (profile['resumeUploadedAt'] as Timestamp).toDate();
+      }
+      _skills = List<String>.from(profile['skills'] ?? []);
+      _bio = profile['bio'];
+      _experience = profile['experience'];
+      _location = profile['location'];
+      _userRole = profile['role'] ?? 'Job Seeker';
+      _isPhoneVerified = profile['isPhoneVerified'] ?? false;
+      _phoneNumber = profile['phoneNumber'];
+      _companyName = profile['companyName'];
+      _companyWebsite = profile['companyWebsite'];
+      _companyIndustry = profile['companyIndustry'];
+      _companyDescription = profile['companyDescription'];
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading Firestore profile: $e');
+    }
+  }
+
+  Future<void> _populateUserData(dynamic user) async {
+    if (user == null) return;
+    _populateFromAuthUser(user);
+    await _loadFirestoreProfile(user);
   }
 
   Future<void> checkAuthStatus() async {
     final user = _authService.currentUser;
     if (user != null) {
-      try {
-        await user.reload();
-        await _populateUserData(_authService.currentUser);
-      } catch (e) {
-        debugPrint('Error checking auth status: $e');
-      }
+      _populateFromAuthUser(user);
       notifyListeners();
+      _loadFirestoreProfile(user);
+      user.reload().catchError((e) {
+        debugPrint('Background reload error: $e');
+      });
     }
   }
 

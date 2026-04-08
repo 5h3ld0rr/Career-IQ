@@ -51,6 +51,7 @@ class MainWrapperState extends State<MainWrapper> {
     _recruiterScreens = [
       const RecruiterDashboardScreen(key: ValueKey('rec_dash')),
       const ATSDashboardScreen(key: ValueKey('ats_dash')),
+      const RecruiterToolsScreen(key: ValueKey('rec_tools')),
       const ManageJobsScreen(key: ValueKey('manage_jobs')),
       const ProfileScreen(key: ValueKey('rec_profile')),
     ];
@@ -256,10 +257,11 @@ class MainWrapperState extends State<MainWrapper> {
                     'ATS',
                   ),
                 _buildNavItem(
-                  -1,
+                  isRecruiter ? 2 : -1,
                   Icons.widgets_outlined,
                   Icons.widgets_rounded,
-                  '',
+                  isRecruiter ? 'Tools' : '',
+                  isSpecialUI: !isRecruiter,
                 ),
                 if (!isRecruiter)
                   _buildNavItem(
@@ -270,13 +272,13 @@ class MainWrapperState extends State<MainWrapper> {
                   )
                 else
                   _buildNavItem(
-                    2,
+                    3,
                     Icons.work_outline_rounded,
                     Icons.work_rounded,
                     'Jobs',
                   ),
                 _buildNavItem(
-                  3,
+                  isRecruiter ? 4 : 3,
                   Icons.person_outline_rounded,
                   Icons.person_rounded,
                   'Profile',
@@ -308,28 +310,22 @@ class MainWrapperState extends State<MainWrapper> {
     int index,
     IconData outlineIcon,
     IconData filledIcon,
-    String label,
-  ) {
-    final bool isAIHub = index == -1;
-    final bool isSelected = isAIHub
+    String label, {
+    bool isSpecialUI = false,
+  }) {
+    final bool isMiddle = index == -1;
+    final bool isSelected = isMiddle && isSpecialUI
         ? _isAIHubMenuOpen
         : _selectedIndex == index;
     final theme = Theme.of(context);
-    final activeColor = isAIHub
-        ? theme.colorScheme.primary
-        : theme.colorScheme.primary;
+    final activeColor = theme.colorScheme.primary;
     final inactiveColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);
 
     return Expanded(
       child: InkWell(
         onTap: () {
-          if (isAIHub) {
-            final auth = Provider.of<AuthProvider>(context, listen: false);
-            if (auth.isRecruiter) {
-              _navigateTo(const RecruiterToolsScreen());
-            } else {
-              _showAIHubMenu();
-            }
+          if (isMiddle) {
+            _showAIHubMenu();
           } else if (!isSelected) {
             HapticFeedback.mediumImpact();
             setState(() {
@@ -346,7 +342,7 @@ class MainWrapperState extends State<MainWrapper> {
             Stack(
               alignment: Alignment.center,
               children: [
-                if (isAIHub)
+                if (isSpecialUI)
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
                     width: isSelected ? 52 : 44,
@@ -387,7 +383,7 @@ class MainWrapperState extends State<MainWrapper> {
                     isSelected ? filledIcon : outlineIcon,
                     key: ValueKey(isSelected),
                     color: isSelected ? activeColor : inactiveColor,
-                    size: isAIHub ? 30 : 26,
+                    size: isSpecialUI ? 30 : 26,
                   ),
                 ),
               ],

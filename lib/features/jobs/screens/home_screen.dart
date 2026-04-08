@@ -37,23 +37,23 @@ class _HomeScreenState extends State<HomeScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final jobProvider = Provider.of<JobProvider>(context, listen: false);
 
-      // Load all data first
+      // Run all three fetches in parallel — none blocks the others
       await Future.wait([
         jobProvider.loadJobs(userLocation: auth.location),
         jobProvider.loadFeaturedJobs(),
+        if (auth.userId != null)
+          jobProvider.loadSavedJobs(auth.userId!)
+        else
+          Future.value(),
       ]);
 
       if (!mounted) return;
 
-      // Run AI match score calculation ONCE for all loaded jobs
+      // AI scores: fire-and-forget — never block UI
       if (auth.skills.isNotEmpty || auth.bio != null) {
         final profileStr =
             "Skills: ${auth.skills.join(', ')}\nBio: ${auth.bio}\nExperience: ${auth.experience}";
-        jobProvider.calculateMatchScores(profileStr);
-      }
-
-      if (auth.userId != null) {
-        jobProvider.loadSavedJobs(auth.userId!);
+        jobProvider.calculateMatchScores(profileStr); // intentionally not awaited
       }
     });
   }

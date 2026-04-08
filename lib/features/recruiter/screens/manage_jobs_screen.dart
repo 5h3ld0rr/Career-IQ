@@ -18,43 +18,54 @@ class ManageJobsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.getScaffoldColor(context),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Manage Jobs',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: jobProvider.isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'MANAGEMENT',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF03A9F4),
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Active Postings',
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1.0),
+                  ),
+                ],
               ),
-            )
-          : jobs.isEmpty
-              ? _buildEmptyState(context)
-              : ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: jobs.length,
-                  itemBuilder: (context, index) {
-                    final job = jobs[index];
-                    return _buildJobItem(context, job);
-                  },
-                ),
+            ),
+            Expanded(
+              child: jobProvider.isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                  : jobs.isEmpty
+                      ? _buildEmptyState(context)
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(20),
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: jobs.length,
+                          itemBuilder: (context, index) {
+                            final job = jobs[index];
+                            return _buildJobItem(context, job);
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

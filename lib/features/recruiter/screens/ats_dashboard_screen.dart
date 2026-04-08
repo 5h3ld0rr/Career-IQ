@@ -22,7 +22,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
   late TabController _tabController;
   final List<String> _stages = [
     'All',
-    'New Applied',
+    'Pending',
     'Shortlisted',
     'Interviewing',
     'Hired',
@@ -99,43 +99,16 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
   ) {
     final stage = _stages[_tabController.index];
     if (stage == 'All') return allApplicants;
-    return allApplicants.where((c) => c['status'] == stage).toList();
+    return allApplicants.where((c) => (c['status'] ?? 'Pending') == stage).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final jobProvider = Provider.of<JobProvider>(context);
 
     return Scaffold(
       backgroundColor: AppTheme.getScaffoldColor(context),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Applicant Tracking',
-              style: TextStyle(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w900,
-                fontSize: 24,
-                letterSpacing: -0.5,
-              ),
-            ),
-            Text(
-              'Manage your talent pipeline',
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: _buildBody(jobProvider),
+      body: SafeArea(child: _buildBody(jobProvider)),
     );
   }
 
@@ -161,9 +134,32 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
     final applicants = jobProvider.jobApplicants;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'PIPELINE OVERVIEW',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF03A9F4),
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Applicant Tracking',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1.0),
+              ),
+            ],
+          ),
+        ),
         _buildJobSelector(jobProvider.postedJobs),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         _buildStageTabs(applicants),
         Expanded(
           child: _isInitializing
@@ -188,7 +184,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
 
                     return ListView.builder(
                       padding: const EdgeInsets.only(
-                        top: 16,
+                        top: 20,
                         bottom: 100,
                         left: 16,
                         right: 16,
@@ -209,26 +205,40 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
     final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.getGlassColor(context).withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.getGlassColor(context).withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppTheme.getGlassBorderColor(context)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedJobId,
           isExpanded: true,
-          icon: Icon(
-            Icons.arrow_drop_down_circle_rounded,
-            color: theme.colorScheme.primary,
+          icon: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: theme.colorScheme.primary,
+            ),
           ),
           items: jobs.map((job) {
             return DropdownMenuItem<String>(
               value: job.id,
               child: Text(
                 job.title,
-                style: const TextStyle(fontWeight: FontWeight.w700),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -244,26 +254,30 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
     final theme = Theme.of(context);
 
     return Container(
-      height: 45,
+      height: 40,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: TabBar(
         controller: _tabController,
         isScrollable: true,
         indicatorPadding: EdgeInsets.zero,
-        labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 8),
         padding: EdgeInsets.zero,
-        indicatorSize: TabBarIndicatorSize.label,
+        indicatorSize: TabBarIndicatorSize.tab,
         tabAlignment: TabAlignment.start,
         dividerColor: Colors.transparent,
+        splashBorderRadius: BorderRadius.circular(20),
         indicator: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.15),
+          color: theme.colorScheme.primary,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: theme.colorScheme.primary.withValues(alpha: 0.5),
-            width: 1,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        labelColor: theme.colorScheme.primary,
+        labelColor: theme.colorScheme.onPrimary,
         unselectedLabelColor: theme.colorScheme.onSurface.withValues(
           alpha: 0.5,
         ),
@@ -281,37 +295,42 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
         tabs: _stages.map((stage) {
           final count = stage == 'All'
               ? applicants.length
-              : applicants.where((c) => c['status'] == stage).length;
+              : applicants.where((c) => (c['status'] ?? 'Pending') == stage).length;
+          
+          final isSelected = _stages[_tabController.index] == stage;
 
           return Tab(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(stage),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: count > 0
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    count.toString(),
-                    style: TextStyle(
-                      color: count > 0
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(stage),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary.withValues(alpha: 0.2)
+                          : (count > 0 ? theme.colorScheme.primary.withValues(alpha: 0.15) : theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      count.toString(),
+                      style: TextStyle(
+                        color: isSelected
+                            ? theme.colorScheme.onPrimary
+                            : (count > 0 ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         }).toList(),
@@ -326,10 +345,11 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
     final Map<String, dynamic> user = candidateData['user'] ?? {};
     final String name = user['name'] ?? user['fullName'] ?? 'Unknown Applicant';
     final String role = user['role'] ?? user['currentRole'] ?? 'No Headline provided';
-    final String stage = candidateData['status'] ?? 'New Applied';
-    final String applicationId = candidateData['applicationId'];
+    final String stage = candidateData['status'] ?? 'Pending';
+    final String applicationId = candidateData['applicationId'] ?? '';
 
-    int score = 85;
+    // Mock score logic for UI display
+    int score = 85; 
     Color scoreColor = Colors.green;
 
     final String? photoUrl = user['photoUrl'] ?? user['profilePictureUrl'];
@@ -339,7 +359,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
         : '?';
     if (name.contains(' ')) {
       final parts = name.split(' ');
-      if (parts.length > 1) {
+      if (parts.length > 1 && parts[1].isNotEmpty) {
         initials = parts[0][0].toUpperCase() + parts[1][0].toUpperCase();
       }
     }
@@ -362,7 +382,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -383,7 +403,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                     CircleAvatar(
                       radius: 26,
                       backgroundColor: theme.colorScheme.primary.withValues(
-                        alpha: 0.2,
+                        alpha: 0.15,
                       ),
                       backgroundImage:
                           photoUrl != null ? NetworkImage(photoUrl) : null,
@@ -398,7 +418,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                             )
                           : null,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,13 +430,15 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                               fontSize: 16,
                               letterSpacing: -0.3,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             role,
                             style: TextStyle(
                               color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.7,
+                                alpha: 0.6,
                               ),
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -424,28 +446,44 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
                               Icon(
-                                Icons.timeline_rounded,
+                                Icons.adjust_rounded,
                                 size: 12,
                                 color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.5,
+                                  alpha: 0.4,
                                 ),
                               ),
                               const SizedBox(width: 4),
                               PopupMenuButton<String>(
                                 initialValue: stage,
-                                child: Text(
-                                  stage,
-                                  style: TextStyle(
-                                    color: theme.colorScheme.primary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: theme.colorScheme.primary
-                                        .withValues(alpha: 0.3),
+                                tooltip: 'Change Status',
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        stage,
+                                        style: TextStyle(
+                                          color: theme.colorScheme.primary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Icon(
+                                        Icons.arrow_drop_down_rounded,
+                                        size: 14,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 onSelected: (newStage) {
@@ -461,7 +499,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                                 },
                                 itemBuilder: (BuildContext context) {
                                   return [
-                                    'New Applied',
+                                    'Pending',
                                     'Shortlisted',
                                     'Interviewing',
                                     'Hired',
@@ -491,10 +529,10 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: scoreColor.withValues(alpha: 0.15),
+                        color: scoreColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: scoreColor.withValues(alpha: 0.3),
+                          color: scoreColor.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
@@ -524,7 +562,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                   height: 1,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 if (stage == 'Shortlisted' || stage == 'Interviewing')
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -532,7 +570,7 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                       _buildActionButton(
                         context,
                         Icons.fact_check_rounded,
-                        'Application Outcome',
+                        'Evaluate Outcome',
                         const Color(0xFFFF9100),
                         () => _showScheduleModal(
                           context,
@@ -542,16 +580,53 @@ class _ATSDashboardScreenState extends State<ATSDashboardScreen>
                         ),
                       ),
                     ],
-                  ),
-                if (stage == 'New Applied')
+                  )
+                else if (stage == 'Pending')
                   Center(
                     child: Text(
                       'Shortlist candidate to evaluate outcome',
                       style: TextStyle(
                         fontSize: 12,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                         fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w500,
                       ),
+                    ),
+                  )
+                else if (stage == 'Hired')
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.workspace_premium_rounded, size: 16, color: Colors.green),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Candidate was hired for this role',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (stage == 'Rejected')
+                   Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                         Icon(Icons.cancel_rounded, size: 16, color: Colors.red.withValues(alpha: 0.7)),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Candidate was rejected',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],
